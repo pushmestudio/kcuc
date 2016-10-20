@@ -1,0 +1,52 @@
+apply plugin: 'java'
+apply plugin: 'eclipse-wtp'
+apply plugin: 'war'
+apply plugin: 'maven'
+
+// version = '1.0' // versionをつけると、生成されるwarの末尾にversionが付く
+def defaultEncoding = 'UTF-8'
+tasks.withType(AbstractCompile).each {
+  it.options.encoding = defaultEncoding
+}
+tasks.withType(GroovyCompile).each {
+  it.groovyOptions.encoding = defaultEncoding
+}
+[compileJava, compileTestJava].each {
+  it.options.compilerArgs += ['-source', '1.8', '-target', '1.8']
+}
+
+// 本来src/main/webappだが、クライアントサイドのJSもpomと同様の管理方法を取るため、一段ずらす
+project.webAppDirName = 'src/main/webapp/WebContent'
+
+repositories {
+  mavenCentral()
+  flatDir dirs: "${webAppDir}/WEB-INF/lib"
+}
+
+dependencies {
+  // GroupId:ArtifactId:Versionの順で書く
+
+  // ローカルファイル
+  compile ':org.JSON-JSON-java:'
+
+  // HttpServletなどを使用する場合には必要
+  // providedCompile 'javax.servlet:javax.servlet-api:3.1'
+
+  compile 'org.glassfish.jersey.core:jersey-server:2.23'
+  compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.23'
+
+  // glassfish containerを使う場合はjersey-container-servletを消して下記を有効化する
+  // compile 'org.glassfish.jersey.containers:jersey-container-jdk-http:2.23'
+
+  testCompile 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jdk-http:2.23'
+  testCompile 'junit:junit:4.12'
+}
+
+war {
+  archiveName 'kcuc.war'
+}
+
+// pom.xml書き出し、ここできちんと書き出させるためにはdependenciesをまともに書く必要あり
+task writePom << {
+  pom().writeTo('pom.xml')
+}

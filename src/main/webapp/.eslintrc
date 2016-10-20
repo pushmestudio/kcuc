@@ -1,0 +1,21 @@
+{
+  "extends": "eslint:recommended", // 推奨設定を使う、本格的に使うなら全て吟味してチームで適用対象を決めても良い
+  "env": {
+    "browser": true,
+    "es6": true,
+    "jasmine": true,
+    "jquery": true,
+    "amd": true // requirejs系
+  },
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "plugins": [
+    "requirejs" // requirejs系
+  ],
+  "rules": {
+    "no-redeclare" : "warn", // for(var i = 0)的なやつ
+    "no-unused-vars": ["error", {"vars" : "all", "args" : "after-used", "argsIgnorePattern" : "$$"} ], // "argsIgnorePattern"で未使用扱いの"$"を無視
+    "requirejs/no-named-define": "error"
+  }
+}

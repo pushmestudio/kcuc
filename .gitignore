@@ -1,0 +1,12 @@
+build/
+bin/
+.metadata/
+.recommenders/
+RemoteSystemsTempFiles/
+Servers/
+.gradle
+.classpath
+.settings/
+*.class
+*.swp
+*.bak
