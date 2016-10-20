@@ -1,0 +1,22 @@
+{
+  "name": "kcuc",
+  "version": "1.0.0",
+  "description": "Knowledge Center Update Checker",
+  "main": "index.js",
+  "repository": {
+    "url": "https://gitlab.com/pushmestudio/kcuc.git",
+    "type": "git"
+  },
+  "author": "PushMe Studio",
+  "license": "PushMe Studio",
+  "dependencies": {
+    "bower": "^1.7.9",
+    "eslint": "^3.8.1",
+    "jsdoc": "^3.4.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.16.0",
+    "babel-preset-es2015": "^6.16.0",
+    "babel-preset-react": "^6.16.0"
+  }
+}

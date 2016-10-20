@@ -1,0 +1,13 @@
+{
+  "name": "kcuc",
+  "description": "Knowledge Center Update Checker",
+  "main": "WebContent/index.js",
+  "authors": "PushMe Studio",
+  "license": "PushMe Studio",
+  "homepage": "",
+  "private": true,
+  "dependencies": {
+    "react": "^15.3.2"
+  },
+  "devDependencies": {}
+}
