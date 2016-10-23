@@ -6,9 +6,12 @@
 事前にyarn要導入。
 
 導入済なら、`webapp`ディレクトリにて`yarn install`。
-その後、`node_modules/bower/bin/bower install`。
+現時点では次のコマンドを用意している。
 
-JSX変換には`./node_modules/babel-cli/bin/babel.js WebContent/js/ --out-dir WebContent/build/`
+- JavaScript文法チェック：`yarn lint`
+- 文法チェック＆JavaScriptのビルド・依存性解決＆JsDocの出力：`yarn build`
+- JavaScriptのビルド＆ローカルサーバー起動：`yarn start`
+- JsDocの出力：`yarn doc`
 
 ## サーバーサイドセットアップ
 

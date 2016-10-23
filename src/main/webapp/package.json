@@ -10,13 +10,29 @@
   "author": "PushMe Studio",
   "license": "PushMe Studio",
   "dependencies": {
-    "bower": "^1.7.9",
-    "eslint": "^3.8.1",
-    "jsdoc": "^3.4.2"
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2",
+    "react-redux": "^4.4.5",
+    "redux": "^3.6.0"
   },
   "devDependencies": {
     "babel-cli": "^6.16.0",
+    "babel-core": "^6.17.0",
+    "babel-loader": "^6.2.5",
     "babel-preset-es2015": "^6.16.0",
-    "babel-preset-react": "^6.16.0"
+    "babel-preset-react": "^6.16.0",
+    "css-loader": "^0.25.0",
+    "eslint": "^3.8.1",
+    "eslint-plugin-react": "^6.4.1",
+    "jsdoc": "^3.4.2",
+    "redux-devtools": "^3.3.1",
+    "style-loader": "^0.13.1",
+    "webpack": "^1.13.2",
+    "webpack-dev-server": "^1.16.2"
+  },
+  "scripts": {
+    "lint": "eslint WebContent/js/",
+    "build": "eslint WebContent/js/ && webpack && jsdoc -r WebContent/js/*",
+    "start": "webpack-dev-server --progress --color --hot --inline --host 0.0.0.0 --content-base WebContent/"
   }
 }
