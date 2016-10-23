@@ -6,12 +6,8 @@
 事前にyarn要導入。
 
 導入済なら、`webapp`ディレクトリにて`yarn install`。
-現時点では次のコマンドを用意している。
 
-- JavaScript文法チェック：`yarn lint`
-- 文法チェック＆JavaScriptのビルド・依存性解決＆JsDocの出力：`yarn build`
-- JavaScriptのビルド＆ローカルサーバー起動：`yarn start`
-- JsDocの出力：`yarn doc`
+詳細は[クライアントサイドのREADME](tree/master/src/main/webapp)にて。
 
 ## サーバーサイドセットアップ
 
