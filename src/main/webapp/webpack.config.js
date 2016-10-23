@@ -4,7 +4,8 @@ webpack = require('webpack');
 module.exports = {
   entry: {
     sample1: './WebContent/js/app.js',
-    sample2: './WebContent/js/sample2.js'
+    sample2: './WebContent/js/sample2.js',
+    todos: './WebContent/js/index.js'
   },
   output: {
     path: path.resolve('WebContent/build/'),
