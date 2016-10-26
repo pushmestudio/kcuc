@@ -1,6 +1,12 @@
-out/
-bin/
-build/
+# JavaScript Library related
 node_modules/
+
+# JsDoc related
+out/
+
+# Babel/Webpack related
+build/
+
+# Backup / Temporaly related
 *.bak
 WebContent/lib/*
