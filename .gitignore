@@ -1,12 +1,23 @@
-build/
+# Eclipse related
 bin/
+.classpath
+.project
 .metadata/
 .recommenders/
 RemoteSystemsTempFiles/
 Servers/
-.gradle
-.classpath
 .settings/
+
+# Gradle related
+build/
+.gradle/
+
+# Java related
 *.class
+
+# Backup / Temporaly related
 *.swp
 *.bak
+
+# Mac user related
+.DS_Store
