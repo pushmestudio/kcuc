@@ -1,3 +1,14 @@
+/**
+ * @file ReducerのうちのTodo
+ * @description Reducerでは、(previousState, action) => newState)といった形で、
+ * 以前の状態とアクション内容から次の状態を返す
+ * 重要なポイントとしては、reducerはあくまでも状態を返すだけで、
+ * 処理内容は記述しないということ
+ * stateは初期値ではundefinedになるため、このタイミングが初期パラメータを返すのに適している
+ * reducerは肥大化しないように、更新されるタイミングが別のものは別のファイルに分割するのが良い
+ * @see http://redux.js.org/docs/basics/Reducers.html#handling
+ */
+
 const todo = (state = {}, action) => {
   switch (action.type) {
     case 'ADD_TODO':

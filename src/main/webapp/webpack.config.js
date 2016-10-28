@@ -3,9 +3,9 @@ webpack = require('webpack');
 
 module.exports = {
   entry: {
-    sample1: './WebContent/js/app.js',
-    sample2: './WebContent/js/sample2.js',
     todos: './WebContent/js/index.js'
+    // モジュール追加時は下記のようにモジュール名とエントリーポイントのパスを記載
+    // sample2: './WebContent/js/sample2.js',
   },
   output: {
     path: path.resolve('WebContent/build/'),
