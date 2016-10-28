@@ -1,8 +1,8 @@
 ## クライアントサイドセットアップ
 
-事前にyarn要導入。
+* Requirement: Yarn導入, NodeJS導入
 
-導入済なら、`webapp`ディレクトリにて`yarn install`。
+`webapp`ディレクトリにて`yarn install`。
 現時点では次のコマンドを用意している。
 
 - 文法チェック＆JavaScriptのビルド・依存性解決＆JsDocの出力：`yarn build`

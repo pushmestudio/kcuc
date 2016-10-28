@@ -1,6 +1,7 @@
 # Eclipse related
 bin/
 .classpath
+.project
 .metadata/
 .recommenders/
 RemoteSystemsTempFiles/
