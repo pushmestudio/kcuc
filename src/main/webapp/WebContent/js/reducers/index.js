@@ -6,13 +6,15 @@
  * @see http://redux.js.org/docs/basics/Reducers.html
  */
 
-import { combineReducers } from 'redux'
-import todos from './todos'
-import visibilityFilter from './visibilityFilter'
+import { combineReducers } from 'redux';
+import todos from './todos';
+import visibilityFilter from './visibilityFilter';
+import popupReducer from './popupReducer';
 
 const todoApp = combineReducers({
   todos,
-  visibilityFilter
-})
+  visibilityFilter,
+  popupReducer
+});
 
-export default todoApp
+export default todoApp;
