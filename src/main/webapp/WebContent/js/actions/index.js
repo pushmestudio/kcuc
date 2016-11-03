@@ -6,25 +6,34 @@
  * @see http://redux.js.org/docs/basics/Actions.html
  */
 
-let nextTodoId = 0
+let nextTodoId = 0;
 export const addTodo = (text) => {
   return {
     type: 'ADD_TODO',
     id: nextTodoId++,
     text
-  }
-}
+  };
+};
 
 export const setVisibilityFilter = (filter) => {
   return {
     type: 'SET_VISIBILITY_FILTER',
     filter
-  }
-}
+  };
+};
 
 export const toggleTodo = (id) => {
   return {
     type: 'TOGGLE_TODO',
     id
-  }
-}
+  };
+};
+
+let counter = 0;
+export const showPopup = (text) => {
+  return {
+    type: 'SHOW_POPUP',
+    count: counter++,
+    text
+  };
+};
