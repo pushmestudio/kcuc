@@ -10,7 +10,7 @@
 
 初回セットアップには、`webapp`ディレクトリにて`yarn install`。
 
-詳細は[クライアントサイドのREADME](tree/master/src/main/webapp)にて。
+詳細は[クライアントサイドのREADME](src/main/webapp)にて。
 
 ## サーバーサイドセットアップ
 
