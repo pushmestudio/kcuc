@@ -20,26 +20,32 @@ public class KCNoticeResource {
 
 	/**
 	 * すべての更新を確認
+	 * 
 	 * @return 更新確認結果
 	 */
 	@Path("/all")
 	@GET
-	@Produces({MediaType.APPLICATION_JSON})
+	@Produces({ MediaType.APPLICATION_JSON })
 	public String getUpdate() {
 		JSONObject results = data.checkUpdate();
 		return results.toString();
 	}
 
 	/**
-	 * 特定のパラメータの更新を確認
-	 * @param productKey 更新確認対象のキー
+	 * 特定のページの更新を確認 バッチから呼ばれる想定
+	 * <li><code>/check/{key}</code></li>
+	 * <li><code>/check/products/{key}</code></li>
+	 * <li><code>/check/products/pages/{key}</code></li> TODO どの形式をとるか要検討
+	 * 
+	 * @param pageKey
+	 *            更新確認対象のページキー
 	 * @return 更新確認結果
 	 */
 	@Path("/{key}")
 	@GET
-	@Produces({MediaType.APPLICATION_JSON})
-	public String getUpdate(@QueryParam("key") String productKey) {
-		JSONObject results = data.checkUpdate(productKey);
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String getUpdate(@QueryParam("key") String pageKey) {
+		JSONObject results = data.checkPageUpdate(pageKey);
 		return results.toString();
 	}
 }
