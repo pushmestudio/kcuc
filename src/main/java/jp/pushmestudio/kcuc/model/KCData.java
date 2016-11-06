@@ -105,11 +105,13 @@ public class KCData {
 	}
 
 	/**
+	 * 引数なしのこのメソッドは何をKeyにどの更新を取得するかが不明確になってしまっているため別のメソッドを利用する</p>
 	 * 更新を確認するため、キーを取得し、そこからページを取得し、そのページのメタ情報を取得した上で、 最終更新日時を比較した結果を返す
 	 * 現時点では指定したプロダクトキーでとれるTOCのtopics配列1番目に格納されているページを対象に更新確認している
 	 * 
 	 * @return 保存されていた時間、最新の時間、更新の有無をJSONオブジェクトにして返す
 	 */
+	@Deprecated
 	public JSONObject checkUpdate() {
 		String productKey = getDummyUserRegisterdProduct();
 		String specificHref = ((JSONObject) getTOC(productKey).getJSONArray("topics").get(1)).getString("href");
@@ -131,7 +133,9 @@ public class KCData {
 	 * 
 	 * @param pageKey
 	 *            更新確認対象のページのキー
-	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果
+	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
+	 *         <code>{"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
+	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}</code>
 	 */
 	public JSONObject checkPageUpdate(String pageKey) {
 		// return用
@@ -156,11 +160,6 @@ public class KCData {
 
 		result.put("pageHref", pageKey);
 		result.put("userList", resultUserList);
-		/*
-		 * 次のような値が返る
-		 * {"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
-		 * "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}
-		 */
 		return result;
 	}
 
@@ -169,7 +168,10 @@ public class KCData {
 	 * 
 	 * @param userId
 	 *            更新確認対象のページのキー
-	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果
+	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
+	 *         <code>{"pages":[{"isUpdated":true,"pageHref":
+	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}],
+	 *         "id":"capsmalt"}</code>
 	 */
 	public JSONObject checkUserUpdate(String userId) {
 		// return用
@@ -201,11 +203,6 @@ public class KCData {
 
 		result.put("id", userId);
 		result.put("pages", resultPages);
-		/*
-		 * 次のような値が返る
-		 * {"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
-		 * "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}
-		 */
 		return result;
 	}
 }

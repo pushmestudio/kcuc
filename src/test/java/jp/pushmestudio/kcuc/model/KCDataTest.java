@@ -33,7 +33,7 @@ public class KCDataTest {
 
 		// execute
 		JSONObject checkResult = data.checkUserUpdate(userId);
-		System.out.println(checkResult);
+		// System.out.println(checkResult);
 
 		// verify
 		JSONArray pageList = checkResult.getJSONArray("pages");
