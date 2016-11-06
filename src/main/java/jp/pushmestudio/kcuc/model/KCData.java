@@ -2,6 +2,7 @@ package jp.pushmestudio.kcuc.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.ws.rs.client.Client;
@@ -127,11 +128,10 @@ public class KCData {
 
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
-	 * 実装の趣旨として、あるページについて、購読しているユーザーそれぞれ、更新があれば通知をするので、戻り値は要検討
 	 * 
 	 * @param pageKey
 	 *            更新確認対象のページのキー
-	 * @return 保存されていた時間、最新の時間、更新の有無をJSONオブジェクトにして返す
+	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果
 	 */
 	public JSONObject checkPageUpdate(String pageKey) {
 		// return用
@@ -156,6 +156,51 @@ public class KCData {
 
 		result.put("pageHref", pageKey);
 		result.put("userList", resultUserList);
+		/*
+		 * 次のような値が返る
+		 * {"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
+		 * "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}
+		 */
+		return result;
+	}
+
+	/**
+	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
+	 * 
+	 * @param userId
+	 *            更新確認対象のページのキー
+	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果
+	 */
+	public JSONObject checkUserUpdate(String userId) {
+		// return用
+		JSONObject result = new JSONObject();
+		JSONArray resultPages = new JSONArray();
+
+		// DBのユーザーからのデータ取得処理
+		UserInfoDao userInfoDao = new UserInfoDao();
+		// IDはユニークなはずなので、Listにする必要はない
+		List<UserInfo> userList = userInfoDao.getUserList(userId);
+
+		for (UserInfo userInfo : userList) {
+			Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
+
+			for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
+				JSONObject eachPage = new JSONObject();
+				String pageKey = entry.getKey();
+				Long preservedDate = entry.getValue();
+
+				// KCからのデータ取得処理
+				String dateLastModified = getSpecificPageMeta(pageKey);
+				Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+
+				eachPage.put("pageHref", entry.getKey());
+				eachPage.put("isUpdated", preservedDate < lastModifiedDate.getTime());
+				resultPages.put(eachPage);
+			}
+		}
+
+		result.put("id", userId);
+		result.put("pages", resultPages);
 		/*
 		 * 次のような値が返る
 		 * {"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
