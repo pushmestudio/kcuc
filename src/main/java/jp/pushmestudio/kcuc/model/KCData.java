@@ -1,6 +1,7 @@
 package jp.pushmestudio.kcuc.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import javax.ws.rs.client.Client;
@@ -10,13 +11,17 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
+
+import jp.pushmestudio.kcuc.dao.UserInfoDao;
 
 public class KCData {
 	// TODO メソッドの並びを、コンストラク,、Public, Privateのようにわかりやすい並びにする
 
 	/**
 	 * 別クラスに用意しているでスタブ用ユーザーのクラスを利用すること
+	 * 
 	 * @return 購読しているページ名
 	 */
 	@Deprecated
@@ -32,6 +37,7 @@ public class KCData {
 
 	/**
 	 * 別クラスに用意しているでスタブ用ユーザーのクラスを利用すること
+	 * 
 	 * @return 最後にページを確認した時間のダミーデータ
 	 */
 	@Deprecated
@@ -121,26 +127,39 @@ public class KCData {
 
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
+	 * 実装の趣旨として、あるページについて、購読しているユーザーそれぞれ、更新があれば通知をするので、戻り値は要検討
 	 * 
 	 * @param pageKey
 	 *            更新確認対象のページのキー
 	 * @return 保存されていた時間、最新の時間、更新の有無をJSONオブジェクトにして返す
 	 */
 	public JSONObject checkPageUpdate(String pageKey) {
-		String dateLastModified = getSpecificPageMeta(pageKey);
+		// return用
+		JSONObject result = new JSONObject();
+		JSONArray resultUserList = new JSONArray();
 
-		Date preservedDate = getDummyPreservedDate();
+		// KCからのデータ取得処理
+		String dateLastModified = getSpecificPageMeta(pageKey);
 		Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
 
-		JSONObject result = new JSONObject();
+		// DBのユーザーからのデータ取得処理
+		UserInfoDao userInfoDao = new UserInfoDao();
+		List<UserInfo> userList = userInfoDao.getSubscribedUserList(pageKey);
 
-		result.put("preserved", preservedDate).put("current", lastModifiedDate)
-				.put("isUpdated", (preservedDate.getTime() < lastModifiedDate.getTime())).put("pageHref", pageKey);
+		for (UserInfo userInfo : userList) {
+			Long preservedDate = userInfo.getSubscribedPages().get(pageKey);
+			JSONObject eachUser = new JSONObject();
+
+			eachUser.put("id", userInfo.getId()).put("isUpdated", preservedDate < lastModifiedDate.getTime());
+			resultUserList.put(eachUser);
+		}
+
+		result.put("pageHref", pageKey);
+		result.put("userList", resultUserList);
 		/*
-		 * resultには次のような値が入る { "current": "Wed Sep 14 03:44:12 JST 2016",
-		 * "preserved": "Fri Jul 22 00:26:52 JST 2016", "isUpdated": true,
-		 * "pageHref":
-		 * "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html" }
+		 * 次のような値が返る
+		 * {"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
+		 * "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}
 		 */
 		return result;
 	}
