@@ -15,7 +15,7 @@ public class KCDataTest {
 		String hrefKey = "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html";
 
 		// execute
-		JSONObject checkResult = data.checkPageUpdate(hrefKey);
+		JSONObject checkResult = data.checkUpdateByPage(hrefKey);
 		// System.out.println(checkResult);
 
 		// verify
@@ -32,7 +32,7 @@ public class KCDataTest {
 		String userId = "capsmalt";
 
 		// execute
-		JSONObject checkResult = data.checkUserUpdate(userId);
+		JSONObject checkResult = data.checkUpdateByUser(userId);
 		// System.out.println(checkResult);
 
 		// verify

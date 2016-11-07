@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
@@ -55,7 +56,7 @@ public class KCData {
 		return date;
 	}
 
-	private JSONObject getTOC(String productKey) {
+	private JSONObject getTOC(String productKey) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		WebTarget target = client.target("https://www.ibm.com/support/knowledgecenter/v1/toc/" + productKey);
@@ -81,8 +82,10 @@ public class KCData {
 	 * @param specificHref
 	 *            更新の有無を確認する対象のpageのHref
 	 * @return 最終更新日付
+	 * @throws JSONException
+	 *             ページのメタ情報が見つからない場合はJSONExceptionをスロー
 	 */
-	private String getSpecificPageMeta(String specificHref) {
+	private String getSpecificPageMeta(String specificHref) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		WebTarget target = client.target("https://www.ibm.com/support/knowledgecenter/v1/topic_metadata")
@@ -96,16 +99,13 @@ public class KCData {
 		String dateCreated = resJson.getJSONObject("classification").getString("datecreated");
 		String dateLastModified = resJson.getJSONObject("classification").getString("datelastmodified");
 
-		// TODO loggerなどで適切にロギングすること
-		System.out.println(dateCreated);
-		System.out.println(dateLastModified);
-
 		// Objects.nonNullはJava SE8からなので、Java SE7環境なら書き換え必須
 		return Objects.nonNull(dateLastModified) ? dateLastModified : dateCreated;
 	}
 
 	/**
-	 * 引数なしのこのメソッドは何をKeyにどの更新を取得するかが不明確になってしまっているため別のメソッドを利用する</p>
+	 * 引数なしのこのメソッドは何をKeyにどの更新を取得するかが不明確になってしまっているため別のメソッドを利用する
+	 * </p>
 	 * 更新を確認するため、キーを取得し、そこからページを取得し、そのページのメタ情報を取得した上で、 最終更新日時を比較した結果を返す
 	 * 現時点では指定したプロダクトキーでとれるTOCのtopics配列1番目に格納されているページを対象に更新確認している
 	 * 
@@ -114,22 +114,33 @@ public class KCData {
 	@Deprecated
 	public JSONObject checkUpdate() {
 		String productKey = getDummyUserRegisterdProduct();
-		String specificHref = ((JSONObject) getTOC(productKey).getJSONArray("topics").get(1)).getString("href");
-		String dateLastModified = getSpecificPageMeta(specificHref);
 
-		Date preservedDate = getDummyPreservedDate();
-		Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+		try {
+			String specificHref = ((JSONObject) getTOC(productKey).getJSONArray("topics").get(1)).getString("href");
+			String dateLastModified = getSpecificPageMeta(specificHref);
 
-		JSONObject result = new JSONObject();
+			Date preservedDate = getDummyPreservedDate();
+			Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
 
-		result.put("preserved", preservedDate).put("current", lastModifiedDate)
-				.put("isUpdated", (preservedDate.getTime() < lastModifiedDate.getTime())).put("pageHref", specificHref)
-				.put("productKey", productKey);
-		return result;
+			JSONObject result = new JSONObject();
+
+			result.put("preserved", preservedDate).put("current", lastModifiedDate)
+					.put("isUpdated", (preservedDate.getTime() < lastModifiedDate.getTime()))
+					.put("pageHref", specificHref).put("productKey", productKey);
+			return result;
+		} catch (JSONException e) {
+			e.printStackTrace();
+			JSONObject result = new JSONObject();
+
+			// TODO エラーメッセージの充実化
+			result.put("message", "No data found.");
+			return result;
+		}
 	}
 
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
+	 * 取得に失敗した場合、エラーが発生したことを示すJSONを返す
 	 * 
 	 * @param pageKey
 	 *            更新確認対象のページのキー
@@ -137,72 +148,90 @@ public class KCData {
 	 *         <code>{"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}</code>
 	 */
-	public JSONObject checkPageUpdate(String pageKey) {
-		// return用
-		JSONObject result = new JSONObject();
-		JSONArray resultUserList = new JSONArray();
+	public JSONObject checkUpdateByPage(String pageKey) {
+		try {
+			// return用
+			JSONObject result = new JSONObject();
+			JSONArray resultUserList = new JSONArray();
 
-		// KCからのデータ取得処理
-		String dateLastModified = getSpecificPageMeta(pageKey);
-		Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+			// KCからのデータ取得処理
+			String dateLastModified = getSpecificPageMeta(pageKey);
+			Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
 
-		// DBのユーザーからのデータ取得処理
-		UserInfoDao userInfoDao = new UserInfoDao();
-		List<UserInfo> userList = userInfoDao.getSubscribedUserList(pageKey);
+			// DBのユーザーからのデータ取得処理
+			UserInfoDao userInfoDao = new UserInfoDao();
+			List<UserInfo> userList = userInfoDao.getSubscribedUserList(pageKey);
 
-		for (UserInfo userInfo : userList) {
-			Long preservedDate = userInfo.getSubscribedPages().get(pageKey);
-			JSONObject eachUser = new JSONObject();
+			for (UserInfo userInfo : userList) {
+				Long preservedDate = userInfo.getSubscribedPages().get(pageKey);
+				JSONObject eachUser = new JSONObject();
 
-			eachUser.put("id", userInfo.getId()).put("isUpdated", preservedDate < lastModifiedDate.getTime());
-			resultUserList.put(eachUser);
+				eachUser.put("id", userInfo.getId()).put("isUpdated", preservedDate < lastModifiedDate.getTime());
+				resultUserList.put(eachUser);
+			}
+
+			result.put("pageHref", pageKey);
+			result.put("userList", resultUserList);
+			return result;
+		} catch (JSONException e) {
+			e.printStackTrace();
+			JSONObject result = new JSONObject();
+
+			// TODO エラーメッセージの充実化
+			result.put("message", "No data found.");
+			return result;
 		}
-
-		result.put("pageHref", pageKey);
-		result.put("userList", resultUserList);
-		return result;
 	}
 
 	/**
-	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
+	 * 更新確認対象のユーザーIDを元に 最終更新日時を比較した結果を返す
 	 * 
 	 * @param userId
-	 *            更新確認対象のページのキー
+	 *            更新確認対象のユーザーID
 	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
 	 *         <code>{"pages":[{"isUpdated":true,"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}],
 	 *         "id":"capsmalt"}</code>
 	 */
-	public JSONObject checkUserUpdate(String userId) {
-		// return用
-		JSONObject result = new JSONObject();
-		JSONArray resultPages = new JSONArray();
+	public JSONObject checkUpdateByUser(String userId) {
+		try {
+			// return用
+			JSONObject result = new JSONObject();
+			JSONArray resultPages = new JSONArray();
 
-		// DBのユーザーからのデータ取得処理
-		UserInfoDao userInfoDao = new UserInfoDao();
-		// IDはユニークなはずなので、Listにする必要はない
-		List<UserInfo> userList = userInfoDao.getUserList(userId);
+			// DBのユーザーからのデータ取得処理
+			UserInfoDao userInfoDao = new UserInfoDao();
+			// IDはユニークなはずなので、Listにする必要はない
+			List<UserInfo> userList = userInfoDao.getUserList(userId);
 
-		for (UserInfo userInfo : userList) {
-			Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
+			for (UserInfo userInfo : userList) {
+				Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
 
-			for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
-				JSONObject eachPage = new JSONObject();
-				String pageKey = entry.getKey();
-				Long preservedDate = entry.getValue();
+				for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
+					JSONObject eachPage = new JSONObject();
+					String pageKey = entry.getKey();
+					Long preservedDate = entry.getValue();
 
-				// KCからのデータ取得処理
-				String dateLastModified = getSpecificPageMeta(pageKey);
-				Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+					// KCからのデータ取得処理
+					String dateLastModified = getSpecificPageMeta(pageKey);
+					Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
 
-				eachPage.put("pageHref", entry.getKey());
-				eachPage.put("isUpdated", preservedDate < lastModifiedDate.getTime());
-				resultPages.put(eachPage);
+					eachPage.put("pageHref", entry.getKey());
+					eachPage.put("isUpdated", preservedDate < lastModifiedDate.getTime());
+					resultPages.put(eachPage);
+				}
 			}
-		}
 
-		result.put("id", userId);
-		result.put("pages", resultPages);
-		return result;
+			result.put("id", userId);
+			result.put("pages", resultPages);
+			return result;
+		} catch (JSONException e) {
+			e.printStackTrace();
+			JSONObject result = new JSONObject();
+
+			// TODO エラーメッセージの充実化
+			result.put("message", "No data found.");
+			return result;
+		}
 	}
 }
