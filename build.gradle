@@ -48,8 +48,10 @@ war {
 }
 
 // pom.xml書き出し、ここできちんと書き出させるためにはdependenciesをまともに書く必要あり
-task writePom << {
-  pom().writeTo('pom.xml')
+task writePom {
+  doLast {
+    pom().writeTo('pom.xml')
+  }
 }
 
 // Server sideをビルドする前にClient sideをビルドする場合に呼ぶ
