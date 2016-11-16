@@ -64,6 +64,39 @@ public class UserInfoDao {
 
 		return userList;
 	}
+	
+	/**
+	 * ユーザの購読ページを登録する
+	 * 
+	 * @param userID
+	 * 			  登録するユーザのID
+	 * @param pageHref
+	 *            購読ページ
+	 * @return 指定したユーザの情報一覧（ページ追加後）
+	 */
+	public List<UserInfo> setSubscribedPages(String userID, String pageHref) {
+		// return用
+		List<UserInfo> userList = new ArrayList<>();
+
+		// TODO ここでDBに対してinsert処理などを実施する、今はダミーの値を使用する
+		DummyStatement stmt = new DummyStatement();
+		List<List<Object>> rs = stmt.executeQueryUser(userID);
+
+		for (int i = 0; i < rs.size(); i++) {
+			List<Object> gotUser = rs.get(i);
+			String id = (String) gotUser.get(0);
+			String password = (String) gotUser.get(1);
+			@SuppressWarnings("unchecked")
+			Map<String, Long> subscribedPages = (Map<String, Long>) gotUser.get(2);
+			
+			// subscribedPagesにpageHrefを追加
+			subscribedPages.put(pageHref, 1479274200137L);
+			UserInfo userInfo = new UserInfo(id, password, subscribedPages);
+			userList.add(userInfo);
+		}
+
+		return userList;
+	}
 
 	class DummyStatement {
 		// DBからデータを取得することを擬制するために、executeQueryの名前で取得
