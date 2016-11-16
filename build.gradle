@@ -5,6 +5,7 @@ apply plugin: 'maven'
 
 // version = '1.0' // versionをつけると、生成されるwarの末尾にversionが付く
 def defaultEncoding = 'UTF-8'
+def deployTargetDir = '/opt/tomcat/webapps'
 tasks.withType(AbstractCompile).each {
   it.options.encoding = defaultEncoding
 }
@@ -49,4 +50,17 @@ war {
 // pom.xml書き出し、ここできちんと書き出させるためにはdependenciesをまともに書く必要あり
 task writePom << {
   pom().writeTo('pom.xml')
+}
+
+// Server sideをビルドする前にClient sideをビルドする場合に呼ぶ
+// (e.g. gradle client build) yarn installコマンド実行後に使用すること
+task client (type: Exec) {
+  workingDir "${webAppDir}/../"
+  commandLine 'yarn', 'build'
+}
+
+// 生成されたwarを配置する
+task deploy(type: Exec) {
+  workingDir "${projectDir}/build/libs/"
+  commandLine 'cp', '-v', 'kcuc.war', "${deployTargetDir}"
 }
