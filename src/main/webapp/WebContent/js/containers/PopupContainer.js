@@ -17,7 +17,8 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     onClickFunc: (text) => {
-      dispatch(showPopup(text));
+      //dispatch(showPopup(text));
+      fetch('http://[::1]:8080/kcuc/rest-v1/check/pages?user=capsmalt');
     }
   };
 };
