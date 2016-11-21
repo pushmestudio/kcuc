@@ -1,16 +1,44 @@
 package jp.pushmestudio.kcuc.model;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.Ignore;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Test;
 
 public class KCDataTest {
 
-	@Ignore
 	@Test
-	public void testSomething() {
-		fail("Not yet implemented");
+	public void 特定ページを取得してユーザーの最終閲覧日時よりKCの最終更新日付けの方が新しいことを確認できる() {
+		// setup
+		KCData data = new KCData();
+		String hrefKey = "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html";
+
+		// execute
+		JSONObject checkResult = data.checkUpdateByPage(hrefKey);
+		// System.out.println(checkResult);
+
+		// verify
+		JSONArray userList = checkResult.getJSONArray("userList");
+		JSONObject firstUser = userList.getJSONObject(0);
+		boolean actual = firstUser.getBoolean("isUpdated");
+		assertTrue(actual);
 	}
 
+	@Test
+	public void 特定ユーザーの購読ページを取得してページのユーザー最終閲覧日付よりKCの最終更新日付けの方が新しいことを確認できる() {
+		// setup
+		KCData data = new KCData();
+		String userId = "capsmalt";
+
+		// execute
+		JSONObject checkResult = data.checkUpdateByUser(userId);
+		// System.out.println(checkResult);
+
+		// verify
+		JSONArray pageList = checkResult.getJSONArray("pages");
+		JSONObject firstPage = pageList.getJSONObject(0);
+		boolean actual = firstPage.getBoolean("isUpdated");
+		assertTrue(actual);
+	}
 }
