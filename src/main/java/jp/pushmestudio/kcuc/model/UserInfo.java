@@ -35,4 +35,5 @@ public class UserInfo {
 	public Map<String, Long> getSubscribedPages() {
 		return subscribedPages;
 	}
+
 }
