@@ -6,6 +6,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 
+import jp.pushmestudio.controller.KCData;
+
 public class KCDataTest {
 
 	@Test
