@@ -64,12 +64,12 @@ public class UserInfoDao {
 
 		return userList;
 	}
-	
+
 	/**
 	 * ユーザの購読ページを登録する
 	 * 
 	 * @param userID
-	 * 			  登録するユーザのID
+	 *            登録するユーザのID
 	 * @param pageHref
 	 *            購読ページ
 	 * @return 指定したユーザの情報一覧（ページ追加後）
@@ -78,9 +78,9 @@ public class UserInfoDao {
 		// return用
 		List<UserInfo> userList = new ArrayList<>();
 
-		// TODO ここでDBに対してinsert処理などを実施する、今はダミーの値を使用する
+		// TODO ここでDBに対してupdate処理などを実施する、今はダミーの値を使用する
 		DummyStatement stmt = new DummyStatement();
-		List<List<Object>> rs = stmt.executeQueryUser(userID);
+		List<List<Object>> rs = stmt.executeUpdatePage(userID, pageHref);
 
 		for (int i = 0; i < rs.size(); i++) {
 			List<Object> gotUser = rs.get(i);
@@ -88,9 +88,7 @@ public class UserInfoDao {
 			String password = (String) gotUser.get(1);
 			@SuppressWarnings("unchecked")
 			Map<String, Long> subscribedPages = (Map<String, Long>) gotUser.get(2);
-			
-			// subscribedPagesにpageHrefを追加
-			subscribedPages.put(pageHref, 1479274200137L);
+
 			UserInfo userInfo = new UserInfo(id, password, subscribedPages);
 			userList.add(userInfo);
 		}
@@ -100,7 +98,15 @@ public class UserInfoDao {
 
 	class DummyStatement {
 		// DBからデータを取得することを擬制するために、executeQueryの名前で取得
-		// 引数の値で、ユーザーIDが合致するもののみ返す
+
+		/**
+		 * 想定している実行SQL(RDBの場合)のイメージは次のとおり。
+		 * <code>SELECT * FROM user_table WHERE user_id = '$searchId'</code>
+		 * 
+		 * @param searchId
+		 *            情報取得対象となるユーザーのID
+		 * @return 指定したIDを持つユーザーを含むResultSet
+		 */
 		public List<List<Object>> executeQueryUser(String searchId) {
 			Objects.requireNonNull(searchId);
 			List<List<Object>> dummyResultSet = new ArrayList<>();
@@ -118,6 +124,15 @@ public class UserInfoDao {
 			return dummyResultSet;
 		}
 
+		/**
+		 * 想定している実行SQL(RDBの場合)のイメージは次のとおり。<code>SELECT * FROM user_table WHERE
+		 * pageHref = '$pageHref'</code>
+		 * pageHrefには複数の値を持つことになるので、テーブル構造などを踏まえ、WHEREの仕方は考える必要がある
+		 * 
+		 * @param pageHref
+		 *            ユーザーを取得するためのキーとなる購読ページ
+		 * @return 指定したページを購読しているユーザーを含むResultSet
+		 */
 		public List<List<Object>> executeQueryPage(String pageHref) {
 			Objects.requireNonNull(pageHref);
 			List<List<Object>> dummyResultSet = new ArrayList<>();
@@ -135,6 +150,44 @@ public class UserInfoDao {
 					continue;
 				} else {
 					dummyResultSet.add(dummyData);
+				}
+			}
+
+			return dummyResultSet;
+		}
+
+		/**
+		 * 想定している実行SQL(RDBの場合)のイメージは次のとおり。
+		 * <code>UPDATE user_table SET pageHref =
+		 * '$pageHrefで指定した値' WHERE user_id = '$userId'</code>
+		 * pageHrefには複数の値を持つことになるので、テーブル構造などを踏まえ、SETの仕方は考える必要がある
+		 * 
+		 * @param userId
+		 *            購読ページを更新する対象のユーザーのID
+		 * @param pageHref
+		 *            購読ページとして追加する対象のページ
+		 * @return 購読ページを追加したユーザーオブジェクトを含むResultSet
+		 */
+		public List<List<Object>> executeUpdatePage(String userId, String pageHref) {
+			Objects.requireNonNull(userId);
+			Objects.requireNonNull(pageHref);
+			List<List<Object>> dummyResultSet = new ArrayList<>();
+
+			List<List<Object>> dummyUserTable = new DummyUserTable().getUserTableData();
+			for (int i = 0; i < dummyUserTable.size(); i++) {
+				List<Object> dummyData = dummyUserTable.get(i);
+
+				// dummyData.get(0) = ユーザーID
+				if (userId.equals((String) dummyData.get(0))) {
+
+					// dummyData.get(2) = 購読中のページと最後に確認した時間
+					@SuppressWarnings("unchecked")
+					Map<String, Long> subscribedPages = (Map<String, Long>) dummyData.get(2);
+					// 時間はダミー、Wed Nov 16 14:30:00 2016 JST
+					subscribedPages.put(pageHref, 1479274200137L);
+					dummyResultSet.add(dummyData);
+
+					break; // ユーザーIDはユニークの想定なので、1件合致したらそれ以上処理は必要ない
 				}
 			}
 
