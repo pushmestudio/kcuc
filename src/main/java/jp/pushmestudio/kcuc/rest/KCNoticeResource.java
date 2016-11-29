@@ -11,7 +11,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.json.JSONObject;
 
-import jp.pushmestudio.kcuc.model.KCData;
+import jp.pushmestudio.controller.KCData;
 
 @Path("/check")
 public class KCNoticeResource {
@@ -64,12 +64,12 @@ public class KCNoticeResource {
 		JSONObject results = data.checkUpdateByUser(user);
 		return results.toString();
 	}
-	
+
 	/**
 	 * 特定のユーザの購読するページを追加・確認 クライアントから呼ばれる想定
 	 * 
 	 * @param user
-	 * 			  購読ページを登録するユーザ（いずれはCookieなど）
+	 *            購読ページを登録するユーザ（いずれはCookieなど）
 	 * @param href
 	 *            購読登録対象のページキー
 	 * @return 登録確認結果

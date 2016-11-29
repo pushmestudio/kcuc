@@ -1,4 +1,4 @@
-package jp.pushmestudio.kcuc.model;
+package jp.pushmestudio.controller;
 
 import java.util.Date;
 import java.util.List;
@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
+import jp.pushmestudio.kcuc.model.UserInfo;
 
 public class KCData {
 	// TODO メソッドの並びを、コンストラク,、Public, Privateのようにわかりやすい並びにする
@@ -234,14 +235,14 @@ public class KCData {
 			return result;
 		}
 	}
-	
+
 	/**
 	 * 購読したいページとユーザIDを追加し、追加したページを含めた結果を返す
 	 * 
 	 * @param userId
 	 *            登録確認対象のユーザーID
 	 * @param pageHref
-	 * 			  購読登録するページ
+	 *            購読登録するページ
 	 * @return 登録の成否と、あるユーザが購読しているリストの一覧。以下は例示
 	 *         <code>{"result":"success", "pages":[{"pageHref":"SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"},
 	 *         {"pageHref":"SS42VS_7.2.7/com.ibm.qradar.doc/b_qradar_qsg.html"}],
@@ -249,34 +250,34 @@ public class KCData {
 	 */
 	public JSONObject registerSubscribedPages(String userId, String pageHref) {
 		try {
-		// return用
-		JSONObject result = new JSONObject();
-		JSONArray subscribedList = new JSONArray();
-		
-		// DBのユーザーからのデータ取得処理
-		UserInfoDao userInfoDao = new UserInfoDao();
-		
-		// DB登録後のユーザ情報を保存するためのリストを作成
-		List<UserInfo> userList = userInfoDao.setSubscribedPages(userId, pageHref);
+			// return用
+			JSONObject result = new JSONObject();
+			JSONArray subscribedList = new JSONArray();
 
-		for (UserInfo userInfo : userList) {
-			Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
-			
-			for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
-				JSONObject eachPage = new JSONObject();
-				
-				eachPage.put("pageHref", entry.getKey());
-				subscribedList.put(eachPage);
+			// DBのユーザーからのデータ取得処理
+			UserInfoDao userInfoDao = new UserInfoDao();
+
+			// DB登録後のユーザ情報を保存するためのリストを作成
+			List<UserInfo> userList = userInfoDao.setSubscribedPages(userId, pageHref);
+
+			for (UserInfo userInfo : userList) {
+				Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
+
+				for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
+					JSONObject eachPage = new JSONObject();
+
+					eachPage.put("pageHref", entry.getKey());
+					subscribedList.put(eachPage);
+				}
 			}
-		}
-		
-		result.put("result", "success");
-		result.put("pages", subscribedList);
-		result.put("id", userId);
-		// JSONArray resultPages = new JSONArray();
-		
-		return result;
-		
+
+			result.put("result", "success");
+			result.put("pages", subscribedList);
+			result.put("id", userId);
+			// JSONArray resultPages = new JSONArray();
+
+			return result;
+
 		} catch (JSONException e) {
 			e.printStackTrace();
 			JSONObject result = new JSONObject();
