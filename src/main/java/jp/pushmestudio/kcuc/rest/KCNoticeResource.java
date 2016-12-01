@@ -11,8 +11,11 @@ import javax.ws.rs.core.MediaType;
 
 import org.json.JSONObject;
 
+import io.swagger.annotations.*;
+
 import jp.pushmestudio.kcuc.model.KCData;
 
+@Api
 @Path("/check")
 public class KCNoticeResource {
 
@@ -45,7 +48,8 @@ public class KCNoticeResource {
 	@Path("/users")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getUpdatedUsers(@QueryParam("href") @DefaultValue("") String href) {
+	@ApiOperation(value = "users", notes = "特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定")
+	public String getUpdatedUsers(@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("href") @DefaultValue("") String href) {
 		JSONObject results = data.checkUpdateByPage(href);
 		return results.toString();
 	}
