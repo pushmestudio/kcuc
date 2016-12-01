@@ -11,7 +11,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.json.JSONObject;
 
-import jp.pushmestudio.controller.KCData;
+import jp.pushmestudio.kcuc.controller.KCData;
 
 @Path("/check")
 public class KCNoticeResource {
@@ -20,20 +20,6 @@ public class KCNoticeResource {
 
 	// 実際に取得処理などを行うオブジェクト
 	KCData data = new KCData();
-
-	/**
-	 * すべての更新を確認、意図不明瞭な名称のため使用しないこと、削除予定
-	 * 
-	 * @return 更新確認結果
-	 */
-	@Path("/all")
-	@GET
-	@Produces({ MediaType.APPLICATION_JSON })
-	public String getUpdate() {
-		@SuppressWarnings("deprecation")
-		JSONObject results = data.checkUpdate();
-		return results.toString();
-	}
 
 	/**
 	 * 特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定
