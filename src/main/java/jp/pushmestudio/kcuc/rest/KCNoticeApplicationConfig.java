@@ -9,7 +9,7 @@ import io.swagger.jaxrs.config.BeanConfig;
 
 @ApplicationPath("/api")
 public class KCNoticeApplicationConfig extends Application {
-
+	
 	/**
 	 * to be added
 	 */
@@ -23,6 +23,7 @@ public class KCNoticeApplicationConfig extends Application {
 		beanConfig.setBasePath("/kcuc"); // applicationのルートパスを指定
 		beanConfig.setPrettyPrint(true);
 		beanConfig.setResourcePackage("io.swagger.resources");
+		beanConfig.setResourcePackage("jp.pushmestudio.kcuc.rest");
 		beanConfig.setScan(true);
 	}
 
