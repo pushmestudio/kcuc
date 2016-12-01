@@ -19,11 +19,11 @@ public class KCNoticeApplicationConfig extends Application {
 		beanConfig.setDescription("Knowledge Center Update Checker");
 		beanConfig.setVersion("1.0.2");
 		beanConfig.setSchemes(new String[] { "http" });
-		beanConfig.setHost("localhost:8080");
-		beanConfig.setBasePath("/kcuc"); // applicationのルートパスを指定
+		beanConfig.setHost("172.17.0.2:8080"); // 各自環境のdockerのIPアドレスに変更必要
+		beanConfig.setBasePath("/kcuc/rest-v1"); // applicationのルートパスを指定
 		beanConfig.setPrettyPrint(true);
 		beanConfig.setResourcePackage("io.swagger.resources");
-		beanConfig.setResourcePackage("jp.pushmestudio.kcuc.rest");
+		beanConfig.setResourcePackage("jp.pushmestudio.kcuc.rest"); // KCNoticeResource内のapiを追加
 		beanConfig.setScan(true);
 	}
 
