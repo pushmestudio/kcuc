@@ -3,7 +3,7 @@ package jp.pushmestudio.kcuc.util;
 import org.json.JSONObject;
 
 /**
- * 生成メッセージの元となるインタフェース
+ * 生成メッセージの元となる抽象クラス
  */
 public abstract class Message {
 	private String subject;
@@ -26,9 +26,7 @@ public abstract class Message {
 		this.setCode(messageCode);
 		this.setSubject(messageParameter);
 		this.setDetail(messageParameter);
-
-		this.setMessage();
-		this.setJsonMessage();
+		this.updateMessage();
 	}
 
 	/* setter/getter */
@@ -36,7 +34,12 @@ public abstract class Message {
 		return subject;
 	}
 
-	// 継承先に変更を許可する
+	/**
+	 * 受け取った値のセットを変更したい場合などには、継承先でoverrideする。
+	 * 
+	 * @param subject
+	 *            メッセージの表題
+	 */
 	protected void setSubject(String subject) {
 		this.subject = subject;
 	}
@@ -45,7 +48,12 @@ public abstract class Message {
 		return detail;
 	}
 
-	// 継承先に変更を許可する
+	/**
+	 * 受け取った値のセットを変更したい場合などには、継承先でoverrideする。
+	 * 
+	 * @param detail
+	 *            メッセージの詳細
+	 */
 	protected void setDetail(String detail) {
 		this.detail = detail;
 	}
@@ -54,7 +62,12 @@ public abstract class Message {
 		return code;
 	}
 
-	// 継承先に変更を許可する
+	/**
+	 * 受け取った値のセットを変更したい場合などには、継承先でoverrideする。
+	 * 
+	 * @param code
+	 *            メッセージのcode number
+	 */
 	protected void setCode(int code) {
 		this.code = code;
 	}
@@ -63,7 +76,10 @@ public abstract class Message {
 		return this.message;
 	}
 
-	// 継承先に変更を許可する
+	/**
+	 * subject, detail, code以外のものをメッセージに含みたい場合には 継承先でこのメソッドをoverrideする。 subject,
+	 * detail, codeについてのみ変更したい場合には、 継承先で{@link #setSubject}などをoverrideする。
+	 */
 	protected void setMessage() {
 		StringBuilder message = new StringBuilder();
 		message.append("subject:").append(this.getSubject());
@@ -76,12 +92,23 @@ public abstract class Message {
 		return this.jsonMessage;
 	}
 
-	// 継承先に変更を許可する
+	/**
+	 * subject, detail, code以外のものをメッセージに含みたい場合には 継承先でこのメソッドをoverrideする。 subject,
+	 * detail, codeについてのみ変更したい場合には、 継承先で{@link #setSubject}などをoverrideする。
+	 */
 	protected void setJsonMessage() {
 		JSONObject jsonMessage = new JSONObject();
 		jsonMessage.put("subject", this.getSubject());
 		jsonMessage.put("detail", this.getDetail());
 		jsonMessage.put("code", this.getCode());
 		this.jsonMessage = jsonMessage;
+	}
+
+	/**
+	 * セット済みのフィールドを元に、応答に使うメッセージのオブジェクトを更新する
+	 */
+	protected void updateMessage() {
+		this.setJsonMessage();
+		this.setMessage();
 	}
 }
