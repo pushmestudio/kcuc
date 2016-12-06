@@ -234,4 +234,58 @@ public class KCData {
 			return result;
 		}
 	}
+	
+	/**
+	 * 購読したいページとユーザIDを追加し、追加したページを含めた結果を返す
+	 * 
+	 * @param userId
+	 *            登録確認対象のユーザーID
+	 * @param pageHref
+	 * 			  購読登録するページ
+	 * @return 登録の成否と、あるユーザが購読しているリストの一覧。以下は例示
+	 *         <code>{"result":"success", "pages":[{"pageHref":"SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"},
+	 *         {"pageHref":"SS42VS_7.2.7/com.ibm.qradar.doc/b_qradar_qsg.html"}],
+	 *         "id":"capsmalt"}</code>
+	 */
+	public JSONObject registerSubscribedPages(String userId, String pageHref) {
+		try {
+		// return用
+		JSONObject result = new JSONObject();
+		JSONArray subscribedList = new JSONArray();
+		
+		// DBのユーザーからのデータ取得処理
+		UserInfoDao userInfoDao = new UserInfoDao();
+		
+		// DB登録後のユーザ情報を保存するためのリストを作成
+		List<UserInfo> userList = userInfoDao.setSubscribedPages(userId, pageHref);
+
+		for (UserInfo userInfo : userList) {
+			Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
+			
+			for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
+				JSONObject eachPage = new JSONObject();
+				
+				eachPage.put("pageHref", entry.getKey());
+				subscribedList.put(eachPage);
+			}
+		}
+		
+		result.put("result", "success");
+		result.put("pages", subscribedList);
+		result.put("id", userId);
+		// JSONArray resultPages = new JSONArray();
+		
+		return result;
+		
+		} catch (JSONException e) {
+			e.printStackTrace();
+			JSONObject result = new JSONObject();
+
+			// TODO エラーメッセージの充実化
+			result.put("result", "false");
+			result.put("message", "error occured");
+			return result;
+		}
+	}
+
 }

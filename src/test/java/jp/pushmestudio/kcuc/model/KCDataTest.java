@@ -41,4 +41,23 @@ public class KCDataTest {
 		boolean actual = firstPage.getBoolean("isUpdated");
 		assertTrue(actual);
 	}
+	
+	@Test
+	public void 特定ユーザーと購読ページを指定してユーザーの購読リストに登録されることを確認できる() {
+		KCData data = new KCData();
+		String userId = "capsmalt";
+		String hrefKey = "SS42VS_7.2.7/com.ibm.qradar.doc/b_qradar_qsg.html";
+		
+		// execute
+		JSONObject checkResult = data.registerSubscribedPages(userId, hrefKey);
+		
+		// verify
+		JSONArray pageList = checkResult.getJSONArray("pages");
+		
+		// ダミーデータ（capsmalt）には購読ページが1つしかないので、それが2つ以上に増えている場合を正とする。
+		// 本当は初期値を取得して1インクリメントされているか見たい
+		boolean actual = pageList.length() >= 2 ? true : false;
+		assertTrue(actual);
+		
+	}
 }
