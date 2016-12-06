@@ -2,9 +2,11 @@ package jp.pushmestudio.kcuc.rest;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.core.MediaType;
 
 import org.json.JSONObject;
@@ -60,6 +62,23 @@ public class KCNoticeResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getUpdatedPages(@QueryParam("user") @DefaultValue("") String user) {
 		JSONObject results = data.checkUpdateByUser(user);
+		return results.toString();
+	}
+	
+	/**
+	 * 特定のユーザの購読するページを追加・確認 クライアントから呼ばれる想定
+	 * 
+	 * @param user
+	 * 			  購読ページを登録するユーザ（いずれはCookieなど）
+	 * @param href
+	 *            購読登録対象のページキー
+	 * @return 登録確認結果
+	 */
+	@Path("/pages")
+	@POST
+	@Produces({ MediaType.APPLICATION_JSON })
+	public String setSubscribe(@FormParam("user") @DefaultValue("") String user, @FormParam("href") String href) {
+		JSONObject results = data.registerSubscribedPages(user, href);
 		return results.toString();
 	}
 }
