@@ -7,7 +7,6 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 import jp.pushmestudio.kcuc.controller.KCData;
-import jp.pushmestudio.kcuc.util.KCMessageFactory;
 
 public class KCDataTest {
 
