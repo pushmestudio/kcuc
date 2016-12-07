@@ -1,30 +1,12 @@
+/**
+ * @file エントリーポイント, Appを呼び出す
+ */
+
 import React from 'react';
 import ReactDOM from 'react-dom';
-import RecentChangesTable from './components/RecentChangesTable';
-import Headings from './components/Headings';
-import Rows from './components/Rows';
+import App from './components/App';
 
-// App component, Headings/Rows componentを呼び出し
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      headings : props.headings,
-      changeSets : props.changeSets
-    };
-  }
-
-  render() {
-    console.log('exp');
-    console.dir(this.props);
-    console.dir(this.state);
-    return <RecentChangesTable className = 'table'>
-    <Headings headings = {this.state.headings} />
-    <Rows changeSets = {this.state.changeSets} />
-    </RecentChangesTable>;
-  }
-}
-
+// 下記はダミーデータ
 let data = [{
   'when': '2 minutes ago',
   'who': 'Jill Dupre',

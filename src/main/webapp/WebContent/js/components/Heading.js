@@ -4,13 +4,17 @@ import React from 'react';
 class Heading extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {heading : props.heading};
+    this.state = {clicked : false};
   }
 
   render() {
-    console.log('heading');
-    console.dir(this.state);
-    return <th>{this.state.heading}</th>;
+    console.log('Heading is rendered');
+    console.log('Heading: ' + this.props.heading + ', state.clicked: '+ this.state.clicked);
+    return <th onClick={this.toggleState.bind(this)}>{this.props.heading} {this.state.clicked.toString()}</th>;
+  }
+
+  toggleState() {
+    this.setState({clicked: !this.state.clicked});
   }
 }
 
