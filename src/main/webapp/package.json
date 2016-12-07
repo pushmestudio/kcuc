@@ -10,6 +10,8 @@
   "author": "PushMe Studio",
   "license": "PushMe Studio",
   "dependencies": {
+    "bootstrap": "^3.3.7",
+    "jquery": "^3.1.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
     "react-redux": "^4.4.5",
@@ -28,6 +30,7 @@
     "jsdoc": "^3.4.2",
     "redux-devtools": "^3.3.1",
     "style-loader": "^0.13.1",
+    "url-loader": "^0.5.7",
     "webpack": "^1.13.2",
     "webpack-dev-server": "^1.16.2"
   },

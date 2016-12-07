@@ -18,7 +18,7 @@ class Heading extends React.Component {
         return '';
       }
     })();
-    return <th onClick={this.toggleState.bind(this)}>{this.props.heading} {headingDisplay}</th>;
+    return <th onClick={this.toggleState.bind(this)}>{this.props.heading} <mark>{headingDisplay}</mark></th>;
   }
 
   toggleState() {

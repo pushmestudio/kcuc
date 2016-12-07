@@ -6,6 +6,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './components/App';
 
+// bootstrapはes6 importには対応していないのでrequireする
+require('bootstrap');
+require('bootstrap/dist/css/bootstrap.css');
+
 // 下記はダミーデータ
 let data = [{
   'when': '2 minutes ago',
@@ -16,7 +20,7 @@ let data = [{
   'who': 'Lose White',
   'description': 'Added fist chapter'
 }];
-let headings = ['When', 'Who', 'Description'];
+let headings = ['', 'When', 'Who', 'Description'];
 
 let props = { headings: headings, changeSets: data };
 
