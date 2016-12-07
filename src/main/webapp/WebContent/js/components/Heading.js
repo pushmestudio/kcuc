@@ -10,7 +10,15 @@ class Heading extends React.Component {
   render() {
     console.log('Heading is rendered');
     console.log('Heading: ' + this.props.heading + ', state.clicked: '+ this.state.clicked);
-    return <th onClick={this.toggleState.bind(this)}>{this.props.heading} {this.state.clicked.toString()}</th>;
+    let self = this; // アロー関数内でthisを参照する場合はselfに代入して使う
+    let headingDisplay = (() => {
+      if (self.props.heading.length !== 0) {
+        return self.state.clicked.toString();
+      } else {
+        return '';
+      }
+    })();
+    return <th onClick={this.toggleState.bind(this)}>{this.props.heading} {headingDisplay}</th>;
   }
 
   toggleState() {
