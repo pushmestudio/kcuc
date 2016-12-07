@@ -1,27 +1,28 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import RecentChangesTable from './components/RecentChangesTable';
 
 // Heading component
-let Heading = React.createClass({
+RecentChangesTable.Heading = React.createClass({
   render: function() {
     return <th>{this.props.heading}</th>;
   }
 });
 
 // Headings component、渡された数だけ Heading componentを呼び出し
-let Headings = React.createClass({
+RecentChangesTable.Headings = React.createClass({
   render: function() {
     let headings = this.props.headings.map(function(name) {
-      return <Heading heading = {name}/>;
+      return <RecentChangesTable.Heading heading = {name} key = {name}/>;
     });
     return <thead><tr>{headings}</tr></thead>;
   }
 });
 
 // Row component
-let Row = React.createClass({
+RecentChangesTable.Row = React.createClass({
   render: function() {
-    return <tr key={this.props.changeSet.id}>
+    return <tr>
     <td>{this.props.changeSet.when}</td>
     <td>{this.props.changeSet.who}</td>
     <td>{this.props.changeSet.description}</td>
@@ -30,10 +31,10 @@ let Row = React.createClass({
 });
 
 // Rows component, 渡されたデータの数だけRow componentを呼び出し
-let Rows = React.createClass({
+RecentChangesTable.Rows = React.createClass({
   render: function() {
     let rows = this.props.changeSets.map(function(changeSet) {
-      return(<Row changeSet = {changeSet}/>);
+      return(<RecentChangesTable.Row changeSet = {changeSet} key = {changeSet.id}/>);
     });
     return <tbody>{rows}</tbody>;
   }
@@ -42,10 +43,10 @@ let Rows = React.createClass({
 // App component, Headings/Rows componentを呼び出し
 let App = React.createClass({
   render: function() {
-    return <table className = 'table'>
-    <Headings headings = {this.props.headings} />
-    <Rows changeSets = {this.props.changeSets} />
-    </table>;
+    return <RecentChangesTable className = 'table'>
+    <RecentChangesTable.Headings headings = {this.props.headings} />
+    <RecentChangesTable.Rows changeSets = {this.props.changeSets} />
+    </RecentChangesTable>;
   }
 });
 
