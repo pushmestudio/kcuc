@@ -11,7 +11,7 @@ class Rows extends React.Component {
   render() {
     console.log('Rows is rendered');
     let rows = this.state.changeSets.map((changeSet, index) => {
-      return(<Row changeSet = {changeSet} key = {index}/>);
+      return(<Row selected = {false} changeSet = {changeSet} key = {index}/>);
     });
     return <tbody>{rows}</tbody>;
   }
