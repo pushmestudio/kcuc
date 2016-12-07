@@ -3,7 +3,7 @@ webpack = require('webpack');
 
 module.exports = {
   entry: {
-    todos: './WebContent/js/index.js'
+    bundle: './WebContent/js/exp.js'
     // モジュール追加時は下記のようにモジュール名とエントリーポイントのパスを記載
     // sample2: './WebContent/js/sample2.js',
   },
