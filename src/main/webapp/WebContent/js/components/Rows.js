@@ -9,8 +9,7 @@ class Rows extends React.Component {
   }
 
   render() {
-    console.log('rows');
-    console.dir(this.state);
+    console.log('Rows is rendered');
     let rows = this.state.changeSets.map((changeSet, index) => {
       return(<Row changeSet = {changeSet} key = {index}/>);
     });

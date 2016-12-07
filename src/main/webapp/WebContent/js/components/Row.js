@@ -8,8 +8,7 @@ class Row extends React.Component {
   }
 
   render() {
-    console.log('row');
-    console.dir(this.props);
+    console.log('Row is rendered');
     return <tr>
     <td>{this.state.changeSet.when}</td>
     <td>{this.state.changeSet.who}</td>
