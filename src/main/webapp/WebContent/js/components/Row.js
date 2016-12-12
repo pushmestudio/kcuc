@@ -19,7 +19,7 @@ class Row extends React.Component {
     <td><input type="checkbox" value={this.state.changeSet.who} onChange={this.handleTick.bind(this)}/></td>
     <td>{this.state.changeSet.when}</td>
     <td>{this.state.changeSet.who}</td>
-    <td><input type="text" value={this.state.changeSet.description} onChange={this.handleChange.bind(this)}/></td>
+    <td><input type="text" value={this.state.changeSet.description} onChange={this.handleChange.bind(this)} ref="textBox"/></td>
     <td><input type="button" value={this.state.value} onClick={this.updateData.bind(this)}/></td>
     </tr>;
   }
@@ -44,6 +44,7 @@ class Row extends React.Component {
   }
 
   updateData(event) {
+    console.dir(ReactDOM.findDOMNode(this.refs.textBox));
     this.fetchData().then((data) => {
       this.setState({value : data.userName});
     });
