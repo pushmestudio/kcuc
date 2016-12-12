@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
+import ModalAlert from './ModalAlert';
 
 // Row component
 class Row extends React.Component {
@@ -7,6 +9,7 @@ class Row extends React.Component {
     this.state = {
       changeSet : props.changeSet
       , selected : props.selected
+      , value : 'init'
     };
   }
 
@@ -17,6 +20,7 @@ class Row extends React.Component {
     <td>{this.state.changeSet.when}</td>
     <td>{this.state.changeSet.who}</td>
     <td><input type="text" value={this.state.changeSet.description} onChange={this.handleChange.bind(this)}/></td>
+    <td><input type="button" value={this.state.value} onClick={this.updateData.bind(this)}/></td>
     </tr>;
   }
 
@@ -32,10 +36,37 @@ class Row extends React.Component {
   handleTick(event) {
     if (this.state.selected) {
       console.log(event.target.value + 'is removed');
+      ReactDOM.render(<ModalAlert />, document.getElementById('modalAlert'));
     } else {
       console.log(event.target.value + 'is selected');
     }
     this.setState({selected : event.target.checked});
+  }
+
+  updateData(event) {
+    this.fetchData().then((data) => {
+      this.setState({value : data.userName});
+    });
+  }
+
+  fetchData() {
+    var deff = $.Deferred();
+    $.ajax({
+      type: 'GET',
+      async: true,
+      url: 'https://71fe3412-713b-4330-98c7-688705e6fab5-bluemix.cloudant.com/kcucdb/fbc44ada6a5430107ddda34ef67f4673',
+      dataType: 'json',
+      contentType: 'application/json; charset=utf-8',
+      success: function (data, textStatus, jqXHR) {
+        console.dir(data);
+        deff.resolve(data);
+      },
+      error: function (xhr, status, error) {
+        console.log(xhr.responseText);
+        deff.reject();
+      }
+    });
+    return deff.promise();
   }
 }
 
