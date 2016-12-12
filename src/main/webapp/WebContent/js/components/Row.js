@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ModalAlert from './ModalAlert';
+import SendRequest from '../utils/SendRequest';
 
 // Row component
 class Row extends React.Component {
@@ -45,29 +46,10 @@ class Row extends React.Component {
 
   updateData(event) {
     console.dir(ReactDOM.findDOMNode(this.refs.textBox));
-    this.fetchData().then((data) => {
+    let cloudantDb = 'https://71fe3412-713b-4330-98c7-688705e6fab5-bluemix.cloudant.com/kcucdb/fbc44ada6a5430107ddda34ef67f4673';
+    SendRequest.sendGet(cloudantDb).then((data) => {
       this.setState({value : data.userName});
     });
-  }
-
-  fetchData() {
-    var deff = $.Deferred();
-    $.ajax({
-      type: 'GET',
-      async: true,
-      url: 'https://71fe3412-713b-4330-98c7-688705e6fab5-bluemix.cloudant.com/kcucdb/fbc44ada6a5430107ddda34ef67f4673',
-      dataType: 'json',
-      contentType: 'application/json; charset=utf-8',
-      success: function (data, textStatus, jqXHR) {
-        console.dir(data);
-        deff.resolve(data);
-      },
-      error: function (xhr, status, error) {
-        console.log(xhr.responseText);
-        deff.reject();
-      }
-    });
-    return deff.promise();
   }
 }
 
