@@ -33,7 +33,7 @@ class SendRequest {
   /**
   * GETでJSONを取得（非同期）
   */
-  static sendGet(uri) {
+  static sendGet(uri, param) {
     console.log('ASYNC GET ' + uri);
     var $d = $.Deferred();
     try {
@@ -41,7 +41,7 @@ class SendRequest {
         type: 'GET',
         async: true,
         url: uri,
-        dataType: 'json',
+        data: param,
         success: function (data) {
           console.dir(data);
           $d.resolve(data);

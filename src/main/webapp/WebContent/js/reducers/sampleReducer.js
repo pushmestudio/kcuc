@@ -20,7 +20,6 @@ const sampleReducer = (state = {
   case 'ERROR_FETCH_DATA':
     return state;
   default:
-    console.dir(state);
     return state;
   }
 };

@@ -15,8 +15,8 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   console.log('dispatch to props:');
   return {
-    onClickFunc: (text) => {
-      dispatch(fetchData());
+    onClickFunc: (user) => {
+      dispatch(fetchData(user));
     }
   };
 };

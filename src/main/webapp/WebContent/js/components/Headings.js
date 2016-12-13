@@ -10,7 +10,7 @@ class Headings extends React.Component {
   render() {
     console.log('Headings is rendered');
     let headings = this.props.headings.map((name, index) => {
-      return <Heading heading = {name} key = {index}/>;
+      return <Heading heading={name} key={index}/>;
     });
     return <thead><tr>{headings}</tr></thead>;
   }
