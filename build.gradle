@@ -36,6 +36,9 @@ dependencies {
   compile 'org.glassfish.jersey.core:jersey-server:2.23'
   compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.23'
 
+  // swagger
+  compile 'io.swagger:swagger-jersey2-jaxrs:1.5.10'
+
   // glassfish containerを使う場合はjersey-container-servletを消して下記を有効化する
   // compile 'org.glassfish.jersey.containers:jersey-container-jdk-http:2.23'
 
