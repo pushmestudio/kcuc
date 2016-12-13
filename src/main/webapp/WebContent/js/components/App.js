@@ -6,14 +6,11 @@ import SampleContainer from '../containers/SampleContainer';
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      changeSets : props.changeSets
-    };
   }
 
   render() {
     console.log('App is rendered');
-    return <SampleContainer data = {this.props.data}  headings = {this.props.headings} changeSets = {this.state.changeSets} >
+    return <SampleContainer>
       </SampleContainer>;
   }
 }

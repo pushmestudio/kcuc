@@ -7,9 +7,8 @@ const mapStateToProps = (state) => {
   console.log('container state:');
   console.dir(state);
   return {
-    name: state.sampleReducer.name,
     headings: state.sampleReducer.headings,
-    changeSets: state.sampleReducer.data
+    dataSet: state.sampleReducer.data
   };
 };
 

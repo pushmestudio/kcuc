@@ -5,14 +5,15 @@ import Row from './Row';
 class Rows extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {changeSets : props.changeSets};
   }
 
   render() {
     console.log('Rows is rendered');
-    let rows = this.state.changeSets.map((changeSet, index) => {
-      return(<Row selected = {false} changeSet = {changeSet} key = {index} name = {this.props.name}/>);
+    console.log(this.props.dataSet);
+    let rows = this.props.dataSet.map((data, index) => {
+      return(<Row selected={false} key={index} prodId={data.prodId} url={data.url} updateTime={data.updateTime} updateFlag={data.updateFlag}/>);
     });
+    console.dir(rows);
     return <tbody>{rows}</tbody>;
   }
 }
