@@ -11,8 +11,11 @@ import javax.ws.rs.core.MediaType;
 
 import org.json.JSONObject;
 
+import io.swagger.annotations.*;
+
 import jp.pushmestudio.kcuc.model.KCData;
 
+@Api(value = "kcuc")
 @Path("/check")
 public class KCNoticeResource {
 
@@ -29,8 +32,10 @@ public class KCNoticeResource {
 	@Path("/all")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
+	@ApiOperation(value = "すべての更新を確認", notes = "すべての更新を確認、意図不明瞭な名称のため使用しないこと、削除予定")
+	@Deprecated
 	public String getUpdate() {
-		@SuppressWarnings("deprecation")
+		// @SuppressWarnings("deprecation")
 		JSONObject results = data.checkUpdate();
 		return results.toString();
 	}
@@ -45,7 +50,8 @@ public class KCNoticeResource {
 	@Path("/users")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getUpdatedUsers(@QueryParam("href") @DefaultValue("") String href) {
+	@ApiOperation(value = "ユーザー一覧取得", notes = "特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定")
+	public String getUpdatedUsers(@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("href") @DefaultValue("") String href) {
 		JSONObject results = data.checkUpdateByPage(href);
 		return results.toString();
 	}
@@ -54,13 +60,14 @@ public class KCNoticeResource {
 	 * 特定のユーザーの購読しているページ一覧を取得・確認 クライアントから呼ばれる想定
 	 * 
 	 * @param user
-	 *            更新確認対象のページキー
+	 *            更新確認対象のユーザー名
 	 * @return 更新確認結果
 	 */
 	@Path("/pages")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getUpdatedPages(@QueryParam("user") @DefaultValue("") String user) {
+	@ApiOperation(value = "ページ一覧取得", notes = "特定のユーザーの購読しているページ一覧を取得・確認 クライアントから呼ばれる想定")
+	public String getUpdatedPages(@ApiParam(value = "更新確認対象のユーザー名", required = true) @QueryParam("user") @DefaultValue("") String user) {
 		JSONObject results = data.checkUpdateByUser(user);
 		return results.toString();
 	}
@@ -77,7 +84,9 @@ public class KCNoticeResource {
 	@Path("/pages")
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String setSubscribe(@FormParam("user") @DefaultValue("") String user, @FormParam("href") String href) {
+	@ApiOperation(value = "購読ページ追加", notes = "特定のユーザの購読するページを追加・確認 クライアントから呼ばれる想定")
+	public String setSubscribe(@ApiParam(value = "更新対象のユーザー名", required = true) @FormParam("user") @DefaultValue("") String user, 
+									@ApiParam(value = "購読対象のページキー", required = true) @FormParam("href") String href) {
 		JSONObject results = data.registerSubscribedPages(user, href);
 		return results.toString();
 	}
