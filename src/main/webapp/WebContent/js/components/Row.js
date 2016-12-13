@@ -1,14 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ModalAlert from './ModalAlert';
-import SendRequest from '../utils/SendRequest';
 
 // Row component
 class Row extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selected : props.selected
+      selected : false
       , prodId : props.prodId
       , url : props.url
       , updateTime : props.updateTime
@@ -17,17 +16,15 @@ class Row extends React.Component {
     };
   }
 
-  // ここのonChange内をdispatchにすればいいのか？
   render() {
     console.log('Row is rendered');
-    console.dir(this.props);
     return <tr style={{border:'normal'}}>
-    <td><input type="checkbox" value={this.state.selected} onChange={this.handleTick.bind(this)}/></td>
+    <td><input type="checkbox" value={this.state.selected} onChange={(e) => this.handleTick(e)}/></td>
     <td>{this.state.prodId}</td>
     <td>{this.state.url}</td>
     <td>{this.state.updateTime}</td>
     <td>{this.state.updateFlag}</td>
-    <td><input type="text" value={this.state.note} onChange={this.handleChange.bind(this)} ref="textBox"/></td>
+    <td><input type="text" value={this.state.note} onChange={(e) => this.handleChange(e)} ref="textBox"/></td>
     </tr>;
   }
 
@@ -37,8 +34,14 @@ class Row extends React.Component {
     this.setState({note: event.target.value});
   }
 
-  // チェックが外されたらモーダルを表示
+  // チェックON/OFF
   handleTick(event) {
+    if (this.state.selected) {
+      console.log(this.state.prodId + ' is removed');
+      ReactDOM.render(<ModalAlert />, document.getElementById('modalAlert'));
+    } else {
+      console.log(this.state.prodId + ' is selected');
+    }
     this.setState({selected : event.target.checked});
   }
 }
