@@ -18,6 +18,7 @@ class Heading extends React.Component {
         return '';
       }
     })();
+    // ここのonClickをdispatchにすればいいのか？
     return <th onClick={this.toggleState.bind(this)}>{this.props.heading} <mark>{headingDisplay}</mark></th>;
   }
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import RecentChangesTable from './RecentChangesTable';
-import Headings from './Headings';
-import Rows from './Rows';
+import SampleContainer from '../containers/SampleContainer';
 
 // App component, Headings/Rows componentを呼び出し
 class App extends React.Component {
@@ -14,10 +13,8 @@ class App extends React.Component {
 
   render() {
     console.log('App is rendered');
-    return <RecentChangesTable className = 'table'>
-    <Headings headings = {this.props.headings} />
-    <Rows changeSets = {this.state.changeSets} />
-    </RecentChangesTable>;
+    return <SampleContainer data = {this.props.data}  headings = {this.props.headings} changeSets = {this.state.changeSets} >
+      </SampleContainer>;
   }
 }
 

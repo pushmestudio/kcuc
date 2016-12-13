@@ -1,3 +1,6 @@
+/**
+ * @file リクエスト送信先とパラメータを渡してリクエストを簡易的に送るためのクラス
+ */
 class SendRequest {
   /**
    * POSTでJSONを送信してJSONを取得（非同期）
@@ -16,9 +19,8 @@ class SendRequest {
           console.dir(data);
           $d.resolve(data);
         },
-        error: function (xhr, status, error) {
+        error: function (xhr) {
           console.log(xhr.responseText);
-          console.log(error);
           $d.reject();
         }
       });
@@ -44,7 +46,7 @@ class SendRequest {
           console.dir(data);
           $d.resolve(data);
         },
-        error: function (xhr, status, error) {
+        error: function (xhr) {
           console.log(xhr.responseText);
           $d.reject();
         }
