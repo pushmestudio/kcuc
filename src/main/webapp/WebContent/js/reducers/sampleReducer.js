@@ -24,7 +24,7 @@ const sampleReducer = (state = {
   case 'START_FETCH_DATA':
     return state;
   case 'SUCCESS_FETCH_DATA':
-    return Object.assign({}, state, {name: action.data.userName});
+    return {...state, name: action.data.userName};
   case 'ERROR_FETCH_DATA':
     return state;
   default:
