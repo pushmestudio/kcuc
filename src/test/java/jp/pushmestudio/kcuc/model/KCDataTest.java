@@ -14,7 +14,7 @@ public class KCDataTest {
 	public void 特定ページを取得してユーザーの最終閲覧日時よりKCの最終更新日付けの方が新しいことを確認できる() {
 		// setup
 		KCData data = new KCData();
-		String hrefKey = "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html";
+		String hrefKey = "SSMTU9/welcometoibmverse.html";
 
 		// execute
 		JSONObject checkResult = data.checkUpdateByPage(hrefKey);
