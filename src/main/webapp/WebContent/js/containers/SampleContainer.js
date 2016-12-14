@@ -1,14 +1,15 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { showSample, fetchData } from '../actions';
+import { fetchPages, fetchUsers } from '../actions';
 import RecentChangesTable from '../components/RecentChangesTable';
 
 const mapStateToProps = (state) => {
   console.log('container state:');
   console.dir(state);
   return {
-    headings: state.sampleReducer.headings,
-    dataSet: state.sampleReducer.data
+    headings: state.sampleReducer.headings
+    , pageSet: state.sampleReducer.pages
+    , userSet: state.sampleReducer.users
   };
 };
 
@@ -16,10 +17,10 @@ const mapDispatchToProps = (dispatch) => {
   console.log('dispatch to props:');
   return {
     onClickFunc: (user) => {
-      dispatch(fetchData(user));
+      dispatch(fetchPages(user));
     }
-    ,onClickFunc2: () => {
-      dispatch(fetchData());
+    ,onClickFunc2: (page) => {
+      dispatch(fetchUsers(page));
     }
   };
 };

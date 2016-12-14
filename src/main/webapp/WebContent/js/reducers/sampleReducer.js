@@ -1,18 +1,20 @@
 const sampleReducer = (state = {
-  data: []
+  pages: []
+  , users: []
   , headings : [' ', 'ID', 'URL', 'Time', 'Flag', 'Note']
 }, action) => {
   switch (action.type) {
-  case 'SAMPLE':
-    console.log('previous state is :' + state.isClicked);
-    return {
-      isClicked: !state.isClicked
-    };
-  case 'START_FETCH_DATA':
+  case 'START_FETCH_PAGES':
     return state;
-  case 'SUCCESS_FETCH_DATA':
-    return Object.assign({}, state, {data: action.data.subscribeTarget});
-  case 'ERROR_FETCH_DATA':
+  case 'SUCCESS_FETCH_PAGES':
+    return Object.assign({}, state, {pages: action.data.pages});
+  case 'ERROR_FETCH_PAGES':
+    return state;
+  case 'START_FETCH_USERS':
+    return state;
+  case 'SUCCESS_FETCH_USERS':
+    return Object.assign({}, state, {users: action.data.userList});
+  case 'ERROR_FETCH_USERS':
     return state;
   default:
     return state;
