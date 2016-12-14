@@ -1,45 +1,76 @@
 import SendRequest from '../utils/SendRequest';
 
-export const showSample = (text) => {
+export const startFetchPages = () => {
   return {
-    type: 'SAMPLE',
-    text
+    type: 'START_FETCH_PAGES'
   };
 };
 
-export const startFetchData = () => {
+export const successFetchPages = (result) => {
   return {
-    type: 'START_FETCH_DATA'
-  };
-};
-
-export const successFetchData = (result) => {
-  return {
-    type: 'SUCCESS_FETCH_DATA',
+    type: 'SUCCESS_FETCH_PAGES',
     data: result
   };
 };
 
-export const errorFetchData = () => {
+export const errorFetchPages = () => {
   return {
-    type: 'ERROR_FETCH_DATA'
+    type: 'ERROR_FETCH_PAGES'
   };
 };
 
-export const fetchData = (userId) => {
+export const fetchPages = (userId) => {
   return (dispatch) => {
-    dispatch(startFetchData());
+    dispatch(startFetchPages());
 
-    let requestParam = {user: userId};
+    let requestPagesParam = {user: userId};
 
-    const cloudantDb = 'https://71fe3412-713b-4330-98c7-688705e6fab5-bluemix.cloudant.com/kcucdb/fbc44ada6a5430107ddda34ef67f4673';
-    SendRequest.sendGet(cloudantDb, requestParam).then((res) => {
+    const kcucPagesApi = '/kcuc/rest-v1/check/pages';
+    SendRequest.sendGet(kcucPagesApi, requestPagesParam).then((res) => {
       if (res) {
         console.log('fetch done');
-        dispatch(successFetchData(res));
+        dispatch(successFetchPages(res));
       } else {
         console.log('fetch fail');
-        dispatch(errorFetchData());
+        dispatch(errorFetchPages());
+      }
+    });
+  };
+};
+
+export const startFetchUsers = () => {
+  return {
+    type: 'START_FETCH_USERS'
+  };
+};
+
+export const successFetchUsers = (result) => {
+  return {
+    type: 'SUCCESS_FETCH_USERS',
+    data: result
+  };
+};
+
+export const errorFetchUsers = () => {
+  return {
+    type: 'ERROR_FETCH_USERS'
+  };
+};
+
+export const fetchUsers = (page) => {
+  return (dispatch) => {
+    dispatch(startFetchUsers());
+
+    let requestUsersParam = {href: page};
+
+    const kcucUsersApi = '/kcuc/rest-v1/check/users';
+    SendRequest.sendGet(kcucUsersApi, requestUsersParam).then((res) => {
+      if (res) {
+        console.log('fetch done');
+        dispatch(successFetchUsers(res));
+      } else {
+        console.log('fetch fail');
+        dispatch(errorFetchUsers());
       }
     });
   };
