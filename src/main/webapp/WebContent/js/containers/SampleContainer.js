@@ -18,6 +18,9 @@ const mapDispatchToProps = (dispatch) => {
     onClickFunc: (user) => {
       dispatch(fetchData(user));
     }
+    ,onClickFunc2: () => {
+      dispatch(fetchData());
+    }
   };
 };
 

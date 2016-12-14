@@ -8,7 +8,7 @@ class Heading extends React.Component {
 
   render() {
     console.log('Heading is rendered');
-    return <th ><mark>{this.props.heading}</mark></th>;
+    return <th>{this.props.heading}</th>;
   }
 }
 

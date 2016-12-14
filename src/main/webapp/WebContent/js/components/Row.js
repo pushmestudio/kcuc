@@ -6,43 +6,34 @@ import ModalAlert from './ModalAlert';
 class Row extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      selected : false
-      , prodId : props.prodId
-      , url : props.url
-      , updateTime : props.updateTime
-      , updateFlag : props.updateFlag
-      , note: ''
-    };
   }
 
   render() {
     console.log('Row is rendered');
-    return <tr style={{border:'normal'}}>
-    <td><input type="checkbox" value={this.state.selected} onChange={(e) => this.handleTick(e)}/></td>
-    <td>{this.state.prodId}</td>
-    <td>{this.state.url}</td>
-    <td>{this.state.updateTime}</td>
-    <td>{this.state.updateFlag}</td>
-    <td><input type="text" value={this.state.note} onChange={(e) => this.handleChange(e)} ref="textBox"/></td>
+    return <tr>
+    <td><input type="checkbox" ref="checkBox" onChange={(e) => this.handleTick(e)}/></td>
+    <td>{this.props.prodId}</td>
+    <td>{this.props.url}</td>
+    <td>{this.props.updateTime}</td>
+    <td>{this.props.updateFlag}</td>
+    <td><input type="text" ref="textBox" onChange={(e) => this.handleChange(e)}/></td>
     </tr>;
   }
 
   // 値の変更を検知して更新
   handleChange(event) {
     console.log('value is updated');
-    this.setState({note: event.target.value});
   }
 
   // チェックON/OFF
   handleTick(event) {
-    if (this.state.selected) {
-      console.log(this.state.prodId + ' is removed');
+    if (this.refs.checkBox.selected) {
+      console.log(this.props.prodId + ' is removed');
       ReactDOM.render(<ModalAlert />, document.getElementById('modalAlert'));
     } else {
-      console.log(this.state.prodId + ' is selected');
+      console.log(this.props.prodId + ' is selected');
+      this.props.func();
     }
-    this.setState({selected : event.target.checked});
   }
 }
 
