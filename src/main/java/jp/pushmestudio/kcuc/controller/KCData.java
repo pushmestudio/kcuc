@@ -18,6 +18,7 @@ import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.UserInfo;
+import jp.pushmestudio.kcuc.util.KCMessageFactory;
 
 public class KCData {
 	// TODO メソッドの並びを、コンストラク,、Public, Privateのようにわかりやすい並びにする
@@ -53,9 +54,10 @@ public class KCData {
 				eachUser.put("id", userInfo.getId()).put("isUpdated", preservedDate < lastModifiedDate.getTime());
 				resultUserList.put(eachUser);
 			}
-
+			
 			result.put("pageHref", pageKey);
 			result.put("userList", resultUserList);
+			
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -87,27 +89,35 @@ public class KCData {
 			UserInfoDao userInfoDao = new UserInfoDao();
 			// IDはユニークなはずなので、Listにする必要はない
 			List<UserInfo> userList = userInfoDao.getUserList(userId);
-
-			for (UserInfo userInfo : userList) {
-				Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
-
-				for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
-					JSONObject eachPage = new JSONObject();
-					String pageKey = entry.getKey();
-					Long preservedDate = entry.getValue();
-
-					// KCからのデータ取得処理
-					String dateLastModified = getSpecificPageMeta(pageKey);
-					Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
-
-					eachPage.put("pageHref", entry.getKey());
-					eachPage.put("isUpdated", preservedDate < lastModifiedDate.getTime());
-					resultPages.put(eachPage);
+			
+			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
+			if (userList.size() <= 0) {
+				// KCMessageFactory messageFactory = new KCMessageFactory();
+				result = KCMessageFactory.createMessage(500, "Not Found").getJsonMessage();
+				
+				System.out.println(result);
+			} else {
+				for (UserInfo userInfo : userList) {
+					Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
+	
+					for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
+						JSONObject eachPage = new JSONObject();
+						String pageKey = entry.getKey();
+						Long preservedDate = entry.getValue();
+	
+						// KCからのデータ取得処理
+						String dateLastModified = getSpecificPageMeta(pageKey);
+						Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+	
+						eachPage.put("pageHref", entry.getKey());
+						eachPage.put("isUpdated", preservedDate < lastModifiedDate.getTime());
+						resultPages.put(eachPage);
+					}
 				}
+				result.put("id", userId);
+				result.put("pages", resultPages);
 			}
-
-			result.put("id", userId);
-			result.put("pages", resultPages);
+			
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();

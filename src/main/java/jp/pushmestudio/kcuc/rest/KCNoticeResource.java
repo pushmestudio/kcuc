@@ -25,23 +25,6 @@ public class KCNoticeResource {
 	KCData data = new KCData();
 
 	/**
-	 * すべての更新を確認、意図不明瞭な名称のため使用しないこと、削除予定
-	 * 
-	 * @return 更新確認結果
-	 */
-	@Path("/all")
-	@GET
-	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "すべての更新を確認", notes = "すべての更新を確認、意図不明瞭な名称のため使用しないこと、削除予定")
-	@Deprecated
-	public String getUpdate() {
-		// @SuppressWarnings("deprecation")
-		JSONObject results = data.checkUpdate();
-		return results.toString();
-	}
-
-	/**
->>>>>>> master
 	 * 特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定
 	 * 
 	 * @param href
