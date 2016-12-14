@@ -193,6 +193,7 @@ public class KCData {
 		Response res = invocationBuilder.get();
 
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
+		// System.out.println(resJson);
 
 		String dateCreated = resJson.getJSONObject("classification").getString("datecreated");
 		String dateLastModified = resJson.getJSONObject("classification").getString("datelastmodified");

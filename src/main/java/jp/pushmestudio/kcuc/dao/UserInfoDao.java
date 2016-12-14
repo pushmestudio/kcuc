@@ -204,7 +204,7 @@ public class UserInfoDao {
 			String dummy1Id = "capsmalt";
 			String dummy1Password = "pass";
 			Map<String, Long> dummy1SubscribedPages = new HashMap<>();
-			dummy1SubscribedPages.put("SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html", 1469114812137L);
+			dummy1SubscribedPages.put("SSMTU9/welcometoibmverse.html", 1469114812137L);
 			dummyUser1.add(dummy1Id);
 			dummyUser1.add(dummy1Password);
 			dummyUser1.add(dummy1SubscribedPages);
