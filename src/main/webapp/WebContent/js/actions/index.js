@@ -24,16 +24,20 @@ export const fetchPages = (userId) => {
     dispatch(startFetchPages());
 
     let requestPagesParam = {user: userId};
-
     const kcucPagesApi = '/kcuc/rest-v1/check/pages';
+    $('#loader').removeClass('hide'); // ローディングアイコン表示
+
     SendRequest.sendGet(kcucPagesApi, requestPagesParam).then((res) => {
-      if (res) {
-        console.log('fetch done');
-        dispatch(successFetchPages(res));
-      } else {
-        console.log('fetch fail');
+      console.dir(res);
+      if (res.code) {
         dispatch(errorFetchPages());
+      } else {
+        dispatch(successFetchPages(res));
       }
+    }).fail(() => {
+      dispatch(errorFetchPages());
+    }).always(() => {
+      $('#loader').addClass('hide'); // ローディングアイコン非表示
     });
   };
 };
@@ -62,16 +66,20 @@ export const fetchUsers = (page) => {
     dispatch(startFetchUsers());
 
     let requestUsersParam = {href: page};
-
     const kcucUsersApi = '/kcuc/rest-v1/check/users';
+    $('#loader').removeClass('hide'); // ローディングアイコン表示
+
     SendRequest.sendGet(kcucUsersApi, requestUsersParam).then((res) => {
-      if (res) {
-        console.log('fetch done');
-        dispatch(successFetchUsers(res));
-      } else {
-        console.log('fetch fail');
+      console.dir(res);
+      if (res.code) {
         dispatch(errorFetchUsers());
+      } else {
+        dispatch(successFetchUsers(res));
       }
+    }).fail(() => {
+      dispatch(errorFetchUsers());
+    }).always(() => {
+      $('#loader').addClass('hide'); // ローディングアイコン非表示
     });
   };
 };

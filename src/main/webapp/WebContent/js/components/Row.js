@@ -32,17 +32,14 @@ class Row extends React.Component {
   }
 
   // 値の変更を検知して更新
-  handleChange(event) {
+  handleChange() {
     console.log('value is updated');
   }
 
   // チェックON/OFF
-  handleTick(event) {
+  handleTick() {
     if (this.refs.checkBox.selected) {
       ReactDOM.render(<ModalAlert />, document.getElementById('modalAlert'));
-    } else {
-      console.log('Send request via checkbox');
-      this.props.func();
     }
   }
 }
