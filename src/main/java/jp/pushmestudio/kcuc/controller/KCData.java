@@ -41,6 +41,13 @@ public class KCData {
 
 			// KCからのデータ取得処理
 			String dateLastModified = getSpecificPageMeta(pageKey);
+			
+			// ページキーが取得できない場合はエラーメッセージを返す
+			if (dateLastModified == "none") {
+				result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
+				return result;
+			}
+			
 			Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
 
 			// DBのユーザーからのデータ取得処理
@@ -63,8 +70,8 @@ public class KCData {
 			e.printStackTrace();
 			JSONObject result = new JSONObject();
 
-			// TODO エラーメッセージの充実化
-			result.put("message", "No data found.");
+			// エラーメッセージを作成
+			result = KCMessageFactory.createMessage(500, "Internal Server Error.").getJsonMessage();
 			return result;
 		}
 	}
@@ -92,39 +99,44 @@ public class KCData {
 			
 			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 			if (userList.size() <= 0) {
-				// KCMessageFactory messageFactory = new KCMessageFactory();
-				result = KCMessageFactory.createMessage(500, "Not Found").getJsonMessage();
-				
-				System.out.println(result);
-			} else {
-				for (UserInfo userInfo : userList) {
-					Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
-	
-					for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
-						JSONObject eachPage = new JSONObject();
-						String pageKey = entry.getKey();
-						Long preservedDate = entry.getValue();
-	
-						// KCからのデータ取得処理
-						String dateLastModified = getSpecificPageMeta(pageKey);
-						Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
-	
-						eachPage.put("pageHref", entry.getKey());
-						eachPage.put("isUpdated", preservedDate < lastModifiedDate.getTime());
-						resultPages.put(eachPage);
-					}
-				}
-				result.put("id", userId);
-				result.put("pages", resultPages);
+				result = KCMessageFactory.createMessage(500, "User Not Found.").getJsonMessage();
+				return result;
 			}
-			
+		
+			for (UserInfo userInfo : userList) {
+				Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
+
+				for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
+					JSONObject eachPage = new JSONObject();
+					String pageKey = entry.getKey();
+					Long preservedDate = entry.getValue();
+
+					// KCからのデータ取得処理
+					String dateLastModified = getSpecificPageMeta(pageKey);
+					
+					// ページキーが取得できない場合はエラーメッセージを返す
+					if (dateLastModified == "none") {
+						result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
+						return result;
+					}
+					
+					Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+
+					eachPage.put("pageHref", entry.getKey());
+					eachPage.put("isUpdated", preservedDate < lastModifiedDate.getTime());
+					resultPages.put(eachPage);
+				}
+			}
+			result.put("id", userId);
+			result.put("pages", resultPages);
+		
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
 			JSONObject result = new JSONObject();
 
-			// TODO エラーメッセージの充実化
-			result.put("message", "No data found.");
+			// エラーメッセージを作成
+			result = KCMessageFactory.createMessage(500, "Internal Server Error.").getJsonMessage();
 			return result;
 		}
 	}
@@ -152,6 +164,16 @@ public class KCData {
 
 			// DB登録後のユーザ情報を保存するためのリストを作成
 			List<UserInfo> userList = userInfoDao.setSubscribedPages(userId, pageHref);
+			
+			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
+			if (userList.size() <= 0) {
+				result = KCMessageFactory.createMessage(500, "User Not Found.").getJsonMessage();
+				return result;
+			} else if (getSpecificPageMeta(pageHref) == "none") {
+			// ページキーが存在しない場合もエラーメッセージを返す
+				result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
+				return result;
+			}
 
 			for (UserInfo userInfo : userList) {
 				Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
@@ -175,9 +197,8 @@ public class KCData {
 			e.printStackTrace();
 			JSONObject result = new JSONObject();
 
-			// TODO エラーメッセージの充実化
-			result.put("result", "false");
-			result.put("message", "error occured");
+			// エラーメッセージを作成
+			result = KCMessageFactory.createMessage(500, "Internal Server Error.").getJsonMessage();
 			return result;
 		}
 	}
@@ -203,13 +224,16 @@ public class KCData {
 		Response res = invocationBuilder.get();
 
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
-		// System.out.println(resJson);
 
-		String dateCreated = resJson.getJSONObject("classification").getString("datecreated");
-		String dateLastModified = resJson.getJSONObject("classification").getString("datelastmodified");
+		// ページがclassification情報を持つ場合
+		if (resJson.has("classification")) {
+			return resJson.getJSONObject("classification").has("datelastmodified") ? 
+					resJson.getJSONObject("classification").getString("datelastmodified") :
+					resJson.getJSONObject("classification").getString("datecreated");
 
-		// Objects.nonNullはJava SE8からなので、Java SE7環境なら書き換え必須
-		return Objects.nonNull(dateLastModified) ? dateLastModified : dateCreated;
+					// Objects.nonNullはJava SE8からなので、Java SE7環境なら書き換え必須
+			// return Objects.nonNull(dateLastModified) ? dateLastModified : dateCreated;
+		} else	return "none";
 	}
 
 	@SuppressWarnings("unused")
