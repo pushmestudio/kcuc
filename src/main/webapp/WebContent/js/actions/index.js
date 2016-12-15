@@ -83,3 +83,88 @@ export const fetchUsers = (page) => {
     });
   };
 };
+
+export const startRegisterPage = () => {
+  return {
+    type: 'START_REG_PAGE'
+  };
+};
+
+export const successRegisterPage = (result) => {
+  return {
+    type: 'SUCCESS_REG_PAGE',
+    data: result
+  };
+};
+
+export const errorRegisterPage = () => {
+  return {
+    type: 'ERROR_REG_PAGE'
+  };
+};
+
+export const registerPage = (user, page) => {
+  return (dispatch) => {
+    dispatch(startRegisterPage());
+
+    let requestRegisterParam = {user: user, href: page};
+    const kcucUsersApi = '/kcuc/rest-v1/check/pages';
+    $('#loader').removeClass('hide'); // ローディングアイコン表示
+
+    SendRequest.sendPost(kcucUsersApi, requestRegisterParam).then((res) => {
+      console.dir(res);
+      if (res.code) {
+        dispatch(errorRegisterPage());
+      } else {
+        dispatch(successRegisterPage(res));
+      }
+    }).fail(() => {
+      dispatch(errorRegisterPage());
+    }).always(() => {
+      $('#loader').addClass('hide'); // ローディングアイコン非表示
+    });
+  };
+};
+
+export const startCancelPage = () => {
+  return {
+    type: 'START_CANCEL_PAGE'
+  };
+};
+
+export const successCancelPage = (result) => {
+  return {
+    type: 'SUCCESS_CANCEL_PAGE',
+    data: result
+  };
+};
+
+export const errorCancelPage = () => {
+  return {
+    type: 'ERROR_CANCEL_PAGE'
+  };
+};
+
+// TODO 現時点で購読解除のAPIはできていないため、パラメーターを送ると購読をするようになっている、APIが出来次第URLを切り替える
+export const cancelPage = (user, page) => {
+  return (dispatch) => {
+    dispatch(startCancelPage());
+
+    let requestCancelParam = {user: user, href: page};
+    const kcucUsersApi = '/kcuc/rest-v1/check/pages';
+    $('#loader').removeClass('hide'); // ローディングアイコン表示
+
+    SendRequest.sendPost(kcucUsersApi, requestCancelParam).then((res) => {
+      console.dir(res);
+      if (res.code) {
+        dispatch(errorCancelPage());
+      } else {
+        dispatch(successCancelPage(res));
+      }
+    }).fail(() => {
+      dispatch(errorCancelPage());
+    }).always(() => {
+      $('#loader').addClass('hide'); // ローディングアイコン非表示
+    });
+  };
+};

@@ -1,6 +1,6 @@
 import { connect } from 'react-redux';
-import { fetchPages } from '../actions';
-import RecentChangesTable from '../components/RecentChangesTable';
+import { fetchPages, registerPage, cancelPage } from '../actions';
+import PageTable from '../components/PageTable';
 
 const mapStateToProps = (state) => {
   console.log('container state:');
@@ -19,12 +19,18 @@ const mapDispatchToProps = (dispatch) => {
     fetch: (user) => {
       dispatch(fetchPages(user));
     }
+    , register: (user, page) => {
+      dispatch(registerPage(user, page));
+    }
+    , cancel: (user, page) => {
+      dispatch(cancelPage(user, page));
+    }
   };
 };
 
 const PageContainer = connect(
   mapStateToProps,
   mapDispatchToProps
-)(RecentChangesTable);
+)(PageTable);
 
 export default PageContainer;

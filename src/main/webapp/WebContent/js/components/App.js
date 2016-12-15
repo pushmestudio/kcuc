@@ -11,8 +11,9 @@ class App extends React.Component {
   render() {
     console.log('App is rendered');
     return <div className='container'>
-      <h2 className="title">Knowledge Center Update Checker</h2>
+      <h1 className="title">Knowledge Center Update Checker</h1>
       <PageContainer></PageContainer>
+      <hr/>
       <UserContainer></UserContainer>
     </div>;
   }
