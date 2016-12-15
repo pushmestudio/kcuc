@@ -1,5 +1,4 @@
 import React from 'react';
-import RecentChangesTable from './RecentChangesTable';
 import PageContainer from '../containers/PageContainer';
 import UserContainer from '../containers/UserContainer';
 

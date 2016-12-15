@@ -1,4 +1,3 @@
-import React from 'react';
 import { connect } from 'react-redux';
 import { fetchPages } from '../actions';
 import RecentChangesTable from '../components/RecentChangesTable';
