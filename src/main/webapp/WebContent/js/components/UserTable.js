@@ -2,19 +2,20 @@ import React from 'react';
 import Headings from './Headings';
 import Rows from './Rows';
 
-class RecentChangesTable extends React.Component {
+class UserTable extends React.Component {
   constructor(props) {
     // super()を呼び、値を渡すことで、初期化時に渡したプロパティがこのクラスのprops.xxxとして使えるようになる
     super(props);
   }
 
   render() {
-    console.log('RecentChangesTable is rendered');
+    console.log('UserTable is rendered');
     console.dir(this.props);
     return <div>
-      <h3>{this.props.title}</h3>
+      <h2>{this.props.title}</h2>
+      <h3>Look Up</h3>
       <div className='input-group'>
-        <input className='form-control' type='text' ref='searchKey' placeholder='capsmalt, SSMTU9/welcometoibmverse.html'/>
+        <input className='form-control' type='text' ref='searchKey' placeholder='(e.g. SSMTU9/welcometoibmverse.html)'/>
         <span className='input-group-btn'>
           <button className='btn btn-primary' onClick={() => this.props.fetch(this.refs.searchKey.value)}>Search</button>
         </span>
@@ -28,4 +29,4 @@ class RecentChangesTable extends React.Component {
   }
 }
 
-export default RecentChangesTable;
+export default UserTable;

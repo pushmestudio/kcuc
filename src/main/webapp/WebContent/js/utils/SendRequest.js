@@ -3,18 +3,17 @@
  */
 class SendRequest {
   /**
-   * POSTでJSONを送信してJSONを取得（非同期）
-   */
-  static sendPost(uri, param) {
-    let $d = $.Deferred();
+  * GETでJSONを取得（非同期）
+  */
+  static sendGet(uri, param) {
+    console.log('ASYNC GET ' + uri);
+    var $d = $.Deferred();
     try {
       $.ajax({
-        type: 'POST',
+        type: 'GET',
         async: true,
         url: uri,
-        dataType: 'json',
-        data: JSON.stringify(param),
-        contentType: 'application/json; charset=utf-8',
+        data: param,
         success: function (data) {
           console.dir(data);
           $d.resolve(data);
@@ -31,17 +30,17 @@ class SendRequest {
   }
 
   /**
-  * GETでJSONを取得（非同期）
-  */
-  static sendGet(uri, param) {
-    console.log('ASYNC GET ' + uri);
-    var $d = $.Deferred();
+   * POSTでJSONを送信してJSONを取得（非同期）
+   */
+  static sendPost(uri, param) {
+    let $d = $.Deferred();
     try {
       $.ajax({
-        type: 'GET',
+        type: 'POST',
         async: true,
         url: uri,
         data: param,
+        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
         success: function (data) {
           console.dir(data);
           $d.resolve(data);

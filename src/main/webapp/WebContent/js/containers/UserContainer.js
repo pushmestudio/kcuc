@@ -1,6 +1,6 @@
 import { connect } from 'react-redux';
 import { fetchUsers } from '../actions';
-import RecentChangesTable from '../components/RecentChangesTable';
+import UserTable from '../components/UserTable';
 
 const mapStateToProps = (state) => {
   console.log('container state:');
@@ -25,6 +25,6 @@ const mapDispatchToProps = (dispatch) => {
 const UserContainer = connect(
   mapStateToProps,
   mapDispatchToProps
-)(RecentChangesTable);
+)(UserTable);
 
 export default UserContainer;
