@@ -9,9 +9,9 @@ class Rows extends React.Component {
 
   render() {
     console.log('Rows is rendered');
-    console.log(this.props.dataSet);
+    console.dir(this.props.dataSet);
     let rows = this.props.dataSet.map((data, index) => {
-      return(<Row key={index} {...data} func={this.props.func}/>);
+      return(<Row key={index} {...data} type={this.props.type} />);
     });
     return <tbody>{rows}</tbody>;
   }

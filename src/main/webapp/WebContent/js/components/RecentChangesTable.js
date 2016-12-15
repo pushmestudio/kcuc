@@ -11,32 +11,18 @@ class RecentChangesTable extends React.Component {
   render() {
     console.log('RecentChangesTable is rendered');
     console.dir(this.props);
-    return <div className="container">
-        <h2 className="title">Knowledge Center Update Checker</h2>
-        <h3>Search by User</h3>
-      <div className="input-group">
-        <input className="form-control" type="text" ref="userId" placeholder="type here used id... (e.g. capsmalt)"/>
-        <span className="input-group-btn">
-          <button className="btn btn-primary" onClick={() => this.props.onClickFunc(this.refs.userId.value)}>Search</button>
+    return <div>
+      <h3>{this.props.title}</h3>
+      <div className='input-group'>
+        <input className='form-control' type='text' ref='searchKey' placeholder='capsmalt, SSMTU9/welcometoibmverse.html'/>
+        <span className='input-group-btn'>
+          <button className='btn btn-primary' onClick={() => this.props.fetch(this.refs.searchKey.value)}>Search</button>
         </span>
       </div>
-      <h3>Search Result Pages</h3>
+      <h3>Search Result</h3>
       <table className='table table-bordered'>
         <Headings headings={this.props.headings} />
-        <Rows dataSet={this.props.pageSet} />
-      </table>
-      <hr/>
-      <h3>Search by Page</h3>
-      <div className="input-group">
-        <input className="form-control" type="text" ref="pageHref" placeholder="type here used id... (e.g. capsmalt)"/>
-        <span className="input-group-btn">
-          <button className="btn btn-primary" onClick={() => this.props.onClickFunc2(this.refs.pageHref.value)}>Search</button>
-        </span>
-      </div>
-      <h3>Search Result Users</h3>
-      <table className='table table-bordered'>
-        <Headings headings={this.props.headings} />
-        <Rows dataSet={this.props.userSet} />
+        <Rows dataSet={this.props.results} type={this.props.type} />
       </table>
     </div>;
   }
