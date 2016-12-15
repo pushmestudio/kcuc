@@ -8,16 +8,27 @@ class Row extends React.Component {
     super(props);
   }
 
+  getEachRow(rowType) {
+    if (rowType === 'pages') {
+      return <tr>
+      <td><input type='checkbox' ref='checkBox' onChange={(e) => this.handleTick(e)}/></td>
+      <td>{this.props.pageHref}</td>
+      <td>{String(this.props.isUpdated)}</td>
+      <td><input type='text' ref='textBox' onChange={(e) => this.handleChange(e)}/></td>
+      </tr>;
+    } else if (rowType === 'users') {
+      return <tr>
+      <td><input type='checkbox' ref='checkBox' onChange={(e) => this.handleTick(e)}/></td>
+      <td>{this.props.id}</td>
+      <td>{String(this.props.isUpdated)}</td>
+      </tr>;
+    }
+  }
+
   render() {
     console.log('Row is rendered');
-    return <tr>
-    <td><input type="checkbox" ref="checkBox" onChange={(e) => this.handleTick(e)}/></td>
-    <td>{this.props.prodId}</td>
-    <td>{this.props.url}</td>
-    <td>{this.props.updateTime}</td>
-    <td>{this.props.updateFlag}</td>
-    <td><input type="text" ref="textBox" onChange={(e) => this.handleChange(e)}/></td>
-    </tr>;
+    console.dir(this.props);
+    return this.getEachRow(this.props.type);
   }
 
   // 値の変更を検知して更新
@@ -28,10 +39,9 @@ class Row extends React.Component {
   // チェックON/OFF
   handleTick(event) {
     if (this.refs.checkBox.selected) {
-      console.log(this.props.prodId + ' is removed');
       ReactDOM.render(<ModalAlert />, document.getElementById('modalAlert'));
     } else {
-      console.log(this.props.prodId + ' is selected');
+      console.log('Send request via checkbox');
       this.props.func();
     }
   }

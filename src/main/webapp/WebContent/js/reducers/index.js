@@ -1,8 +1,10 @@
 import { combineReducers } from 'redux';
-import sampleReducer from './sampleReducer';
+import kcUser from './kcUser';
+import kcPage from './kcPage';
 
 const rootReducer = combineReducers({
-  sampleReducer
+  kcUser
+  , kcPage
 });
 
 export default rootReducer;

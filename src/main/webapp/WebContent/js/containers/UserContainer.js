@@ -1,33 +1,31 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { fetchPages, fetchUsers } from '../actions';
+import { fetchUsers } from '../actions';
 import RecentChangesTable from '../components/RecentChangesTable';
 
 const mapStateToProps = (state) => {
   console.log('container state:');
   console.dir(state);
   return {
-    headings: state.sampleReducer.headings
-    , pageSet: state.sampleReducer.pages
-    , userSet: state.sampleReducer.users
+    headings: state.kcUser.headings
+    , results: state.kcUser.users
+    , title: state.kcUser.title
+    , type: state.kcUser.type
   };
 };
 
 const mapDispatchToProps = (dispatch) => {
   console.log('dispatch to props:');
   return {
-    onClickFunc: (user) => {
-      dispatch(fetchPages(user));
-    }
-    ,onClickFunc2: (page) => {
+    fetch: (page) => {
       dispatch(fetchUsers(page));
     }
   };
 };
 
-const SampleContainer = connect(
+const UserContainer = connect(
   mapStateToProps,
   mapDispatchToProps
 )(RecentChangesTable);
 
-export default SampleContainer;
+export default UserContainer;
