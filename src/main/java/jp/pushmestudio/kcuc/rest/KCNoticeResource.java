@@ -11,9 +11,9 @@ import javax.ws.rs.core.MediaType;
 
 import org.json.JSONObject;
 
-import io.swagger.annotations.*;
+import jp.pushmestudio.kcuc.controller.KCData;
 
-import jp.pushmestudio.kcuc.model.KCData;
+import io.swagger.annotations.*;
 
 @Api(value = "kcuc")
 @Path("/check")
@@ -23,22 +23,6 @@ public class KCNoticeResource {
 
 	// 実際に取得処理などを行うオブジェクト
 	KCData data = new KCData();
-
-	/**
-	 * すべての更新を確認、意図不明瞭な名称のため使用しないこと、削除予定
-	 * 
-	 * @return 更新確認結果
-	 */
-	@Path("/all")
-	@GET
-	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "すべての更新を確認", notes = "すべての更新を確認、意図不明瞭な名称のため使用しないこと、削除予定")
-	@Deprecated
-	public String getUpdate() {
-		// @SuppressWarnings("deprecation")
-		JSONObject results = data.checkUpdate();
-		return results.toString();
-	}
 
 	/**
 	 * 特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定
@@ -71,12 +55,12 @@ public class KCNoticeResource {
 		JSONObject results = data.checkUpdateByUser(user);
 		return results.toString();
 	}
-	
+
 	/**
 	 * 特定のユーザの購読するページを追加・確認 クライアントから呼ばれる想定
 	 * 
 	 * @param user
-	 * 			  購読ページを登録するユーザ（いずれはCookieなど）
+	 *            購読ページを登録するユーザ（いずれはCookieなど）
 	 * @param href
 	 *            購読登録対象のページキー
 	 * @return 登録確認結果

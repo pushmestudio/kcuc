@@ -19,7 +19,7 @@ public class KCNoticeApplicationConfig extends Application {
 		beanConfig.setDescription("Knowledge Center Update Checker");
 		beanConfig.setVersion("1.0.2");
 		beanConfig.setSchemes(new String[] { "http" });
-		beanConfig.setHost("172.17.0.2:8080"); // 各自環境のdockerのIPアドレスに変更必要
+		// beanConfig.setHost("172.17.0.2:8080"); // Hostの設定値は省略すると稼働しているホストになる想定のため設定呼び出しをコメントアウト
 		beanConfig.setBasePath("/kcuc/rest-v1"); // applicationのルートパスを指定
 		beanConfig.setPrettyPrint(true);
 		beanConfig.setResourcePackage("io.swagger.resources");
