@@ -6,6 +6,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 
+import jp.pushmestudio.kcuc.controller.KCData;
+
 public class KCDataTest {
 
 	@Test
@@ -41,7 +43,7 @@ public class KCDataTest {
 		boolean actual = firstPage.getBoolean("isUpdated");
 		assertTrue(actual);
 	}
-	
+
 	@Test
 	public void 特定ユーザーと購読ページを指定してユーザーの購読リストに登録されることを確認できる() {
 		KCData data = new KCData();
