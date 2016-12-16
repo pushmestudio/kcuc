@@ -38,8 +38,8 @@
         url = decodeURIComponent(url[1]);
       } else {
         // url = "http://petstore.swagger.io/v2/swagger.json";
-        // 20161130 added
-        url = "http://172.17.0.2:8080/kcuc/api/swagger.json";
+        // 同じホスト内のRESTを見に行く前提の設定、ホストが別れる場合はホスト名から記載すること
+        url = "/kcuc/api/swagger.json";
       }
 
       hljs.configure({
