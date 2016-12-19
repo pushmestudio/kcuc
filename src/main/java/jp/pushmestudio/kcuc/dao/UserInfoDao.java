@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.cloudant.client.api.ClientBuilder;
+import com.cloudant.client.api.CloudantClient;
+import com.cloudant.client.api.Database;
+
 import jp.pushmestudio.kcuc.model.UserInfo;
 
 public class UserInfoDao {
@@ -19,6 +23,17 @@ public class UserInfoDao {
 	public List<UserInfo> getUserList(String searchId) {
 		List<UserInfo> userList = new ArrayList<>();
 
+		// Cloudantのインスタンスを作成
+		CloudantClient cldClient = ClientBuilder.account("71fe3412-713b-4330-98c7-688705e6fab5-bluemix")
+													  .username("ditsescresentonvatedlyin")
+													  .password("9b4bc6199433933f2bfcdafabbb2a54f16769ff0")
+													  .build();
+		
+		System.out.println("Server Version: " + cldClient.serverVersion());
+		// Databaseのインスタンスを取得
+		Database kcucDB = cldClient.database("kcucdb", false);
+		System.out.println("Document: " + kcucDB.find("9b3f3312f48f73ed978a7a6765457763"));
+		
 		// TODO ここでDBに対してselect処理などを実施する、今はダミーの値を使用する
 		DummyStatement stmt = new DummyStatement();
 		List<List<Object>> rs = stmt.executeQueryUser(searchId);
