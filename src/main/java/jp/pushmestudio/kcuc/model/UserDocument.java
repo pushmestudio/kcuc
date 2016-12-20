@@ -31,6 +31,10 @@ public class UserDocument {
 	public List<SubscribedPage> getSubscribedPages() {
 		return subscribedPages;
 	}
+	
+	public void addSubscribedPages(SubscribedPage targetPage) {
+		subscribedPages.add(targetPage);
+	}
 
 	public String toString() {
 		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserName: " + userName + ",\nsubscribedPages: " + subscribedPages + "\n}";

@@ -59,11 +59,13 @@ public class KCData {
 			for (UserDocument userDoc : userList) {
 				JSONObject eachUser = new JSONObject();
 				
+				// userDocにはsubscribedPagesがListで複数保持されているため、該当のpageKeyをもつもののみ抽出
 				List<String> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
 																.filter(s -> s.getPageHref().equals(pageKey))
 																.map(s -> s.getUpdatedTime())
 																.collect(Collectors.toList());
 				
+				// ↑の結果はListで返るが、1ユーザが同じページを購読することは仕様上禁止されるはずであるため最初の値を常に使用できる
 				Long preservedDate = Long.parseLong(targetPageUpdatedTime.get(0));
 				
 				eachUser.put("id", userDoc.getUserName()).put("isUpdated", preservedDate < lastModifiedDate.getTime());
@@ -212,7 +214,7 @@ public class KCData {
 	 *         {"pageHref":"SS42VS_7.2.7/com.ibm.qradar.doc/b_qradar_qsg.html"}],
 	 *         "id":"capsmalt"}</code>
 	 */
-	public JSONObject registerSubscribedPages(String userId, String pageHref) {
+	public JSONObject registerSubscribedPages(String searchId, String pageHref) {
 		try {
 			// return用
 			JSONObject result = new JSONObject();
@@ -221,6 +223,37 @@ public class KCData {
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
 
+			List<UserDocument> userList = userInfoDao.setSubscribedPages(searchId, pageHref);
+			
+			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
+			if (userList.size() <= 0) {
+				result = KCMessageFactory.createMessage(500, "User Not Found.").getJsonMessage();
+				return result;
+			} else if (getSpecificPageMeta(pageHref) == "none") {
+			// ページキーが存在しない場合もエラーメッセージを返す
+				result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
+				return result;
+			}
+
+			for (UserDocument userDoc : userList) {
+				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
+
+				for (SubscribedPage entry : subscribedPages) {
+					JSONObject eachPage = new JSONObject();
+
+					eachPage.put("pageHref", entry.getPageHref());
+					subscribedList.put(eachPage);
+				}
+			}
+
+			result.put("result", "success");
+			result.put("pages", subscribedList);
+			result.put("id", searchId);
+			// JSONArray resultPages = new JSONArray();
+
+			return result;
+			
+			/* 20161222 接続先をCloudantに移行
 			// DB登録後のユーザ情報を保存するためのリストを作成
 			List<UserInfo> userList = userInfoDao.setSubscribedPages(userId, pageHref);
 			
@@ -251,6 +284,7 @@ public class KCData {
 			// JSONArray resultPages = new JSONArray();
 
 			return result;
+			*/
 
 		} catch (JSONException e) {
 			e.printStackTrace();
