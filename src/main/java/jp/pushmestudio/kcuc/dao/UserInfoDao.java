@@ -11,6 +11,7 @@ import com.cloudant.client.api.CloudantClient;
 import com.cloudant.client.api.Database;
 
 import jp.pushmestudio.kcuc.model.UserInfo;
+import jp.pushmestudio.kcuc.model.UserDocument;
 
 public class UserInfoDao {
 	/**
@@ -20,8 +21,9 @@ public class UserInfoDao {
 	 *            探す対象となるユーザーのID
 	 * @return DBから取得した、IDに該当するユーザー
 	 */
-	public List<UserInfo> getUserList(String searchId) {
-		List<UserInfo> userList = new ArrayList<>();
+	public List<UserDocument> getUserList(String searchId) {
+//	public List<UserInfo> getUserList(String searchId) {
+		// List<UserInfo> userList = new ArrayList<>();
 
 		// Cloudantのインスタンスを作成
 		CloudantClient cldClient = ClientBuilder.account("71fe3412-713b-4330-98c7-688705e6fab5-bluemix")
@@ -29,11 +31,21 @@ public class UserInfoDao {
 													  .password("9b4bc6199433933f2bfcdafabbb2a54f16769ff0")
 													  .build();
 		
-		System.out.println("Server Version: " + cldClient.serverVersion());
+		// CloudantのVersionを取得
+		// System.out.println("Server Version: " + cldClient.serverVersion());
 		// Databaseのインスタンスを取得
 		Database kcucDB = cldClient.database("kcucdb", false);
-		System.out.println("Document: " + kcucDB.find("9b3f3312f48f73ed978a7a6765457763"));
 		
+		// _idの値を指定してドキュメントを取得
+		//UserDocument userDoc = kcucDB.find(UserDocument.class, "9b3f3312f48f73ed978a7a6765457763");
+		
+		// userNameのインデックスを使用して、指定されたユーザ名に一致するユーザのデータを取得
+		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userName\":\"" + searchId + "\"}}", UserDocument.class);
+		System.out.println(userDocs);
+		
+		return userDocs;
+		
+		/* 20161222 接続先をCloudantに移行
 		// TODO ここでDBに対してselect処理などを実施する、今はダミーの値を使用する
 		DummyStatement stmt = new DummyStatement();
 		List<List<Object>> rs = stmt.executeQueryUser(searchId);
@@ -48,8 +60,9 @@ public class UserInfoDao {
 			UserInfo userInfo = new UserInfo(id, password, subscribedPages);
 			userList.add(userInfo);
 		}
-
+		
 		return userList;
+		*/
 	}
 
 	/**
@@ -216,7 +229,7 @@ public class UserInfoDao {
 		public List<List<Object>> getUserTableData() {
 			// ダミーユーザー1
 			List<Object> dummyUser1 = new ArrayList<>();
-			String dummy1Id = "capsmalt";
+			String dummy1Id = "tkhm";
 			String dummy1Password = "pass";
 			Map<String, Long> dummy1SubscribedPages = new HashMap<>();
 			dummy1SubscribedPages.put("SSMTU9/welcometoibmverse.html", 1469114812137L);
@@ -226,7 +239,7 @@ public class UserInfoDao {
 
 			// ダミーユーザー2
 			List<Object> dummyUser2 = new ArrayList<>();
-			String dummy2Id = "tkhm";
+			String dummy2Id = "capsmalt";
 			String dummy2Password = "word";
 			Map<String, Long> dummy2SubscribedPages = new HashMap<>();
 			dummyUser2.add(dummy2Id);
