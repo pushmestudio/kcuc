@@ -5,13 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Date;
 
 import com.cloudant.client.api.ClientBuilder;
 import com.cloudant.client.api.CloudantClient;
 import com.cloudant.client.api.Database;
+import com.cloudant.client.api.model.Response;
 
 import jp.pushmestudio.kcuc.model.UserInfo;
 import jp.pushmestudio.kcuc.model.UserDocument;
+import jp.pushmestudio.kcuc.model.SubscribedPage;
 
 public class UserInfoDao {
 	/**
@@ -118,10 +121,43 @@ public class UserInfoDao {
 	 *            購読ページ
 	 * @return 指定したユーザの情報一覧（ページ追加後）
 	 */
+	public List<UserDocument> setSubscribedPages(String searchId, String pageHref) {
+	/*
 	public List<UserInfo> setSubscribedPages(String userID, String pageHref) {
 		// return用
 		List<UserInfo> userList = new ArrayList<>();
+	*/
+		
+		// Cloudantのインスタンスを作成
+		CloudantClient cldClient = ClientBuilder.account("71fe3412-713b-4330-98c7-688705e6fab5-bluemix")
+													  .username("ditsescresentonvatedlyin")
+													  .password("9b4bc6199433933f2bfcdafabbb2a54f16769ff0")
+													  .build();
+		
+		// Databaseのインスタンスを取得
+		Database kcucDB = cldClient.database("kcucdb", false);
+				
+		// useNameのインデックスを使用して、指定されたユーザのデータを取得
+		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userName\":\"" + searchId + "\"}}", UserDocument.class);
+		
+		// 追加するページの情報を作成
+		Date currentTime = new Date();
+		String timestamp = Long.toString(currentTime.getTime());
+		SubscribedPage targetPage = new SubscribedPage(pageHref, false, timestamp, "unknown");
+		
+		// 指定されたユーザに該当するレコードを更新
+		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
+		updateTarget.addSubscribedPages(targetPage);
+		Response responseUpdate = kcucDB.update(updateTarget);
+		
+		// Todo 本来であればupdateは1つのレコードに対してのみ実施されるため、返り値をListにする必要はない。
+		// UserDocument updatedInfo = kcucDB.find(UserDocument.class, responseUpdate.getId());
+		
+		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userName\":\"" + searchId + "\"}}", UserDocument.class);
+		
+		return updatedInfo;
 
+		/* 20161222 接続先をCloudantに移行
 		// TODO ここでDBに対してupdate処理などを実施する、今はダミーの値を使用する
 		DummyStatement stmt = new DummyStatement();
 		List<List<Object>> rs = stmt.executeUpdatePage(userID, pageHref);
@@ -138,6 +174,7 @@ public class UserInfoDao {
 		}
 
 		return userList;
+		*/
 	}
 
 	class DummyStatement {

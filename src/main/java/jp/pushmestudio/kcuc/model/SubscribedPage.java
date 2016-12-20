@@ -10,7 +10,11 @@ public class SubscribedPage {
 	private String prodId;
 
 	// コンストラクタ(未使用)
-	public SubscribedPage() {
+	public SubscribedPage(String pageHref, Boolean isUpdated, String updatedTime, String prodId) {
+		this.pageHref = pageHref;
+		this.isUpdated = isUpdated;
+		this.updatedTime = updatedTime;
+		this.prodId = prodId;
 	}
 	
 	public String getPageHref() {
