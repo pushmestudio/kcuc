@@ -18,10 +18,12 @@ import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.UserInfo;
+import jp.pushmestudio.kcuc.model.UserDocument;
+import jp.pushmestudio.kcuc.model.SubscribedPage;
 import jp.pushmestudio.kcuc.util.KCMessageFactory;
 
 public class KCData {
-	// TODO メソッドの並びを、コンストラク,、Public, Privateのようにわかりやすい並びにする
+	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
 
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
@@ -95,7 +97,8 @@ public class KCData {
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
 			// IDはユニークなはずなので、Listにする必要はない
-			List<UserInfo> userList = userInfoDao.getUserList(userId);
+			List<UserDocument> userList = userInfoDao.getUserList(userId);
+			// List<UserInfo> userList = userInfoDao.getUserList(userId);
 			
 			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 			if (userList.size() <= 0) {
@@ -103,6 +106,36 @@ public class KCData {
 				return result;
 			}
 		
+			for (UserDocument userDoc : userList) {
+				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
+
+				for (SubscribedPage entry : subscribedPages) {
+					JSONObject eachPage = new JSONObject();
+					String pageKey = entry.getPageHref();
+					Long preservedDate = Long.parseLong(entry.getUpdatedTime());
+							
+					// KCからのデータ取得処理
+					String dateLastModified = getSpecificPageMeta(pageKey);
+					
+					// ページキーが取得できない場合はエラーメッセージを返す
+					if (dateLastModified == "none") {
+						result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
+						return result;
+					}
+					
+					Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+
+					eachPage.put("pageHref", pageKey);
+					eachPage.put("isUpdated", preservedDate < lastModifiedDate.getTime());
+					resultPages.put(eachPage);
+				}
+			}
+			result.put("id", userId);
+			result.put("pages", resultPages);
+		
+			return result;
+			
+			/* 20161222 接続先をCloudantに移行
 			for (UserInfo userInfo : userList) {
 				Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
 
@@ -131,6 +164,7 @@ public class KCData {
 			result.put("pages", resultPages);
 		
 			return result;
+			*/
 		} catch (JSONException e) {
 			e.printStackTrace();
 			JSONObject result = new JSONObject();
