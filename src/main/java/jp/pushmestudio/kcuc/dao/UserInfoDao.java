@@ -19,11 +19,13 @@ public class UserInfoDao {
 	 * 
 	 * @param searchId
 	 *            探す対象となるユーザーのID
-	 * @return DBから取得した、IDに該当するユーザー
+	 * @return DBから取得した、IDに該当するユーザーの情報
 	 */
 	public List<UserDocument> getUserList(String searchId) {
-//	public List<UserInfo> getUserList(String searchId) {
-		// List<UserInfo> userList = new ArrayList<>();
+	/* 20161222 接続先をCloudantに移行
+	public List<UserInfo> getUserList(String searchId) {
+		List<UserInfo> userList = new ArrayList<>();
+	*/
 
 		// Cloudantのインスタンスを作成
 		CloudantClient cldClient = ClientBuilder.account("71fe3412-713b-4330-98c7-688705e6fab5-bluemix")
@@ -31,17 +33,11 @@ public class UserInfoDao {
 													  .password("9b4bc6199433933f2bfcdafabbb2a54f16769ff0")
 													  .build();
 		
-		// CloudantのVersionを取得
-		// System.out.println("Server Version: " + cldClient.serverVersion());
 		// Databaseのインスタンスを取得
 		Database kcucDB = cldClient.database("kcucdb", false);
-		
-		// _idの値を指定してドキュメントを取得
-		//UserDocument userDoc = kcucDB.find(UserDocument.class, "9b3f3312f48f73ed978a7a6765457763");
-		
+				
 		// userNameのインデックスを使用して、指定されたユーザ名に一致するユーザのデータを取得
 		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userName\":\"" + searchId + "\"}}", UserDocument.class);
-		System.out.println(userDocs);
 		
 		return userDocs;
 		
@@ -72,9 +68,28 @@ public class UserInfoDao {
 	 *            購読ページ
 	 * @return 指定した購読ページを購読しているユーザー
 	 */
+	public List<UserDocument> getSubscribedUserList(String pageHref) {
+	/* 20161222 接続先をCloudantに移行
 	public List<UserInfo> getSubscribedUserList(String pageHref) {
 		List<UserInfo> userList = new ArrayList<>();
+	*/
+		
+		// Cloudantのインスタンスを作成
+		CloudantClient cldClient = ClientBuilder.account("71fe3412-713b-4330-98c7-688705e6fab5-bluemix")
+													  .username("ditsescresentonvatedlyin")
+													  .password("9b4bc6199433933f2bfcdafabbb2a54f16769ff0")
+													  .build();
+		
+		// Databaseのインスタンスを取得
+		Database kcucDB = cldClient.database("kcucdb", false);
+				
+		// pageHrefのインデックスを使用して、指定されたページキーを購読しているユーザのデータを取得
+		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\""
+																+ pageHref + "\"}}}}", UserDocument.class);
+		
+		return userDocs;
 
+		/* 20161222 接続先をCloudantに移行
 		// TODO ここでDBに対してselect処理などを実施する、今はダミーの値を使用する
 		DummyStatement stmt = new DummyStatement();
 		List<List<Object>> rs = stmt.executeQueryPage(pageHref);
@@ -91,6 +106,7 @@ public class UserInfoDao {
 		}
 
 		return userList;
+		*/
 	}
 
 	/**

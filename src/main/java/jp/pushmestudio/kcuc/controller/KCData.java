@@ -3,7 +3,7 @@ package jp.pushmestudio.kcuc.controller;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -54,6 +54,30 @@ public class KCData {
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
+			List<UserDocument> userList = userInfoDao.getSubscribedUserList(pageKey);
+
+			for (UserDocument userDoc : userList) {
+				JSONObject eachUser = new JSONObject();
+				
+				List<String> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
+																.filter(s -> s.getPageHref().equals(pageKey))
+																.map(s -> s.getUpdatedTime())
+																.collect(Collectors.toList());
+				
+				Long preservedDate = Long.parseLong(targetPageUpdatedTime.get(0));
+				
+				eachUser.put("id", userDoc.getUserName()).put("isUpdated", preservedDate < lastModifiedDate.getTime());
+				resultUserList.put(eachUser);
+			}
+			
+			result.put("pageHref", pageKey);
+			result.put("userList", resultUserList);
+			
+			return result;
+			
+			/* 20161222 接続先をCloudantに移行
+			// DBのユーザーからのデータ取得処理
+			UserInfoDao userInfoDao = new UserInfoDao();
 			List<UserInfo> userList = userInfoDao.getSubscribedUserList(pageKey);
 
 			for (UserInfo userInfo : userList) {
@@ -68,6 +92,7 @@ public class KCData {
 			result.put("userList", resultUserList);
 			
 			return result;
+			*/
 		} catch (JSONException e) {
 			e.printStackTrace();
 			JSONObject result = new JSONObject();
