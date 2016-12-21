@@ -146,6 +146,29 @@ nav li.active a {
   z-index: 300;
 }
 
+/* Loading Icon  See: http://www.w3schools.com/howto/howto_css_loader.asp */
+.loader {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  position: fixed;
+  right: 50%;
+  bottom: 50%;
+  z-index: 300;
+  animation: spin 2s linear infinite;
+}
+
+.hide {
+  display: none;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* 色定義 */
 .light {
 	background-color: #FFF;
