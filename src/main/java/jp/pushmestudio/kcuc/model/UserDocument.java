@@ -11,6 +11,7 @@ public class UserDocument {
 	private String userName;
 	private List<SubscribedPage> subscribedPages;
 
+	// コンストラクタ(未使用)
 	public UserDocument(String userName) {
 		this.userName = userName;
 		// this.subscribedPages = null;
