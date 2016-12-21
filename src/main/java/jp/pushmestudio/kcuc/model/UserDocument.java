@@ -16,7 +16,7 @@ public class UserDocument {
 		this.userName = userName;
 		// this.subscribedPages = null;
 	}
-	
+
 	public String getId() {
 		return _id;
 	}
@@ -24,7 +24,7 @@ public class UserDocument {
 	public String getRev() {
 		return _rev;
 	}
-	
+
 	public String getUserName() {
 		return userName;
 	}
@@ -32,12 +32,13 @@ public class UserDocument {
 	public List<SubscribedPage> getSubscribedPages() {
 		return subscribedPages;
 	}
-	
+
 	public void addSubscribedPages(SubscribedPage targetPage) {
 		subscribedPages.add(targetPage);
 	}
 
 	public String toString() {
-		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserName: " + userName + ",\nsubscribedPages: " + subscribedPages + "\n}";
+		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserName: " + userName + ",\nsubscribedPages: " + subscribedPages
+				+ "\n}";
 	}
 }

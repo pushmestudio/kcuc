@@ -16,7 +16,7 @@ public class SubscribedPage {
 		this.updatedTime = updatedTime;
 		this.prodId = prodId;
 	}
-	
+
 	public String getPageHref() {
 		return pageHref;
 	}
@@ -24,7 +24,7 @@ public class SubscribedPage {
 	public Boolean getIsUpdated() {
 		return isUpdated;
 	}
-	
+
 	public String getUpdatedTime() {
 		return updatedTime;
 	}
@@ -32,10 +32,10 @@ public class SubscribedPage {
 	public String getProdId() {
 		return prodId;
 	}
-	
+
 	public String toString() {
-		return "{pageHref: " + pageHref + ",\nisUpdated: " + isUpdated + ",\nupdatedTime: " 
-				+ updatedTime + ",\nprodId: " + prodId + "\n}";
+		return "{pageHref: " + pageHref + ",\nisUpdated: " + isUpdated + ",\nupdatedTime: " + updatedTime
+				+ ",\nprodId: " + prodId + "\n}";
 	}
 
 }

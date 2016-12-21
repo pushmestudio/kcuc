@@ -2,7 +2,6 @@ package jp.pushmestudio.kcuc.controller;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
@@ -17,17 +16,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
-import jp.pushmestudio.kcuc.model.UserInfo;
-import jp.pushmestudio.kcuc.model.UserDocument;
 import jp.pushmestudio.kcuc.model.SubscribedPage;
+import jp.pushmestudio.kcuc.model.UserDocument;
 import jp.pushmestudio.kcuc.util.KCMessageFactory;
 
 public class KCData {
 	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
 
-	public KCData(){
-		
+	public KCData() {
+
 	}
+
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
 	 * 取得に失敗した場合、エラーが発生したことを示すJSONを返す
@@ -43,13 +42,13 @@ public class KCData {
 			// return用
 			JSONObject result = new JSONObject();
 			JSONArray resultUserList = new JSONArray();
-			
+
 			// ページキーが取得できない場合はエラーメッセージを返す
 			if (!isTopicExist(pageKey)) {
 				result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
 				return result;
 			}
-			
+
 			// KCからのデータ取得処理
 			String dateLastModified = getSpecificPageMeta(pageKey);
 			Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
@@ -60,43 +59,42 @@ public class KCData {
 
 			for (UserDocument userDoc : userList) {
 				JSONObject eachUser = new JSONObject();
-				
+
 				// userDocにはsubscribedPagesがListで複数保持されているため、該当のpageKeyをもつもののみ抽出
 				List<String> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
-																.filter(s -> s.getPageHref().equals(pageKey))
-																.map(s -> s.getUpdatedTime())
-																.collect(Collectors.toList());
-				
+						.filter(s -> s.getPageHref().equals(pageKey)).map(s -> s.getUpdatedTime())
+						.collect(Collectors.toList());
+
 				// ↑の結果はListで返るが、1ユーザが同じページを購読することは仕様上禁止されるはずであるため最初の値を常に使用できる
 				Long preservedDate = Long.parseLong(targetPageUpdatedTime.get(0));
-				
+
 				eachUser.put("id", userDoc.getUserName()).put("isUpdated", preservedDate < lastModifiedDate.getTime());
 				resultUserList.put(eachUser);
 			}
-			
+
 			result.put("pageHref", pageKey);
 			result.put("userList", resultUserList);
-			
-			return result;
-			
-			/* 20161222 接続先をCloudantに移行
-			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
-			List<UserInfo> userList = userInfoDao.getSubscribedUserList(pageKey);
 
-			for (UserInfo userInfo : userList) {
-				Long preservedDate = userInfo.getSubscribedPages().get(pageKey);
-				JSONObject eachUser = new JSONObject();
-
-				eachUser.put("id", userInfo.getId()).put("isUpdated", preservedDate < lastModifiedDate.getTime());
-				resultUserList.put(eachUser);
-			}
-			
-			result.put("pageHref", pageKey);
-			result.put("userList", resultUserList);
-			
 			return result;
-			*/
+
+			/*
+			 * 20161222 接続先をCloudantに移行 // DBのユーザーからのデータ取得処理 UserInfoDao
+			 * userInfoDao = new UserInfoDao(); List<UserInfo> userList =
+			 * userInfoDao.getSubscribedUserList(pageKey);
+			 * 
+			 * for (UserInfo userInfo : userList) { Long preservedDate =
+			 * userInfo.getSubscribedPages().get(pageKey); JSONObject eachUser =
+			 * new JSONObject();
+			 * 
+			 * eachUser.put("id", userInfo.getId()).put("isUpdated",
+			 * preservedDate < lastModifiedDate.getTime());
+			 * resultUserList.put(eachUser); }
+			 * 
+			 * result.put("pageHref", pageKey); result.put("userList",
+			 * resultUserList);
+			 * 
+			 * return result;
+			 */
 		} catch (JSONException e) {
 			e.printStackTrace();
 			JSONObject result = new JSONObject();
@@ -125,17 +123,17 @@ public class KCData {
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
-			
+
 			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
 				result = KCMessageFactory.createMessage(500, "User Not Found.").getJsonMessage();
 				return result;
 			}
-			
+
 			// IDはユニークなはずなので、Listにする必要はない
 			List<UserDocument> userList = userInfoDao.getUserList(userId);
 			// List<UserInfo> userList = userInfoDao.getUserList(userId);
-					
+
 			for (UserDocument userDoc : userList) {
 				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
 
@@ -143,16 +141,16 @@ public class KCData {
 					JSONObject eachPage = new JSONObject();
 					String pageKey = entry.getPageHref();
 					Long preservedDate = Long.parseLong(entry.getUpdatedTime());
-							
+
 					// KCからのデータ取得処理
 					String dateLastModified = getSpecificPageMeta(pageKey);
-					
+
 					// ページキーが取得できない場合はエラーメッセージを返す
 					if (dateLastModified == "none") {
 						result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
 						return result;
 					}
-					
+
 					Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
 
 					eachPage.put("pageHref", pageKey);
@@ -162,39 +160,35 @@ public class KCData {
 			}
 			result.put("id", userId);
 			result.put("pages", resultPages);
-		
+
 			return result;
-			
-			/* 20161222 接続先をCloudantに移行
-			for (UserInfo userInfo : userList) {
-				Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
 
-				for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
-					JSONObject eachPage = new JSONObject();
-					String pageKey = entry.getKey();
-					Long preservedDate = entry.getValue();
-
-					// KCからのデータ取得処理
-					String dateLastModified = getSpecificPageMeta(pageKey);
-					
-					// ページキーが取得できない場合はエラーメッセージを返す
-					if (dateLastModified == "none") {
-						result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
-						return result;
-					}
-					
-					Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
-
-					eachPage.put("pageHref", entry.getKey());
-					eachPage.put("isUpdated", preservedDate < lastModifiedDate.getTime());
-					resultPages.put(eachPage);
-				}
-			}
-			result.put("id", userId);
-			result.put("pages", resultPages);
-		
-			return result;
-			*/
+			/*
+			 * 20161222 接続先をCloudantに移行 for (UserInfo userInfo : userList) {
+			 * Map<String, Long> subscribedPages =
+			 * userInfo.getSubscribedPages();
+			 * 
+			 * for (Map.Entry<String, Long> entry : subscribedPages.entrySet())
+			 * { JSONObject eachPage = new JSONObject(); String pageKey =
+			 * entry.getKey(); Long preservedDate = entry.getValue();
+			 * 
+			 * // KCからのデータ取得処理 String dateLastModified =
+			 * getSpecificPageMeta(pageKey);
+			 * 
+			 * // ページキーが取得できない場合はエラーメッセージを返す if (dateLastModified == "none") {
+			 * result = KCMessageFactory.createMessage(500,
+			 * "Page Not Found.").getJsonMessage(); return result; }
+			 * 
+			 * Date lastModifiedDate = new
+			 * Date(Long.parseLong(dateLastModified));
+			 * 
+			 * eachPage.put("pageHref", entry.getKey());
+			 * eachPage.put("isUpdated", preservedDate <
+			 * lastModifiedDate.getTime()); resultPages.put(eachPage); } }
+			 * result.put("id", userId); result.put("pages", resultPages);
+			 * 
+			 * return result;
+			 */
 		} catch (JSONException e) {
 			e.printStackTrace();
 			JSONObject result = new JSONObject();
@@ -230,16 +224,16 @@ public class KCData {
 			if (!userInfoDao.isUserExist(userId)) {
 				result = KCMessageFactory.createMessage(500, "User Not Found.").getJsonMessage();
 				return result;
-			} else	if (!isTopicExist(pageHref)) {
-			// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
+			} else if (!isTopicExist(pageHref)) {
+				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
 				result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
 				return result;
-			} else if (userInfoDao.isPageExist(userId, pageHref)){
-			// 指定されたページを既に購読している場合もエラーメッセージを返す
+			} else if (userInfoDao.isPageExist(userId, pageHref)) {
+				// 指定されたページを既に購読している場合もエラーメッセージを返す
 				result = KCMessageFactory.createMessage(500, "You Already Subscribe This Page.").getJsonMessage();
 				return result;
 			}
-			
+
 			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref);
 
 			for (UserDocument userDoc : userList) {
@@ -259,39 +253,35 @@ public class KCData {
 			// JSONArray resultPages = new JSONArray();
 
 			return result;
-			
-			/* 20161222 接続先をCloudantに移行
-			// DB登録後のユーザ情報を保存するためのリストを作成
-			List<UserInfo> userList = userInfoDao.setSubscribedPages(userId, pageHref);
-			
-			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
-			if (userList.size() <= 0) {
-				result = KCMessageFactory.createMessage(500, "User Not Found.").getJsonMessage();
-				return result;
-			} else if (getSpecificPageMeta(pageHref) == "none") {
-			// ページキーが存在しない場合もエラーメッセージを返す
-				result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
-				return result;
-			}
 
-			for (UserInfo userInfo : userList) {
-				Map<String, Long> subscribedPages = userInfo.getSubscribedPages();
-
-				for (Map.Entry<String, Long> entry : subscribedPages.entrySet()) {
-					JSONObject eachPage = new JSONObject();
-
-					eachPage.put("pageHref", entry.getKey());
-					subscribedList.put(eachPage);
-				}
-			}
-
-			result.put("result", "success");
-			result.put("pages", subscribedList);
-			result.put("id", userId);
-			// JSONArray resultPages = new JSONArray();
-
-			return result;
-			*/
+			/*
+			 * 20161222 接続先をCloudantに移行 // DB登録後のユーザ情報を保存するためのリストを作成
+			 * List<UserInfo> userList = userInfoDao.setSubscribedPages(userId,
+			 * pageHref);
+			 * 
+			 * // 指定されたユーザが見つからなかった場合、エラーメッセージを返す if (userList.size() <= 0) {
+			 * result = KCMessageFactory.createMessage(500,
+			 * "User Not Found.").getJsonMessage(); return result; } else if
+			 * (getSpecificPageMeta(pageHref) == "none") { //
+			 * ページキーが存在しない場合もエラーメッセージを返す result =
+			 * KCMessageFactory.createMessage(500,
+			 * "Page Not Found.").getJsonMessage(); return result; }
+			 * 
+			 * for (UserInfo userInfo : userList) { Map<String, Long>
+			 * subscribedPages = userInfo.getSubscribedPages();
+			 * 
+			 * for (Map.Entry<String, Long> entry : subscribedPages.entrySet())
+			 * { JSONObject eachPage = new JSONObject();
+			 * 
+			 * eachPage.put("pageHref", entry.getKey());
+			 * subscribedList.put(eachPage); } }
+			 * 
+			 * result.put("result", "success"); result.put("pages",
+			 * subscribedList); result.put("id", userId); // JSONArray
+			 * resultPages = new JSONArray();
+			 * 
+			 * return result;
+			 */
 
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -327,13 +317,15 @@ public class KCData {
 
 		// ページがclassification情報を持つ場合
 		if (resJson.has("classification")) {
-			return resJson.getJSONObject("classification").has("datelastmodified") ? 
-					resJson.getJSONObject("classification").getString("datelastmodified") :
-					resJson.getJSONObject("classification").getString("datecreated");
+			return resJson.getJSONObject("classification").has("datelastmodified")
+					? resJson.getJSONObject("classification").getString("datelastmodified")
+					: resJson.getJSONObject("classification").getString("datecreated");
 
-					// Objects.nonNullはJava SE8からなので、Java SE7環境なら書き換え必須
-			// return Objects.nonNull(dateLastModified) ? dateLastModified : dateCreated;
-		} else	return "none";
+			// Objects.nonNullはJava SE8からなので、Java SE7環境なら書き換え必須
+			// return Objects.nonNull(dateLastModified) ? dateLastModified :
+			// dateCreated;
+		} else
+			return "none";
 	}
 
 	@SuppressWarnings("unused")
@@ -354,7 +346,7 @@ public class KCData {
 
 		return resJson.getJSONObject("toc");
 	}
-	
+
 	/**
 	 * 購読ページがKnowledgeCenter上に存在するか確認する
 	 * 
