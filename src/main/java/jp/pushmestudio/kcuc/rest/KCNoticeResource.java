@@ -71,7 +71,7 @@ public class KCNoticeResource {
 	@ApiOperation(value = "購読ページ追加", notes = "特定のユーザの購読するページを追加・確認 クライアントから呼ばれる想定")
 	public String setSubscribe(@ApiParam(value = "更新対象のユーザー名", required = true) @FormParam("user") @DefaultValue("") String user, 
 									@ApiParam(value = "購読対象のページキー", required = true) @FormParam("href") String href) {
-		JSONObject results = data.registerSubscribedPages(user, href);
+		JSONObject results = data.registerSubscribedPage(user, href);
 		return results.toString();
 	}
 }

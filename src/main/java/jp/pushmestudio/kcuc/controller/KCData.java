@@ -25,6 +25,9 @@ import jp.pushmestudio.kcuc.util.KCMessageFactory;
 public class KCData {
 	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
 
+	public KCData(){
+		
+	}
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
 	 * 取得に失敗した場合、エラーが発生したことを示すJSONを返す
@@ -40,16 +43,15 @@ public class KCData {
 			// return用
 			JSONObject result = new JSONObject();
 			JSONArray resultUserList = new JSONArray();
-
-			// KCからのデータ取得処理
-			String dateLastModified = getSpecificPageMeta(pageKey);
 			
 			// ページキーが取得できない場合はエラーメッセージを返す
-			if (dateLastModified == "none") {
+			if (!isTopicExist(pageKey)) {
 				result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
 				return result;
 			}
 			
+			// KCからのデータ取得処理
+			String dateLastModified = getSpecificPageMeta(pageKey);
 			Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
 
 			// DBのユーザーからのデータ取得処理
@@ -123,16 +125,17 @@ public class KCData {
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
-			// IDはユニークなはずなので、Listにする必要はない
-			List<UserDocument> userList = userInfoDao.getUserList(userId);
-			// List<UserInfo> userList = userInfoDao.getUserList(userId);
 			
 			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
-			if (userList.size() <= 0) {
+			if (!userInfoDao.isUserExist(userId)) {
 				result = KCMessageFactory.createMessage(500, "User Not Found.").getJsonMessage();
 				return result;
 			}
-		
+			
+			// IDはユニークなはずなので、Listにする必要はない
+			List<UserDocument> userList = userInfoDao.getUserList(userId);
+			// List<UserInfo> userList = userInfoDao.getUserList(userId);
+					
 			for (UserDocument userDoc : userList) {
 				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
 
@@ -214,7 +217,7 @@ public class KCData {
 	 *         {"pageHref":"SS42VS_7.2.7/com.ibm.qradar.doc/b_qradar_qsg.html"}],
 	 *         "id":"capsmalt"}</code>
 	 */
-	public JSONObject registerSubscribedPages(String searchId, String pageHref) {
+	public JSONObject registerSubscribedPage(String userId, String pageHref) {
 		try {
 			// return用
 			JSONObject result = new JSONObject();
@@ -223,17 +226,21 @@ public class KCData {
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
 
-			List<UserDocument> userList = userInfoDao.setSubscribedPages(searchId, pageHref);
-			
-			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
-			if (userList.size() <= 0) {
+			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
+			if (!userInfoDao.isUserExist(userId)) {
 				result = KCMessageFactory.createMessage(500, "User Not Found.").getJsonMessage();
 				return result;
-			} else if (getSpecificPageMeta(pageHref) == "none") {
-			// ページキーが存在しない場合もエラーメッセージを返す
+			} else	if (!isTopicExist(pageHref)) {
+			// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
 				result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
 				return result;
+			} else if (userInfoDao.isPageExist(userId, pageHref)){
+			// 指定されたページを既に購読している場合もエラーメッセージを返す
+				result = KCMessageFactory.createMessage(500, "You Already Subscribe This Page.").getJsonMessage();
+				return result;
 			}
+			
+			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref);
 
 			for (UserDocument userDoc : userList) {
 				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
@@ -248,7 +255,7 @@ public class KCData {
 
 			result.put("result", "success");
 			result.put("pages", subscribedList);
-			result.put("id", searchId);
+			result.put("id", userId);
 			// JSONArray resultPages = new JSONArray();
 
 			return result;
@@ -346,5 +353,16 @@ public class KCData {
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
 
 		return resJson.getJSONObject("toc");
+	}
+	
+	/**
+	 * 購読ページがKnowledgeCenter上に存在するか確認する
+	 * 
+	 * @param pageHref
+	 *            確認する購読ページキー
+	 * @return True or False
+	 */
+	public Boolean isTopicExist(String pageHref) {
+		return getSpecificPageMeta(pageHref) != "none" ? true : false;
 	}
 }
