@@ -16,9 +16,6 @@ tasks.withType(GroovyCompile).each {
   it.options.compilerArgs += ['-source', '1.8', '-target', '1.8']
 }
 
-// 本来src/main/webappだが、クライアントサイドのJSもpomと同様の管理方法を取るため、一段ずらす
-project.webAppDirName = 'src/main/webapp/WebContent'
-
 repositories {
   mavenCentral()
   flatDir dirs: "${webAppDir}/WEB-INF/lib"
@@ -55,13 +52,6 @@ task writePom {
   doLast {
     pom().writeTo('pom.xml')
   }
-}
-
-// Server sideをビルドする前にClient sideをビルドする場合に呼ぶ
-// (e.g. gradle client build) yarn installコマンド実行後に使用すること
-task client (type: Exec) {
-  workingDir "${webAppDir}/../"
-  commandLine 'yarn', 'build'
 }
 
 // 生成されたwarを配置する
