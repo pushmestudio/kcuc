@@ -2,31 +2,20 @@
 ひとまずの追加。気付いたベースで随時更新すること。
 
 ## 全体構成
+REST APIは以下`/kcuc/rest-v1/`、REST APIのお試しに使えるSwaggerは`/kcuc/v1-docs/`以下にて使用可能。
 
+REST APIは[KCUC for Web](https://gitlab.com/pushmestudio/kcuc-web)や[KCUC for iOS](https://gitlab.com/pushmestudio/kcuc-ios)から呼び出される想定。
 
-## クライアントサイドセットアップ
+また、REST APIを経由して、[Knowledge CenterのAPI](http://www.ibm.com/support/knowledgecenter/v1-docs/)やCloudant DBを利用している。
 
-* Requirement: Yarn, NodeJS
-
-初回セットアップには、`webapp`ディレクトリにて`yarn install`。
-
-詳細は[クライアントサイドのREADME](src/main/webapp)にて。
-
-## サーバーサイドセットアップ
+## セットアップ
 
 * Requirement：Java8 or later
 * Recommendation: Eclipse Mars or later
 
 初回セットアップは、今後どのような方法で開発を実施したいかによって2種類に分かれる。
 
-1. 可能な限りコマンドラインを使わない(Eclipseで完結させる)方法
-
-Eclipse起動後、`File` > `Import` > `Gradle`を選択。本プロジェクトのルートディレクトリを指した状態でImportを進める。途中、Gradleを選択する画面では、`Gradle Wrapper(Recommended)`のまま進めればOK。
-
-この方法による場合、Eclipse上でGradleのコマンドが実行できるようになるので便利。また、実行しているGradleのタスクの実行状況が視覚的に把握しやすいのと、サーバーサイドプロジェクトにおいては基本的にオールインワンで済ませることができる点で優れる。
-
-
-2. コマンドラインとEclipseを併用する方法
+1. コマンドラインとEclipseを併用する方法
 
 Eclipse起動前に、プロジェクトトップディレクトリにて`./gradlew eclipse`, `./gradlew build`を実行して事前準備する。
 
@@ -34,8 +23,11 @@ Eclipse起動前に、プロジェクトトップディレクトリにて`./grad
 
 この方法による場合、Eclipse上でGradleのコマンドは実行できないものの、Eclipse Luna等Gradleのプラグインが導入されていないマシンでも容易にセットアップできるのが利点。また、EclipseのGradleプラグインは比較的新しいが、その場合でもそこで発生するバグを回避できる点に優れる。
 
+2. 可能な限りコマンドラインを使わない(Eclipseで完結させる)方法
 
-なお、いずれの方法で初回セットアップする場合でも、クライアントサイドセットアップが済んでいない状態で実施するとクライアントサイドは何もソースコードが含まれない状態になる。
+Eclipse起動後、`File` > `Import` > `Gradle`を選択。本プロジェクトのルートディレクトリを指した状態でImportを進める。途中、Gradleを選択する画面では、`Gradle Wrapper(Recommended)`のまま進めればOK。
+
+この方法による場合、Eclipse上でGradleのコマンドが実行できるようになるので便利。また、実行しているGradleのタスクの実行状況が視覚的に把握しやすいのと、サーバーサイドプロジェクトにおいては基本的にオールインワンで済ませることができる点で優れる。
 
 
 `.project`, `.classpath`ファイルを共有するようにすれば、各自のセットアップ方法の不備による環境差異を最小限に抑えることができるが、一方で、基本的に同じEclipseのバージョンを使用しないと頻繁にdiffが発生してしまうので煩わしいという懸念事項があるため、チームの方針をいずれかに倒す必要がある。
