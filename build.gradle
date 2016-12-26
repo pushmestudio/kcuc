@@ -57,5 +57,5 @@ task writePom {
 // 生成されたwarを配置する
 task deploy(type: Exec) {
   workingDir "${projectDir}/build/libs/"
-  commandLine 'cp', '-v', 'kcuc.war', "${deployTargetDir}"
+  commandLine 'cp', '-v', 'kcuc.war', "${deployTargetDir}/ROOT.war"
 }
