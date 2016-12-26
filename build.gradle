@@ -12,9 +12,6 @@ tasks.withType(AbstractCompile).each {
 tasks.withType(GroovyCompile).each {
   it.groovyOptions.encoding = defaultEncoding
 }
-[compileJava, compileTestJava].each {
-  it.options.compilerArgs += ['-source', '1.8', '-target', '1.8']
-}
 
 // 本来src/main/webappだが、クライアントサイドのJSもpomと同様の管理方法を取るため、一段ずらす
 project.webAppDirName = 'src/main/webapp/WebContent'
