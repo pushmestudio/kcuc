@@ -211,12 +211,15 @@ public class KCData {
 	 *         {"pageHref":"SS42VS_7.2.7/com.ibm.qradar.doc/b_qradar_qsg.html"}],
 	 *         "id":"capsmalt"}</code>
 	 */
-	public JSONObject registerSubscribedPage(String userId, String pageHref) {
+	public JSONObject registerSubscribedPage(String userId, String href) {
 		try {
 			// return用
 			JSONObject result = new JSONObject();
 			JSONArray subscribedList = new JSONArray();
 
+			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
+			String pageHref = href.replaceFirst("\\.htm$", "\\.html");
+			
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
 
