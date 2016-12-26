@@ -36,6 +36,9 @@ dependencies {
   // swagger
   compile 'io.swagger:swagger-jersey2-jaxrs:1.5.10'
 
+  // cloudant
+  compile 'com.cloudant:cloudant-client:2.7.0'
+
   // glassfish containerを使う場合はjersey-container-servletを消して下記を有効化する
   // compile 'org.glassfish.jersey.containers:jersey-container-jdk-http:2.23'
 
