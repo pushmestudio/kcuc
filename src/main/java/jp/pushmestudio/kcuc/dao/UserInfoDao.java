@@ -1,7 +1,11 @@
 package jp.pushmestudio.kcuc.dao;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
 
 import com.cloudant.client.api.ClientBuilder;
 import com.cloudant.client.api.CloudantClient;
@@ -16,12 +20,37 @@ public class UserInfoDao {
 
 	// コンストラクタの生成時にCloudantへ接続
 	public UserInfoDao() {
+		final String accountProp = "CLOUDANT_ACCOUNT";
+		final String userProp = "CLOUDANT_USER";
+		final String pwProp = "CLOUDANT_PW";
+		final String cloudantPropPath = "/jp/pushmestudio/credentials/cloudant.properties";
+
+		String envAccount = "";
+		String envUser = "";
+		String envPw = "";
+		// 環境変数から値を取得する
+		try {
+			envAccount = System.getenv(accountProp);
+			envUser = System.getenv(userProp);
+			envPw = System.getenv(pwProp);
+		} catch (NullPointerException | SecurityException e) {
+			e.printStackTrace();
+		}
+
+		// 環境変数から値を取れていない場合にはローカルのプロパティファイルを読み込む
+		if (Objects.isNull(envAccount) || envAccount.length() <= 0 || Objects.isNull(envUser) || envUser.length() <= 0
+				|| Objects.isNull(envPw) || envPw.length() <= 0) {
+			Properties CLOUDANT_CONFIG = this.loadProperty(cloudantPropPath);
+			envAccount = (String) CLOUDANT_CONFIG.get(accountProp);
+			envUser = (String) CLOUDANT_CONFIG.get(userProp);
+			envPw = (String) CLOUDANT_CONFIG.get(pwProp);
+		}
+
 		// Cloudantのインスタンスを作成
-		CloudantClient cldClient = ClientBuilder.account("71fe3412-713b-4330-98c7-688705e6fab5-bluemix")
-				.username("ditsescresentonvatedlyin").password("9b4bc6199433933f2bfcdafabbb2a54f16769ff0").build();
+		CloudantClient cldClient = ClientBuilder.account(envAccount).username(envUser).password(envPw).build();
 
 		// Databaseのインスタンスを取得
-		kcucDB = cldClient.database("kcucdb", false);
+		this.kcucDB = cldClient.database("kcucdb", false);
 	}
 
 	/**
@@ -330,4 +359,22 @@ public class UserInfoDao {
 	// }
 	// }
 
+	/**
+	 * 指定されたファイル名をクラスパスから探し出し、プロパティとして読み込んで返す
+	 * {@code loadProperty("/jp/pushmestudio/credentials/cloudant.properties");}
+	 * 
+	 * @param fileName
+	 *            探索対象のファイル名
+	 * @return 探索対象のファイルを読み込んだプロパティ
+	 */
+	private Properties loadProperty(String fileName) {
+		Properties props = new Properties();
+		try (InputStream input = getClass().getResourceAsStream(fileName)) {
+			props.load(input);
+			input.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return props;
+	}
 }
