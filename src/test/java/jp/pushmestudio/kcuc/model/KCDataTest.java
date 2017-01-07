@@ -19,7 +19,6 @@ public class KCDataTest {
 
 		// execute
 		JSONObject checkResult = data.checkUpdateByPage(hrefKey);
-		// System.out.println(checkResult);
 
 		// verify
 		JSONArray userList = checkResult.getJSONArray("userList");
@@ -36,7 +35,6 @@ public class KCDataTest {
 
 		// execute
 		JSONObject checkResult = data.checkUpdateByUser(userId);
-		// System.out.println(checkResult);
 
 		// verify
 		JSONArray pageList = checkResult.getJSONArray("pages");
