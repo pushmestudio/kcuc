@@ -7,7 +7,7 @@ REST APIは[KCUC for Web](https://gitlab.com/pushmestudio/kcuc-web)や[KCUC for 
 
 また、REST APIを経由して、[Knowledge CenterのAPI](http://www.ibm.com/support/knowledgecenter/v1-docs/)やCloudant DBを利用している。
 
-デプロイされているものは(こちら)[https://kcuc.mybluemix.net]から利用可能。
+デプロイされているものは[こちら](https://kcuc.mybluemix.net)から利用可能。
 
 ローカル環境においては、Dockerを使用して環境構築する想定。使用するDockerイメージは[CentOS 7 + Java 8 + Tomcat 8](https://github.com/kirillF/centos-tomcat)としている。
 
@@ -21,21 +21,20 @@ REST APIは[KCUC for Web](https://gitlab.com/pushmestudio/kcuc-web)や[KCUC for 
 
 1. コマンドラインとEclipseを併用する方法(Recommended)
 
-Eclipse起動前に、プロジェクトトップディレクトリにて`./gradlew eclipse`, `./gradlew build`を実行して事前準備する。
+    Eclipse起動前に、プロジェクトトップディレクトリにて`./gradlew eclipse`, `./gradlew build`を実行して事前準備する。
 
-その後、Eclipseを起動し、`File` > `Import` > `General` > `Existing Project into Workspace`を選択。
+    その後、Eclipseを起動し、`File` > `Import` > `General` > `Existing Project into Workspace`を選択。
 
-この方法による場合、Eclipse上でGradleのコマンドは実行できないものの、Eclipse Luna等Gradleのプラグインが導入されていないマシンでも容易にセットアップできるのが利点。また、EclipseのGradleプラグインは比較的新しいが、その場合でもそこで発生するバグを回避できる点に優れる。
+    この方法による場合、Eclipse上でGradleのコマンドは実行できないものの、Eclipse Luna等Gradleのプラグインが導入されていないマシンでも容易にセットアップできるのが利点。また、EclipseのGradleプラグインは比較的新しいが、その場合でもそこで発生するバグを回避できる点に優れる。
 
 2. 可能な限りコマンドラインを使わない(Eclipseで完結させる)方法
 
-Eclipse起動後、`File` > `Import` > `Gradle`を選択。本プロジェクトのルートディレクトリを指した状態でImportを進める。途中、Gradleを選択する画面では、`Gradle Wrapper(Recommended)`のまま進めればOK。
+    Eclipse起動後、`File` > `Import` > `Gradle`を選択。本プロジェクトのルートディレクトリを指した状態でImportを進める。途中、Gradleを選択する画面では、`Gradle Wrapper(Recommended)`のまま進めればOK。
 
-この方法による場合、Eclipse上でGradleのコマンドが実行できるようになるので便利。また、実行しているGradleのタスクの実行状況が視覚的に把握しやすいのと、サーバーサイドプロジェクトにおいては基本的にオールインワンで済ませることができる点で優れる。
+    この方法による場合、Eclipse上でGradleのコマンドが実行できるようになるので便利。また、実行しているGradleのタスクの実行状況が視覚的に把握しやすいのと、サーバーサイドプロジェクトにおいては基本的にオールインワンで済ませることができる点で優れる。
 
 
-`.project`, `.classpath`ファイルを共有するようにすれば、各自のセットアップ方法の不備による環境差異を最小限に抑えることができるが、一方で、基本的に同じEclipseのバージョンを使用しないと頻繁にdiffが発生してしまうので煩わしいという懸念事項があるため、チームの方針をいずれかに倒す必要がある。
-
+その他、`.project`, `.classpath`ファイルを共有するようにすれば、各自のセットアップ方法の不備による環境差異を最小限に抑えることができるが、一方で、基本的に同じEclipseのバージョンを使用しないと頻繁にdiffが発生してしまうので煩わしいという懸念事項があるため、チームの方針をいずれかに倒す必要がある。
 
 ここまでのセットアップが済んだら、EclipseがJS系のモジュールを理解できないために発生するエラー表示を抑制するための手続きおよびソースコード標準化のための`checkstyle`のセットアップを実施する。
 
