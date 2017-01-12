@@ -1,4 +1,4 @@
-[![build status](https://gitlab.com/pushmestudio/kcuc/badges/master/build.svg)](https://gitlab.com/pushmestudio/kcuc/commits/master)
+[![build status(available on GitLab only)](https://gitlab.com/pushmestudio/kcuc/badges/master/build.svg)](https://gitlab.com/pushmestudio/kcuc/commits/master)
 
 # 全体構成
 REST APIは以下`/rest-v1/`、REST APIのお試しに使えるSwaggerは`/v1-docs/`以下にて使用可能。
@@ -65,10 +65,23 @@ Eclipse上にて、プロジェクトルートディレクトリを選択した�
 
 Checkstyleによって、未使用の変数名等や`if`や変数の後のスペースがついているかのチェックなどが実施される。少なくともマージリクエストを出す時点においては`Warning`(黄色)以上の指摘事項がない状態にすること。(checkstyleのスタイルに抵触してしまう、プロジェクト上の困難な設定等々がある際にはチームに相談すること)
 
-## Build and Deploy
+# Build and Deploy
 ビルド及びWARの作成はGradleのコマンドによって実行する。前述のとおり、Dockerイメージを利用するが`/opt/tomcat/webapps`ディレクトリをローカルとDockerエンジンとの間で共有することで、ローカル環境でのデプロイを容易にしている。
 
 ビルド・WAR作成の準備が整ったら、`./gradlew build deploy`を実行する。ビルド及びテスト実行後、`/opt/tomcat/webapps/ROOT.war`としてデプロイされる。なお、パーミッションが適切に設定されていないとファイルが展開されない場合がある。`/opt/tomcat/webapps`ディレクトリの読み書きが実行ユーザー・Dockerいずれからでも可能になるよう、パーミッションの設定に注意すること。
+
+## Build時の環境変数とプロパティファイル
+Cloudant接続に際し、接続情報を読み込ませる必要がある。現在はこの接続情報を、環境変数あるいはプロパティファイルから読み取るようにしている。
+
+次の環境変数が定義されている場合には、その値を読み取り使用する。
+
+* `CLOUDANT_ACCOUNT`: CloudantのアカウントID
+* `CLOUDANT_USER`: DB接続用のユーザーID
+* `CLOUDANT_PW`: DB接続用のユーザーIDに紐づくパスワード
+
+BluemixのRuntimeからCloudantにアクセスする場合にはこれらを事前に環境変数として定義することにより読み取るが、ローカルのDocker環境からCloudantにアクセスする場合にはプロパティファイルを用いる方法を推奨している。
+
+使用するプロパティファイルについては`${プロジェクトルート}/src/main/resources/jp/pushmestudio/credentials`ディレクトリ以下に`cloudant.propertiesとして配置する。プロパティファイルに記載すべき値については別途担当者に確認のこと。`
 
 # その他の注意点
 サーバーサイドのプロジェクトは、GitにPushするとビルド＋テストが実行される。この際、エラーになった場合にはマージができないように設定している。
