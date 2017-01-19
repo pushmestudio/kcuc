@@ -11,23 +11,22 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
-import jp.pushmestudio.kcuc.model.ResultPages;
+import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.model.SubscribedPage;
 import jp.pushmestudio.kcuc.model.UserDocument;
 import jp.pushmestudio.kcuc.model.UserInfo;
 import jp.pushmestudio.kcuc.util.KCMessageFactory;
+import jp.pushmestudio.kcuc.util.Message;
+import jp.pushmestudio.kcuc.util.Result;
 
 public class KCData {
 	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
 
-	public KCData() {
-
-	}
+	public KCData() {}
 
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
@@ -39,17 +38,11 @@ public class KCData {
 	 *         <code>{"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}</code>
 	 */
-	public ResultPages checkUpdateByPage(String pageKey) {
+	public Result checkUpdateByPage(String pageKey) {
 		try {
-			// return用
-			JSONObject result = new JSONObject();
-			JSONArray resultUserList = new JSONArray();
-			ResultPages results = new ResultPages(pageKey);
-
 			// ページキーが取得できない場合はエラーメッセージを返す
 			if (!isTopicExist(pageKey)) {
-				result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
-				//return result;
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
 			}
 
 			// KCからのデータ取得処理
@@ -60,6 +53,9 @@ public class KCData {
 			UserInfoDao userInfoDao = new UserInfoDao();
 			List<UserDocument> userList = userInfoDao.getSubscribedUserList(pageKey);
 
+			// return用
+			Result result = new ResultUserList(pageKey);
+
 			for (UserDocument userDoc : userList) {
 				// userDocにはsubscribedPagesがListで複数保持されているため、該当のpageKeyをもつもののみ抽出
 				List<String> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
@@ -69,17 +65,15 @@ public class KCData {
 				// ↑の結果はListで返るが、1ユーザが同じページを購読することは仕様上禁止されるはずであるため最初の値を常に使用できる
 				Long preservedDate = Long.parseLong(targetPageUpdatedTime.get(0));
 				UserInfo eachUser = new UserInfo(userDoc.getUserName(), preservedDate < lastModifiedDate.getTime());
-				results.addSubscriber(eachUser);
+				((ResultUserList) result).addSubscriber(eachUser);
 			}
 
-			return results;
+			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
-			JSONObject result = new JSONObject();
 
 			// エラーメッセージを作成
-			result = KCMessageFactory.createMessage(500, "Internal Server Error.").getJsonMessage();
-			return new ResultPages("none");
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
 
@@ -93,24 +87,18 @@ public class KCData {
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}],
 	 *         "id":"capsmalt"}</code>
 	 */
-	public UserDocument checkUpdateByUser(String userId) {
+	public Result checkUpdateByUser(String userId) {
 		try {
-			// return用
-			JSONObject result = new JSONObject();
-			JSONArray resultPages = new JSONArray();
-
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
 
 			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				result = KCMessageFactory.createMessage(500, "User Not Found.").getJsonMessage();
-				//return result;
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
 			}
 
 			// IDはユニークなはずなので、Listにする必要はない
 			List<UserDocument> userList = userInfoDao.getUserList(userId);
-			// List<UserInfo> userList = userInfoDao.getUserList(userId);
 
 			for (UserDocument userDoc : userList) {
 				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
@@ -124,8 +112,7 @@ public class KCData {
 
 					// ページキーが取得できない場合はエラーメッセージを返す
 					if (dateLastModified == "none") {
-						result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
-						//return result;
+						return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
 					}
 
 					Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
@@ -137,12 +124,9 @@ public class KCData {
 			return userList.get(0);
 		} catch (JSONException e) {
 			e.printStackTrace();
-			JSONObject result = new JSONObject();
 
 			// エラーメッセージを作成
-			result = KCMessageFactory.createMessage(500, "Internal Server Error.").getJsonMessage();
-			//return result;
-			return null;
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
 
@@ -158,42 +142,32 @@ public class KCData {
 	 *         {"pageHref":"SS42VS_7.2.7/com.ibm.qradar.doc/b_qradar_qsg.html"}],
 	 *         "id":"capsmalt"}</code>
 	 */
-	public UserDocument registerSubscribedPage(String userId, String href) {
+	public Result registerSubscribedPage(String userId, String href) {
 		try {
-			// return用
-			JSONObject result = new JSONObject();
-			JSONArray subscribedList = new JSONArray();
 
 			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
 			String pageHref = href.replaceFirst("\\.htm$", "\\.html");
-			
+
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				result = KCMessageFactory.createMessage(500, "User Not Found.").getJsonMessage();
-				//return result;
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
 			} else if (!isTopicExist(pageHref)) {
 				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
-				result = KCMessageFactory.createMessage(500, "Page Not Found.").getJsonMessage();
-				//return result;
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
 			} else if (userInfoDao.isPageExist(userId, pageHref)) {
 				// 指定されたページを既に購読している場合もエラーメッセージを返す
-				result = KCMessageFactory.createMessage(500, "You Already Subscribe This Page.").getJsonMessage();
-				//return result;
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "You Already Subscribe This Page.");
 			}
 
 			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref);
 			return userList.get(0);
 		} catch (JSONException e) {
 			e.printStackTrace();
-			JSONObject result = new JSONObject();
-
 			// エラーメッセージを作成
-			result = KCMessageFactory.createMessage(500, "Internal Server Error.").getJsonMessage();
-			//return result;
-			return new UserDocument("noname");
+			return KCMessageFactory.createMessage(Message.CODE_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
 
