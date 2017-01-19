@@ -5,14 +5,14 @@ import java.util.List;
 /**
  * Cloudantに登録されているユーザーごとの購読情報
  */
-public class UserDocument {
+public class ResultUsers {
 	private String _id;
 	private String _rev;
 	private String userName;
 	private List<SubscribedPage> subscribedPages;
 
 	// コンストラクタ(未使用)
-	public UserDocument(String userName) {
+	public ResultUsers(String userName) {
 		this.userName = userName;
 		// this.subscribedPages = null;
 	}
