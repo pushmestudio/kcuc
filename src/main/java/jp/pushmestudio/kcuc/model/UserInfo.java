@@ -4,22 +4,22 @@ package jp.pushmestudio.kcuc.model;
  * 登録ユーザー情報
  */
 public class UserInfo {
-	private String id;
+	private String userName;
 	private boolean isUpdated;
 
 	/**
-	 * @param id
+	 * @param userName
 	 *            ユーザーID
 	 * @param isUpdated
 	 *            更新済みか否かのフラグ
 	 */
-	public UserInfo(String id, boolean isUpdated) {
-		this.id = id;
+	public UserInfo(String userName, boolean isUpdated) {
+		this.userName = userName;
 		this.isUpdated = isUpdated;
 	}
 
-	public String getId() {
-		return id;
+	public String getUserName() {
+		return userName;
 	}
 
 	public boolean getIsUpdated() {
