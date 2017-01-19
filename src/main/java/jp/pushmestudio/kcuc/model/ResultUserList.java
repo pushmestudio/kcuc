@@ -9,16 +9,16 @@ import jp.pushmestudio.kcuc.util.Result;
  * 応答用の特定ページを購読しているユーザーリスト
  */
 public class ResultUserList implements Result {
-	private String href;
+	private String pageHref;
 	private List<UserInfo> subscribers;
 
-	public ResultUserList(String href) {
-		this.href = href;
+	public ResultUserList(String pageHref) {
+		this.pageHref = pageHref;
 		this.subscribers = new ArrayList<>();
 	}
 
-	public String getHref() {
-		return href;
+	public String getPageHref() {
+		return pageHref;
 	}
 
 	public List<UserInfo> getSubscribers() {
