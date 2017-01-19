@@ -5,25 +5,14 @@ import java.util.List;
 import jp.pushmestudio.kcuc.util.Result;
 
 /**
- * Cloudantに登録されているユーザーごとの購読情報
+ * 
  */
-public class UserDocument implements Result {
-	private String _id;
-	private String _rev;
+public class ResultPageList implements Result {
 	private String userName;
 	private List<SubscribedPage> subscribedPages;
 
-	// コンストラクタ(未使用)
-	public UserDocument(String userName) {
+	public ResultPageList(String userName) {
 		this.userName = userName;
-	}
-
-	public String getId() {
-		return _id;
-	}
-
-	public String getRev() {
-		return _rev;
 	}
 
 	public String getUserName() {
@@ -36,11 +25,6 @@ public class UserDocument implements Result {
 
 	public void addSubscribedPages(SubscribedPage targetPage) {
 		subscribedPages.add(targetPage);
-	}
-
-	public String toString() {
-		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserName: " + userName + ",\nsubscribedPages: " + subscribedPages
-				+ "\n}";
 	}
 
 	@Override

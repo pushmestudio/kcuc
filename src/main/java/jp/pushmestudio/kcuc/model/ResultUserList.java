@@ -3,14 +3,16 @@ package jp.pushmestudio.kcuc.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.pushmestudio.kcuc.util.Result;
+
 /**
  * 
  */
-public class ResultPages {
+public class ResultUserList implements Result {
 	private String href;
 	private List<UserInfo> subscribers;
 
-	public ResultPages(String href) {
+	public ResultUserList(String href) {
 		this.href = href;
 		this.subscribers = new ArrayList<>();
 	}
@@ -25,5 +27,10 @@ public class ResultPages {
 
 	public void addSubscriber(UserInfo user) {
 		subscribers.add(user);
+	}
+
+	@Override
+	public int getCode() {
+		return Result.CODE_NORMAL;
 	}
 }
