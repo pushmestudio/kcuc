@@ -15,6 +15,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import jp.pushmestudio.kcuc.controller.KCData;
+import jp.pushmestudio.kcuc.model.UserInfo;
 
 @Api(value = "kcuc")
 @Path("/check")
@@ -35,7 +36,7 @@ public class KCNoticeResource {
 	@Path("/users")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ユーザー一覧取得", notes = "特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定")
+	@ApiOperation(value = "ユーザー一覧取得", response = UserInfo.class, notes = "特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定")
 	public String getUpdatedUsers(
 			@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("href") @DefaultValue("") String href) {
 		JSONObject results = data.checkUpdateByPage(href);
