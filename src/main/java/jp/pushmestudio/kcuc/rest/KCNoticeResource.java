@@ -1,5 +1,7 @@
 package jp.pushmestudio.kcuc.rest;
 
+import java.util.HashMap;
+
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -37,10 +39,10 @@ public class KCNoticeResource {
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "ユーザー一覧取得", response = UserInfo.class, notes = "特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定")
-	public String getUpdatedUsers(
+	public UserInfo getUpdatedUsers(
 			@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("href") @DefaultValue("") String href) {
 		JSONObject results = data.checkUpdateByPage(href);
-		return results.toString();
+		return new UserInfo("tkhm", "hoge", new HashMap<String, Long>());
 	}
 
 	/**
