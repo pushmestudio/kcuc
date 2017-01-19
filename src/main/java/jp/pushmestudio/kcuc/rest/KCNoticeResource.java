@@ -16,8 +16,8 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
-import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.model.ResultPageList;
+import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.util.Result;
 
 @Api(value = "kcuc")
@@ -40,8 +40,8 @@ public class KCNoticeResource {
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "ユーザー一覧取得", response = ResultUserList.class, notes = "特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定")
-	@ApiResponses(value = { @ApiResponse(code = 400, message = "hello"),
-			@ApiResponse(code = 500, message = "Internal Server Error") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
+			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response getUpdatedUsers(
 			@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("href") @DefaultValue("") String href) {
 
@@ -60,8 +60,8 @@ public class KCNoticeResource {
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "ページ一覧取得", response = ResultPageList.class, notes = "特定のユーザーの購読しているページ一覧を取得・確認 クライアントから呼ばれる想定")
-	@ApiResponses(value = { @ApiResponse(code = 400, message = "hello"),
-			@ApiResponse(code = 500, message = "Internal Server Error") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
+			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response getUpdatedPages(
 			@ApiParam(value = "更新確認対象のユーザー名", required = true) @QueryParam("user") @DefaultValue("") String user) {
 
@@ -82,8 +82,8 @@ public class KCNoticeResource {
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読ページ追加", response = ResultPageList.class, notes = "特定のユーザの購読するページを追加・確認 クライアントから呼ばれる想定")
-	@ApiResponses(value = { @ApiResponse(code = 400, message = "hello"),
-			@ApiResponse(code = 500, message = "Internal Server Error") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
+			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response setSubscribe(
 			@ApiParam(value = "更新対象のユーザー名", required = true) @FormParam("user") @DefaultValue("") String user,
 			@ApiParam(value = "購読対象のページキー", required = true) @FormParam("href") String href) {

@@ -2,48 +2,45 @@ package jp.pushmestudio.kcuc.model;
 
 import static org.junit.Assert.assertTrue;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.util.List;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
 import jp.pushmestudio.kcuc.controller.KCData;
+import jp.pushmestudio.kcuc.util.Result;
 
 public class KCDataTest {
 
 	@Test
-	@Ignore
-	public void 特定ページを取得してユーザーの最終閲覧日時よりKCの最終更新日付けの方が新しいことを確認できる() {
+	public void 特定ページを取得して1人以上の購読しているユーザーを確認できる() {
 		// setup
 		KCData data = new KCData();
 		String hrefKey = "SSMTU9/welcometoibmverse.html";
 
 		// execute
-		//JSONObject checkResult = data.checkUpdateByPage(hrefKey);
-		JSONObject checkResult = new JSONObject();
+		Result checkResult = data.checkUpdateByPage(hrefKey);
 
 		// verify
-		JSONArray userList = checkResult.getJSONArray("userList");
-		JSONObject firstUser = userList.getJSONObject(0);
-		boolean actual = firstUser.getBoolean("isUpdated");
+		List<UserInfo> userList = ((ResultUserList) checkResult).getSubscribers();
+
+		boolean actual = userList.size() >= 1;
 		assertTrue(actual);
 	}
 
 	@Test
-	@Ignore
-	public void 特定ユーザーの購読ページを取得してページのユーザー最終閲覧日付よりKCの最終更新日付けの方が新しいことを確認できる() {
+	public void 特定ユーザーの購読ページを取得して1件以上ページが存在することを確認できる() {
 		// setup
 		KCData data = new KCData();
 		String userId = "tkhm";
 
 		// execute
-		//JSONObject checkResult = data.checkUpdateByUser(userId);
-		JSONObject checkResult = new JSONObject();
+		Result checkResult = data.checkUpdateByUser(userId);
 
 		// verify
-		JSONArray pageList = checkResult.getJSONArray("pages");
-		JSONObject firstPage = pageList.getJSONObject(0);
-		boolean actual = firstPage.getBoolean("isUpdated");
+		List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
+
+		boolean actual = pageList.size() >= 1;
 		assertTrue(actual);
 	}
 
@@ -55,17 +52,25 @@ public class KCDataTest {
 		String userId = "tkhm";
 		String hrefKey = "SS42VS_7.2.7/com.ibm.qradar.doc/b_qradar_qsg.html";
 
+		Result preResult = data.checkUpdateByUser(userId);
+		List<SubscribedPage> prePageList = ((ResultPageList) preResult).getSubscribedPages();
+
 		// execute
-		//JSONObject checkResult = data.registerSubscribedPage(userId, hrefKey);
-		JSONObject checkResult = new JSONObject();
+		Result checkResult = data.registerSubscribedPage(userId, hrefKey);
 
 		// verify
-		JSONArray pageList = checkResult.getJSONArray("pages");
+		List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
 
 		// ダミーデータ（tkhm）には購読ページが1つしかないので、それが2つ以上に増えている場合を正とする。
 		// 本当は初期値を取得して1インクリメントされているか見たい
-		boolean actual = pageList.length() >= 2 ? true : false;
-		assertTrue(actual);
+		boolean actual = pageList.size() > prePageList.size() ? true : false;
 
+		/*
+		 * TODO ここに今回登録したものの購読解除の処理を書く、なお、本来は@Afterによって実施すべき処理だが、
+		 * 全テストに影響が生じることを踏まえこのテスト内に書くようにする
+		 * なお、assertTrueの後に書いてしまうと、万が一テストの結果が失敗だった際にAssertionErrorが投げられてしまい、
+		 * 購読解除が実現されないので、記載場所には要注意
+		 */
+		assertTrue(actual);
 	}
 }

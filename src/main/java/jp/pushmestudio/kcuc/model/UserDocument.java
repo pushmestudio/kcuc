@@ -2,12 +2,10 @@ package jp.pushmestudio.kcuc.model;
 
 import java.util.List;
 
-import jp.pushmestudio.kcuc.util.Result;
-
 /**
  * Cloudantに登録されているユーザーごとの購読情報
  */
-public class UserDocument implements Result {
+public class UserDocument {
 	private String _id;
 	private String _rev;
 	private String userName;
@@ -41,10 +39,5 @@ public class UserDocument implements Result {
 	public String toString() {
 		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserName: " + userName + ",\nsubscribedPages: " + subscribedPages
 				+ "\n}";
-	}
-
-	@Override
-	public int getCode() {
-		return Result.CODE_NORMAL;
 	}
 }
