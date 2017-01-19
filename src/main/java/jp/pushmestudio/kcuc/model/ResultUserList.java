@@ -6,7 +6,7 @@ import java.util.List;
 import jp.pushmestudio.kcuc.util.Result;
 
 /**
- * 
+ * 応答用の特定ページを購読しているユーザーリスト
  */
 public class ResultUserList implements Result {
 	private String href;

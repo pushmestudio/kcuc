@@ -15,18 +15,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
+import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.model.SubscribedPage;
 import jp.pushmestudio.kcuc.model.UserDocument;
 import jp.pushmestudio.kcuc.model.UserInfo;
 import jp.pushmestudio.kcuc.util.KCMessageFactory;
-import jp.pushmestudio.kcuc.util.Message;
 import jp.pushmestudio.kcuc.util.Result;
 
 public class KCData {
 	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
 
-	public KCData() {}
+	public KCData() {
+	}
 
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
@@ -99,6 +100,8 @@ public class KCData {
 
 			// IDはユニークなはずなので、Listにする必要はない
 			List<UserDocument> userList = userInfoDao.getUserList(userId);
+			// return用
+			Result result = new ResultPageList(userId);
 
 			for (UserDocument userDoc : userList) {
 				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
@@ -118,10 +121,11 @@ public class KCData {
 					Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
 
 					entry.setIsUpdated(preservedDate < lastModifiedDate.getTime());
+					((ResultPageList) result).addSubscribedPage(entry);
 				}
 			}
 
-			return userList.get(0);
+			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
 
@@ -144,7 +148,6 @@ public class KCData {
 	 */
 	public Result registerSubscribedPage(String userId, String href) {
 		try {
-
 			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
 			String pageHref = href.replaceFirst("\\.htm$", "\\.html");
 
@@ -163,11 +166,15 @@ public class KCData {
 			}
 
 			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref);
-			return userList.get(0);
+			// return用
+			Result result = new ResultPageList(userId);
+			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
+
+			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Message.CODE_SERVER_ERROR, "Internal Server Error.");
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
 
@@ -185,8 +192,8 @@ public class KCData {
 	private String getSpecificPageMeta(String specificHref) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
-		WebTarget target = client.target("https://www.ibm.com/support/knowledgecenter/v1/topic_metadata")
-				.queryParam("href", specificHref);
+		final String topicMetaUrl = "https://www.ibm.com/support/knowledgecenter/v1/topic_metadata";
+		WebTarget target = client.target(topicMetaUrl).queryParam("href", specificHref);
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
 		Response res = invocationBuilder.get();
@@ -210,7 +217,8 @@ public class KCData {
 	private JSONObject getTOC(String productKey) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
-		WebTarget target = client.target("https://www.ibm.com/support/knowledgecenter/v1/toc/" + productKey);
+		final String tocUrl = "https://www.ibm.com/support/knowledgecenter/v1/toc/";
+		WebTarget target = client.target(tocUrl + productKey);
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
 		Response res = invocationBuilder.get();
