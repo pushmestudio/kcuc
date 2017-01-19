@@ -33,6 +33,10 @@ public class SubscribedPage {
 		return prodId;
 	}
 
+	public Boolean setIsUpdated(boolean isUpdated) {
+		return this.isUpdated = isUpdated;
+	}
+
 	public String toString() {
 		return "{pageHref: " + pageHref + ",\nisUpdated: " + isUpdated + ",\nupdatedTime: " + updatedTime
 				+ ",\nprodId: " + prodId + "\n}";

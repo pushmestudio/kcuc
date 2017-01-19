@@ -1,39 +1,28 @@
 package jp.pushmestudio.kcuc.model;
 
-import java.util.Map;
-
 /**
  * 登録ユーザー情報
  */
 public class UserInfo {
 	private String id;
-	private String password;
-	private Map<String, Long> subscribedPages;
+	private boolean isUpdated;
 
 	/**
 	 * @param id
 	 *            ユーザーID
-	 * @param password
-	 *            ユーザーパスワード
-	 * @param subscribedPages
-	 *            購読中製品
+	 * @param isUpdated
+	 *            更新済みか否かのフラグ
 	 */
-	public UserInfo(String id, String password, Map<String, Long> subscribedPages) {
+	public UserInfo(String id, boolean isUpdated) {
 		this.id = id;
-		this.password = password;
-		this.subscribedPages = subscribedPages;
+		this.isUpdated = isUpdated;
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public String getPassword() {
-		return password;
+	public boolean getIsUpdated() {
+		return isUpdated;
 	}
-
-	public Map<String, Long> getSubscribedPages() {
-		return subscribedPages;
-	}
-
 }
