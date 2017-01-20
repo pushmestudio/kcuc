@@ -3,7 +3,7 @@ package jp.pushmestudio.kcuc.model;
 import java.util.List;
 
 /**
- * 登録ユーザー情報
+ * Cloudantに登録されているユーザーごとの購読情報
  */
 public class UserDocument {
 	private String _id;
@@ -14,7 +14,6 @@ public class UserDocument {
 	// コンストラクタ(未使用)
 	public UserDocument(String userName) {
 		this.userName = userName;
-		// this.subscribedPages = null;
 	}
 
 	public String getId() {

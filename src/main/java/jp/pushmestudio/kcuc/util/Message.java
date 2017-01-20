@@ -1,16 +1,13 @@
 package jp.pushmestudio.kcuc.util;
 
-import org.json.JSONObject;
-
 /**
  * 生成メッセージの元となる抽象クラス
  */
-public abstract class Message {
+public abstract class Message implements Result {
 	private String subject;
 	private String detail;
 	private int code;
 	protected String message;
-	protected JSONObject jsonMessage;
 
 	public Message(int messageCode) {
 		this(messageCode, null);
@@ -26,7 +23,7 @@ public abstract class Message {
 		this.setCode(messageCode);
 		this.setSubject(messageParameter);
 		this.setDetail(messageParameter);
-		this.updateMessage();
+		this.setMessage();
 	}
 
 	/* setter/getter */
@@ -83,32 +80,8 @@ public abstract class Message {
 	protected void setMessage() {
 		StringBuilder message = new StringBuilder();
 		message.append("subject:").append(this.getSubject());
-		message.append("detail:").append(this.getDetail());
-		message.append("code:").append(this.getCode());
+		message.append(", detail:").append(this.getDetail());
+		message.append(", code:").append(this.getCode());
 		this.message = message.toString();
-	}
-
-	public JSONObject getJsonMessage() {
-		return this.jsonMessage;
-	}
-
-	/**
-	 * subject, detail, code以外のものをメッセージに含みたい場合には 継承先でこのメソッドをoverrideする。 subject,
-	 * detail, codeについてのみ変更したい場合には、 継承先で{@link #setSubject}などをoverrideする。
-	 */
-	protected void setJsonMessage() {
-		JSONObject jsonMessage = new JSONObject();
-		jsonMessage.put("subject", this.getSubject());
-		jsonMessage.put("detail", this.getDetail());
-		jsonMessage.put("code", this.getCode());
-		this.jsonMessage = jsonMessage;
-	}
-
-	/**
-	 * セット済みのフィールドを元に、応答に使うメッセージのオブジェクトを更新する
-	 */
-	protected void updateMessage() {
-		this.setJsonMessage();
-		this.setMessage();
 	}
 }
