@@ -7,14 +7,14 @@ public class SubscribedPage {
 	private String pageHref;
 	private Boolean isUpdated;
 	private String updatedTime;
-	private String prodId;
+	private String prodName;
 
 	// コンストラクタ(未使用)
-	public SubscribedPage(String pageHref, Boolean isUpdated, String updatedTime, String prodId) {
+	public SubscribedPage(String pageHref, Boolean isUpdated, String updatedTime, String prodName) {
 		this.pageHref = pageHref;
 		this.isUpdated = isUpdated;
 		this.updatedTime = updatedTime;
-		this.prodId = prodId;
+		this.prodName = prodName;
 	}
 
 	public String getPageHref() {
@@ -29,8 +29,8 @@ public class SubscribedPage {
 		return updatedTime;
 	}
 
-	public String getProdId() {
-		return prodId;
+	public String getProdName() {
+		return prodName;
 	}
 
 	public Boolean setIsUpdated(boolean isUpdated) {
@@ -39,7 +39,7 @@ public class SubscribedPage {
 
 	public String toString() {
 		return "{pageHref: " + pageHref + ",\nisUpdated: " + isUpdated + ",\nupdatedTime: " + updatedTime
-				+ ",\nprodId: " + prodId + "\n}";
+				+ ",\nprodName: " + prodName + "\n}";
 	}
 
 }

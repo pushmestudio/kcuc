@@ -66,8 +66,8 @@ public class UserInfoDao {
 		 * searchId) { List<UserInfo> userList = new ArrayList<>();
 		 */
 
-		// userNameのインデックスを使用して、指定されたユーザ名に一致するユーザのデータを取得
-		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userName\":\"" + userId + "\"}}",
+		// userIdのインデックスを使用して、指定されたユーザ名に一致するユーザのデータを取得
+		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
 				UserDocument.class);
 
 		return userDocs;
@@ -100,7 +100,7 @@ public class UserInfoDao {
 	 */
 	public List<UserDocument> setSubscribedPages(String userId, String pageHref) {
 		// useNameのインデックスを使用して、指定されたユーザのデータを取得
-		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userName\":\"" + userId + "\"}}",
+		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
 				UserDocument.class);
 
 		// 追加するページの情報を作成
@@ -119,7 +119,7 @@ public class UserInfoDao {
 		// UserDocument updatedInfo = kcucDB.find(UserDocument.class,
 		// responseUpdate.getId());
 
-		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userName\":\"" + userId + "\"}}",
+		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
 				UserDocument.class);
 
 		return updatedInfo;
@@ -133,7 +133,7 @@ public class UserInfoDao {
 	 * @return True or False
 	 */
 	public Boolean isUserExist(String userId) {
-		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userName\":\"" + userId + "\"}}",
+		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
 				UserDocument.class);
 		return userDocs.size() > 0 ? true : false;
 	}
@@ -149,7 +149,7 @@ public class UserInfoDao {
 	 */
 	public Boolean isPageExist(String userId, String pageHref) {
 		List<UserDocument> userDocs = kcucDB.findByIndex(
-				"{\"selector\":{\"$and\":[{\"userName\":\"" + userId
+				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
 						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
 				UserDocument.class);
 		return userDocs.size() > 0 ? true : false;
