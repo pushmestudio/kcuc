@@ -8,12 +8,12 @@ import java.util.List;
 public class UserDocument {
 	private String _id;
 	private String _rev;
-	private String userName;
+	private String userId;
 	private List<SubscribedPage> subscribedPages;
 
 	// コンストラクタ(未使用)
-	public UserDocument(String userName) {
-		this.userName = userName;
+	public UserDocument(String userId) {
+		this.userId = userId;
 	}
 
 	public String getId() {
@@ -24,8 +24,8 @@ public class UserDocument {
 		return _rev;
 	}
 
-	public String getUserName() {
-		return userName;
+	public String getUserId() {
+		return userId;
 	}
 
 	public List<SubscribedPage> getSubscribedPages() {
@@ -37,7 +37,7 @@ public class UserDocument {
 	}
 
 	public String toString() {
-		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserName: " + userName + ",\nsubscribedPages: " + subscribedPages
+		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserId: " + userId + ",\nsubscribedPages: " + subscribedPages
 				+ "\n}";
 	}
 }
