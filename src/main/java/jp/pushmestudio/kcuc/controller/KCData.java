@@ -65,7 +65,7 @@ public class KCData {
 
 				// ↑の結果はListで返るが、1ユーザが同じページを購読することは仕様上禁止されるはずであるため最初の値を常に使用できる
 				Long preservedDate = Long.parseLong(targetPageUpdatedTime.get(0));
-				UserInfo eachUser = new UserInfo(userDoc.getUserName(), preservedDate < lastModifiedDate.getTime());
+				UserInfo eachUser = new UserInfo(userDoc.getUserId(), preservedDate < lastModifiedDate.getTime());
 				((ResultUserList) result).addSubscriber(eachUser);
 			}
 
