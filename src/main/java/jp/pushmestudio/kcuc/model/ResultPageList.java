@@ -9,16 +9,16 @@ import jp.pushmestudio.kcuc.util.Result;
  * 応答用のユーザーの購読しているページリスト
  */
 public class ResultPageList implements Result {
-	private String userName;
+	private String userId;
 	private List<SubscribedPage> subscribedPages;
 
-	public ResultPageList(String userName) {
-		this.userName = userName;
+	public ResultPageList(String userId) {
+		this.userId = userId;
 		this.subscribedPages = new ArrayList<>();
 	}
 
-	public String getUserName() {
-		return userName;
+	public String getUserId() {
+		return userId;
 	}
 
 	public List<SubscribedPage> getSubscribedPages() {
