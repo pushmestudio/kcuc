@@ -1,9 +1,11 @@
 package jp.pushmestudio.kcuc.rest;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -89,6 +91,29 @@ public class KCNoticeResource {
 			@ApiParam(value = "購読対象のページキー", required = true) @FormParam("href") String href) {
 
 		Result result = data.registerSubscribedPage(user, href);
+		return Response.status(result.getCode()).entity(result).build();
+	}
+	
+	/**
+	 * 特定のユーザの購読するページを解除 クライアントから呼ばれる想定
+	 * 
+	 * @param user
+	 *            購読ページを解除するユーザ（いずれはCookieなど）
+	 * @param href
+	 *            購読解除対象のページキー
+	 * @return 購読解除後の購読ページ一覧
+	 */
+	@Path("/pages")
+	@PUT
+	@Produces({ MediaType.APPLICATION_JSON })
+	@ApiOperation(value = "購読ページ解除", response = ResultPageList.class, notes = "特定のユーザの購読するページを解除 クライアントから呼ばれる想定")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
+			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	public Response unsetSubscribe(
+			@ApiParam(value = "対象のユーザー名", required = true) @FormParam("user") @DefaultValue("") String user,
+			@ApiParam(value = "購読解除対象のページキー", required = true) @FormParam("href") String href) {
+
+		Result result = data.deleteSubscribedPage(user, href);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 }
