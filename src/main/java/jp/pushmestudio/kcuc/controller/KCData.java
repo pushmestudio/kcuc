@@ -2,6 +2,7 @@ package jp.pushmestudio.kcuc.controller;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
@@ -16,6 +17,7 @@ import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.ResultPageList;
+import jp.pushmestudio.kcuc.model.ResultSearch;
 import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.model.SubscribedPage;
 import jp.pushmestudio.kcuc.model.UserDocument;
@@ -175,6 +177,46 @@ public class KCData {
 			e.printStackTrace();
 			// エラーメッセージを作成
 			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+		}
+	}
+
+	/**
+	 * キーワード検索、現時点では特段の独自拡張はしていない
+	 * 検索されたキーワードをログに残してどういうものが多く探されているか調べてもいいかもしれない
+	 * @param query スペース区切りで複数ワードが与えられた場合はAND検索
+	 * @param offset 検索結果を何件目から取得するか
+	 * @param limit 取得件数、MAXは20
+	 * @param lang 検索結果がサポートしている言語
+	 * @return
+	 */
+	public Result searchPages(String query, Integer offset, Integer limit, String lang) {
+		// @see https://jersey.java.net/documentation/latest/client.html
+		Client client = ClientBuilder.newClient();
+		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/search";
+
+		WebTarget target = client.target(searchUrl).queryParam("query", query);
+
+		/*
+		 * パラメーターが存在するなら追加する、という処理、
+		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならリスト等に追加、2.リスト等を回してパラメーターとして追加、
+		 * という処理を実装する
+		 */
+		// TODO 値を返さないといけない
+		Optional.ofNullable(offset).ifPresent(_offset -> target.queryParam("offset", _offset));
+		Optional.ofNullable(limit).ifPresent(_limit -> target.queryParam("limit", _limit));;
+		Optional.ofNullable(lang).ifPresent(_lang -> target.queryParam("lang", _lang));;
+
+		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+		Response res = invocationBuilder.get();
+
+		JSONObject resJson = new JSONObject(res.readEntity(String.class));
+
+		// ページがtopics情報を持つ場合
+		if (resJson.has("topics")) {
+			Result result = new ResultSearch();
+			return ((ResultSearch) result);
+		} else {
+			return null;
 		}
 	}
 
