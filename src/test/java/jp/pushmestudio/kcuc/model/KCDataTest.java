@@ -1,6 +1,7 @@
 package jp.pushmestudio.kcuc.model;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
@@ -72,5 +73,20 @@ public class KCDataTest {
 		 * 購読解除が実現されないので、記載場所には要注意
 		 */
 		assertTrue(actual);
+	}
+	
+	@Test
+	@Ignore
+	public void ページを検索できる() {
+		// setup
+		KCData data = new KCData();
+		String searchQuery = "IBM Verse";
+
+		// execute
+		data.searchPages(searchQuery, 0, 0, "");
+
+		fail();
+		// TODO to be implemented
+		// 実装されないままでマージしないこと
 	}
 }
