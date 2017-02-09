@@ -1,5 +1,6 @@
 package jp.pushmestudio.kcuc.controller;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -17,9 +18,10 @@ import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.ResultPageList;
-import jp.pushmestudio.kcuc.model.ResultSearch;
+import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.model.SubscribedPage;
+import jp.pushmestudio.kcuc.model.Topic;
 import jp.pushmestudio.kcuc.model.UserDocument;
 import jp.pushmestudio.kcuc.model.UserInfo;
 import jp.pushmestudio.kcuc.util.KCMessageFactory;
@@ -181,12 +183,16 @@ public class KCData {
 	}
 
 	/**
-	 * キーワード検索、現時点では特段の独自拡張はしていない
-	 * 検索されたキーワードをログに残してどういうものが多く探されているか調べてもいいかもしれない
-	 * @param query スペース区切りで複数ワードが与えられた場合はAND検索
-	 * @param offset 検索結果を何件目から取得するか
-	 * @param limit 取得件数、MAXは20
-	 * @param lang 検索結果がサポートしている言語
+	 * キーワード検索、現時点では特段の独自拡張はしていない 検索されたキーワードをログに残してどういうものが多く探されているか調べてもいいかもしれない
+	 * 
+	 * @param query
+	 *            スペース区切りで複数ワードが与えられた場合はAND検索
+	 * @param offset
+	 *            検索結果を何件目から取得するか
+	 * @param limit
+	 *            取得件数、MAXは20
+	 * @param lang
+	 *            検索結果がサポートしている言語
 	 * @return
 	 */
 	public Result searchPages(String query, Integer offset, Integer limit, String lang) {
@@ -203,8 +209,10 @@ public class KCData {
 		 */
 		// TODO 値を返さないといけない
 		Optional.ofNullable(offset).ifPresent(_offset -> target.queryParam("offset", _offset));
-		Optional.ofNullable(limit).ifPresent(_limit -> target.queryParam("limit", _limit));;
-		Optional.ofNullable(lang).ifPresent(_lang -> target.queryParam("lang", _lang));;
+		Optional.ofNullable(limit).ifPresent(_limit -> target.queryParam("limit", _limit));
+		;
+		Optional.ofNullable(lang).ifPresent(_lang -> target.queryParam("lang", _lang));
+		;
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
 		Response res = invocationBuilder.get();
@@ -213,8 +221,16 @@ public class KCData {
 
 		// ページがtopics情報を持つ場合
 		if (resJson.has("topics")) {
-			Result result = new ResultSearch();
-			return ((ResultSearch) result);
+			int resOffset = resJson.getInt("offset");
+			int resNext = resJson.getInt("next");
+			int resPrev = resJson.getInt("prev");
+			int resCount = resJson.getInt("count");
+			int resTotal = resJson.getInt("total");
+			List<Topic> resTopics = new ArrayList<>();
+
+			resJson.getJSONArray("topics").forEach(t -> resTopics.add(new Topic((JSONObject)t)));
+			Result result = new ResultSearchList(resOffset, resNext, resPrev, resCount, resTotal, resTopics);
+			return ((ResultSearchList) result);
 		} else {
 			return null;
 		}
@@ -223,11 +239,11 @@ public class KCData {
 	/**
 	 * 現時点では最終更新日付けのみ返しているが、Metadataを返すのであれば、
 	 * 戻りの型はJSONObjectにして情報を詰める形にするし、そうではなくて最終更新日付けのみのままにするのであれば
-	 * メソッド名を適切なものに修正する
+	 * メソッドや戻りの型を適切なものに修正する
 	 * 
 	 * @param specificHref
 	 *            更新の有無を確認する対象のpageのHref
-	 * @return 最終更新日付
+	 * @return 最終更新日付, 該当がない場合現在は"none"を返している
 	 * @throws JSONException
 	 *             ページのメタ情報が見つからない場合はJSONExceptionをスロー
 	 */
@@ -252,7 +268,7 @@ public class KCData {
 			// return Objects.nonNull(dateLastModified) ? dateLastModified :
 			// dateCreated;
 		} else
-			return "none";
+			return "none"; // TODO 文字列で単に記載すると危ないので、例えばENUMなどで定義して共有すること
 	}
 
 	@SuppressWarnings("unused")

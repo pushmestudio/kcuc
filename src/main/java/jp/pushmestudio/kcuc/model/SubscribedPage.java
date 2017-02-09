@@ -6,7 +6,7 @@ package jp.pushmestudio.kcuc.model;
 public class SubscribedPage {
 	private String pageHref;
 	private Boolean isUpdated;
-	private String updatedTime;
+	private String updatedTime; // TODO 正しくはlong型なので要修正
 	private String prodName;
 
 	// コンストラクタ(未使用)

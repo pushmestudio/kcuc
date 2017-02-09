@@ -10,5 +10,6 @@ public interface Result {
 	/** 該当コードが存在しない場合などに使う */
 	public static final int CODE_UNKNOWN = 999;
 
+	/** 応答時のレスポンスコードの判定に使用する、通常は{@code return Result.CODE_NORMAL;}のように実装すれば良い */
 	int getCode();
 }

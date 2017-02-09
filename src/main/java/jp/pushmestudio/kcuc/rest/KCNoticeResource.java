@@ -17,7 +17,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
 import jp.pushmestudio.kcuc.model.ResultPageList;
-import jp.pushmestudio.kcuc.model.ResultSearch;
+import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.util.Result;
 
@@ -104,7 +104,7 @@ public class KCNoticeResource {
 	@Path("/search")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ページ検索", response = ResultSearch.class, notes = "与えられたキーワードを元にページを購読する")
+	@ApiOperation(value = "ページ検索", response = ResultSearchList.class, notes = "与えられたキーワードを元にページを購読する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response searchPages(
