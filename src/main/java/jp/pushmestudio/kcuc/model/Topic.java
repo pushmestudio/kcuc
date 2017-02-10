@@ -33,7 +33,9 @@ public class Topic {
 
 		JSONArray productsJson = topicJson.getJSONArray("products");
 		this.products = new ArrayList<>();
-		productsJson.forEach(p -> products.add(new Product((JSONObject) p)));
+
+		// JSONの中にあるproductsを読み、1件ずつProductオブジェクトとして初期化し、リストに追加している
+		productsJson.forEach(product -> products.add(new Product((JSONObject) product)));
 	}
 
 	public long getDate() {
