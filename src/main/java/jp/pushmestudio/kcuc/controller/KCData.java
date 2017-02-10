@@ -2,7 +2,10 @@ package jp.pushmestudio.kcuc.controller;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -27,11 +30,11 @@ import jp.pushmestudio.kcuc.model.UserInfo;
 import jp.pushmestudio.kcuc.util.KCMessageFactory;
 import jp.pushmestudio.kcuc.util.Result;
 
+/**
+ * ページ応答と各種処理とをつなぐ コンテキストを共有するわけではないので、シングルトンにした方が良いかもしれない
+ */
 public class KCData {
 	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
-
-	public KCData() {
-	}
 
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
@@ -204,15 +207,18 @@ public class KCData {
 
 		/*
 		 * パラメーターが存在するなら追加する、という処理、
-		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならリスト等に追加、2.リスト等を回してパラメーターとして追加、
-		 * という処理を実装する
+		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、
+		 * という処理を実装する, queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
 		 */
-		// TODO 値を返さないといけない
-		Optional.ofNullable(offset).ifPresent(_offset -> target.queryParam("offset", _offset));
-		Optional.ofNullable(limit).ifPresent(_limit -> target.queryParam("limit", _limit));
-		;
-		Optional.ofNullable(lang).ifPresent(_lang -> target.queryParam("lang", _lang));
-		;
+		Map<String, String> queryMap = new HashMap<>();
+
+		Optional.ofNullable(offset).ifPresent(_offset -> queryMap.put("offset", _offset.toString()));
+		Optional.ofNullable(limit).ifPresent(_limit -> queryMap.put("limit", _limit.toString()));
+		Optional.ofNullable(lang).ifPresent(_lang -> queryMap.put("lang", _lang));
+
+		for (Entry<String, String> each : queryMap.entrySet()) {
+			target = target.queryParam(each.getKey(), each.getValue());
+		}
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
 		Response res = invocationBuilder.get();
@@ -228,7 +234,8 @@ public class KCData {
 			int resTotal = resJson.getInt("total");
 			List<Topic> resTopics = new ArrayList<>();
 
-			resJson.getJSONArray("topics").forEach(t -> resTopics.add(new Topic((JSONObject)t)));
+			// JSONの中にあるtopicsを読み、1件ずつTopicオブジェクトとして初期化し、リストに追加している
+			resJson.getJSONArray("topics").forEach(topic -> resTopics.add(new Topic((JSONObject) topic)));
 			Result result = new ResultSearchList(resOffset, resNext, resPrev, resCount, resTotal, resTopics);
 			return ((ResultSearchList) result);
 		} else {

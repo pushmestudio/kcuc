@@ -17,7 +17,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
 import jp.pushmestudio.kcuc.model.ResultPageList;
-import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.util.Result;
 
@@ -90,30 +89,6 @@ public class KCNoticeResource {
 			@ApiParam(value = "購読対象のページキー", required = true) @FormParam("href") String href) {
 
 		Result result = data.registerSubscribedPage(user, href);
-		return Response.status(result.getCode()).entity(result).build();
-	}
-
-
-	/**
-	 * 検索キーワードにマッチするページを検索して返す
-	 * 
-	 * @param q
-	 *            検索キーワード
-	 * @return 更新確認結果
-	 */
-	@Path("/search")
-	@GET
-	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ページ検索", response = ResultSearchList.class, notes = "与えられたキーワードを元にページを購読する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
-			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
-	public Response searchPages(
-			@ApiParam(value = "検索キーワード、スペース区切りでAND検索", required = true) @QueryParam("query") @DefaultValue("") String query,
-			@ApiParam(value = "結果取得のオフセット(表示開始位置)") @QueryParam("offset") Integer offset,
-			@ApiParam(value = "検索結果取得件数, 最大20, デフォルト10") @QueryParam("limit") Integer limit,
-			@ApiParam(value = "サポートしている言語による絞り込み (e.g. ja)") @QueryParam("lang") String lang) {
-
-		Result result = data.searchPages(query, offset, limit, lang);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 }

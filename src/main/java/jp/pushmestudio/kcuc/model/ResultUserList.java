@@ -7,6 +7,7 @@ import jp.pushmestudio.kcuc.util.Result;
 
 /**
  * 応答用の特定ページを購読しているユーザーリスト
+ * Result系のクラスはSwaggerの応答にも用いられるため、数字・文字列・配列・リスト以外をメンバー変数に使用しないこと
  */
 public class ResultUserList implements Result {
 	private String pageHref;
