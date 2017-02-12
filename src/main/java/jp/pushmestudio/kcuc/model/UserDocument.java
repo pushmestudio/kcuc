@@ -36,6 +36,10 @@ public class UserDocument {
 		subscribedPages.add(targetPage);
 	}
 
+	public void delSubscribedPage(int target) {
+		subscribedPages.remove(target);
+	}
+
 	public String toString() {
 		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserId: " + userId + ",\nsubscribedPages: " + subscribedPages
 				+ "\n}";
