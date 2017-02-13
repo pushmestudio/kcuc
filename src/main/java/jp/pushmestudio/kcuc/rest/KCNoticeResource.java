@@ -1,5 +1,9 @@
 package jp.pushmestudio.kcuc.rest;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
@@ -101,7 +105,7 @@ public class KCNoticeResource {
 	 *            購読ページを解除するユーザ（いずれはCookieなど）
 	 * @param href
 	 *            購読解除対象のページキー
-	 * @return 購読解除後の購読ページ一覧
+	 * @return 購読解除したページの一覧
 	 */
 	@Path("/pages")
 	@PUT
@@ -109,11 +113,17 @@ public class KCNoticeResource {
 	@ApiOperation(value = "購読ページ解除", response = ResultPageList.class, notes = "特定のユーザの購読するページを解除 クライアントから呼ばれる想定")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
-	public Response unsetSubscribe(
+	public Response unsetMultiSubscribe(
+			// Maxで同時に3ページまで解除可能
 			@ApiParam(value = "対象のユーザー名", required = true) @FormParam("user") @DefaultValue("") String user,
-			@ApiParam(value = "購読解除対象のページキー", required = true) @FormParam("href") String href) {
+			@ApiParam(value = "購読解除対象のページキー", required = true) @FormParam("href1") String href1,
+			@ApiParam(value = "購読解除対象のページキー", required = false) @FormParam("href2") String href2,
+			@ApiParam(value = "購読解除対象のページキー", required = false) @FormParam("href3") String href3) {
 
-		Result result = data.deleteSubscribedPage(user, href);
-		return Response.status(result.getCode()).entity(result).build();
+		List<String> hrefs = new ArrayList<String>();
+		Collections.addAll(hrefs, href1,href2,href3);
+
+		Result result = data.deleteSubscribedPages(user, hrefs);
+		return Response.status(result.getCode()).entity(((ResultPageList) result).getUnSubscribedPages()).build();
 	}
 }

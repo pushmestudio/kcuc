@@ -183,7 +183,7 @@ public class UserInfoDao {
 	 *            購読解除ページ
 	 * @return 指定したユーザの情報一覧（ページ追加後）// 購読解除したページ情報のみをレスポンスとしても良い気もする
 	 */
-	public List<UserDocument> delSubscribedPage(String userId, String pageHref) {
+	public SubscribedPage delSubscribedPage(String userId, String pageHref) {
 		// userIdとpageHrefで指定されたユーザのデータを取得		
 		List<UserDocument> userDocs = kcucDB.findByIndex(
 				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
@@ -198,14 +198,11 @@ public class UserInfoDao {
 			target++;
 		}
 		// 対象ページの購読解除
-		updateTarget.delSubscribedPage(target);
+		SubscribedPage unsubscribedPage= updateTarget.delSubscribedPage(target);// return は，解除したsubscribedPage
 		
 		// Cloudant上のユーザ購読情報(Document)を更新
 		kcucDB.update(updateTarget);
-
-		// 更新後の購読ページ情報をCloudantから取得
-		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
-				UserDocument.class);
-		return updatedInfo;
+		
+		return unsubscribedPage;
 	}
 }
