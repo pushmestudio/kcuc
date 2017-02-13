@@ -1,5 +1,7 @@
 package jp.pushmestudio.kcuc.controller;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -245,44 +247,50 @@ public class KCData {
 	}
 	
 	/**
-	 * 購読解除したいページを削除し、購読情報を結果として返す
+	 * 購読解除したいページを削除し、購読解除したページ情報を結果として返す
 	 * 
 	 * @param userId
 	 *            対象のユーザーID
 	 * @param pageHref
 	 *            購読解除するページ
-	 * @return 購読解除の成否と、解除後の購読情報
+	 * @return 購読解除したページ情報
 	 *         
 	 */
-	public Result deleteSubscribedPage(String userId, String href) {
+	public Result deleteSubscribedPages(String userId, List<String> hrefs) {
 		try {
-			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
-			String pageHref = href.replaceFirst("\\.htm$", "\\.html");
-
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
+			// Swagger UIでのレスポンス用に，購読解除したページのListを作成
+			List<SubscribedPage> unsubscribedPages = new ArrayList<SubscribedPage>();
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
-			// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
-			} else if (!isTopicExist(pageHref)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
-			// 指定されたページを購読していない場合もエラーメッセージを返す
-			} else if (!userInfoDao.isPageExist(userId, pageHref)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Page.");
 			}
 
-			List<UserDocument> userList = userInfoDao.delSubscribedPage(userId, pageHref);
+			for (String href : hrefs){
+				if (href != null) {
+					// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
+					String pageHref = href.replaceFirst("\\.htm$", "\\.html");
+					// 指定されたページがKnowledgeCenterに存在しない場合
+					if (!isTopicExist(pageHref)) {
+						continue;
+					// 指定されたページを購読していない場合
+					} else if (!userInfoDao.isPageExist(userId, pageHref)) {
+						continue;
+					}
+					// Swagger UIでのレスポンス用に，購読解除したページをListに追加
+					Collections.addAll(unsubscribedPages, userInfoDao.delSubscribedPage(userId, pageHref));
+				}
+			}
 			
 			Result result = new ResultPageList(userId);
-			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
-
+			((ResultPageList) result).setUnSubscribedPages(unsubscribedPages);
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
 			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
-		}
+		}		
 	}
 }

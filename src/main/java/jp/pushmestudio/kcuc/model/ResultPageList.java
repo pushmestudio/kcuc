@@ -11,6 +11,7 @@ import jp.pushmestudio.kcuc.util.Result;
 public class ResultPageList implements Result {
 	private String userId;
 	private List<SubscribedPage> subscribedPages;
+	private List<SubscribedPage> unsubscribedPages;
 
 	public ResultPageList(String userId) {
 		this.userId = userId;
@@ -33,6 +34,15 @@ public class ResultPageList implements Result {
 		subscribedPages.add(targetPage);
 	}
 
+	public List<SubscribedPage> getUnSubscribedPages() {
+		return unsubscribedPages;
+	}
+
+	public void setUnSubscribedPages(List<SubscribedPage> unsubscribedPages) {
+		this.unsubscribedPages = unsubscribedPages;
+	}
+
+	
 	@Override
 	public int getCode() {
 		return Result.CODE_NORMAL;
