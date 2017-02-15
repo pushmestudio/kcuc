@@ -1,6 +1,7 @@
 package jp.pushmestudio.kcuc.model;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -72,5 +73,29 @@ public class KCDataTest {
 		 * 購読解除が実現されないので、記載場所には要注意
 		 */
 		assertTrue(actual);
+	}
+
+	@Test
+	public void 特定ページをパラメーター付きで検索して指定したOffsetやLimitどおりの検索結果が得られる() {
+		// setup
+		// IBM Verseで検索して、検索結果の5件目から15件取得
+		KCData data = new KCData();
+		String searchQuery = "IBM Verse";
+		int offset = 5;
+		int limit = 15;
+
+		// execute
+		Result searchResult = data.searchPages(searchQuery, offset, limit, "");
+
+		// verify
+		int expectedOffset = offset;
+		int expectedNext = offset + limit;
+		int actualOffset = ((ResultSearchList)searchResult).getOffset();
+		int actualNext = ((ResultSearchList)searchResult).getNext();
+		int actualTopicSize = ((ResultSearchList)searchResult).getTopics().size();
+
+		assertEquals(expectedOffset, actualOffset);
+		assertEquals(expectedNext, actualNext);
+		assertTrue(actualTopicSize > 0);
 	}
 }

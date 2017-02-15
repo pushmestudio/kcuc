@@ -1,7 +1,12 @@
 package jp.pushmestudio.kcuc.controller;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
@@ -16,18 +21,20 @@ import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.ResultPageList;
+import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.model.SubscribedPage;
+import jp.pushmestudio.kcuc.model.Topic;
 import jp.pushmestudio.kcuc.model.UserDocument;
 import jp.pushmestudio.kcuc.model.UserInfo;
 import jp.pushmestudio.kcuc.util.KCMessageFactory;
 import jp.pushmestudio.kcuc.util.Result;
 
+/**
+ * ページ応答と各種処理とをつなぐ コンテキストを共有するわけではないので、シングルトンにした方が良いかもしれない
+ */
 public class KCData {
 	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
-
-	public KCData() {
-	}
 
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
@@ -179,13 +186,71 @@ public class KCData {
 	}
 
 	/**
+	 * キーワード検索、現時点では特段の独自拡張はしていない 検索されたキーワードをログに残してどういうものが多く探されているか調べてもいいかもしれない
+	 * 
+	 * @param query
+	 *            スペース区切りで複数ワードが与えられた場合はAND検索
+	 * @param offset
+	 *            検索結果を何件目から取得するか
+	 * @param limit
+	 *            取得件数、MAXは20
+	 * @param lang
+	 *            検索結果がサポートしている言語
+	 * @return
+	 */
+	public Result searchPages(String query, Integer offset, Integer limit, String lang) {
+		// @see https://jersey.java.net/documentation/latest/client.html
+		Client client = ClientBuilder.newClient();
+		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/search";
+
+		WebTarget target = client.target(searchUrl).queryParam("query", query);
+
+		/*
+		 * パラメーターが存在するなら追加する、という処理、
+		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、
+		 * という処理を実装する, queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
+		 */
+		Map<String, String> queryMap = new HashMap<>();
+
+		Optional.ofNullable(offset).ifPresent(_offset -> queryMap.put("offset", _offset.toString()));
+		Optional.ofNullable(limit).ifPresent(_limit -> queryMap.put("limit", _limit.toString()));
+		Optional.ofNullable(lang).ifPresent(_lang -> queryMap.put("lang", _lang));
+
+		for (Entry<String, String> each : queryMap.entrySet()) {
+			target = target.queryParam(each.getKey(), each.getValue());
+		}
+
+		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+		Response res = invocationBuilder.get();
+
+		JSONObject resJson = new JSONObject(res.readEntity(String.class));
+
+		// ページがtopics情報を持つ場合
+		if (resJson.has("topics")) {
+			int resOffset = resJson.getInt("offset");
+			int resNext = resJson.getInt("next");
+			int resPrev = resJson.getInt("prev");
+			int resCount = resJson.getInt("count");
+			int resTotal = resJson.getInt("total");
+			List<Topic> resTopics = new ArrayList<>();
+
+			// JSONの中にあるtopicsを読み、1件ずつTopicオブジェクトとして初期化し、リストに追加している
+			resJson.getJSONArray("topics").forEach(topic -> resTopics.add(new Topic((JSONObject) topic)));
+			Result result = new ResultSearchList(resOffset, resNext, resPrev, resCount, resTotal, resTopics);
+			return ((ResultSearchList) result);
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * 現時点では最終更新日付けのみ返しているが、Metadataを返すのであれば、
 	 * 戻りの型はJSONObjectにして情報を詰める形にするし、そうではなくて最終更新日付けのみのままにするのであれば
-	 * メソッド名を適切なものに修正する
+	 * メソッドや戻りの型を適切なものに修正する
 	 * 
 	 * @param specificHref
 	 *            更新の有無を確認する対象のpageのHref
-	 * @return 最終更新日付
+	 * @return 最終更新日付, 該当がない場合現在は"none"を返している
 	 * @throws JSONException
 	 *             ページのメタ情報が見つからない場合はJSONExceptionをスロー
 	 */
@@ -210,7 +275,7 @@ public class KCData {
 			// return Objects.nonNull(dateLastModified) ? dateLastModified :
 			// dateCreated;
 		} else
-			return "none";
+			return "none"; // TODO 文字列で単に記載すると危ないので、例えばENUMなどで定義して共有すること
 	}
 
 	@SuppressWarnings("unused")
@@ -243,7 +308,7 @@ public class KCData {
 	public Boolean isTopicExist(String pageHref) {
 		return getSpecificPageMeta(pageHref) != "none" ? true : false;
 	}
-	
+
 	/**
 	 * 購読解除したいページを削除し、購読情報を結果として返す
 	 * 
@@ -252,7 +317,7 @@ public class KCData {
 	 * @param pageHref
 	 *            購読解除するページ
 	 * @return 購読解除の成否と、解除後の購読情報
-	 *         
+	 * 
 	 */
 	public Result deleteSubscribedPage(String userId, String href) {
 		try {
@@ -265,16 +330,16 @@ public class KCData {
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
-			// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
+				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
 			} else if (!isTopicExist(pageHref)) {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
-			// 指定されたページを購読していない場合もエラーメッセージを返す
+				// 指定されたページを購読していない場合もエラーメッセージを返す
 			} else if (!userInfoDao.isPageExist(userId, pageHref)) {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Page.");
 			}
 
 			List<UserDocument> userList = userInfoDao.delSubscribedPage(userId, pageHref);
-			
+
 			Result result = new ResultPageList(userId);
 			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
 
