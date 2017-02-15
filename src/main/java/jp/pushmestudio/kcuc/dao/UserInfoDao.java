@@ -2,6 +2,8 @@ package jp.pushmestudio.kcuc.dao;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -179,30 +181,35 @@ public class UserInfoDao {
 	 * 
 	 * @param userID
 	 *            対象ユーザのID
-	 * @param pageHref
-	 *            購読解除ページ
-	 * @return 指定したユーザの情報一覧（ページ追加後）// 購読解除したページ情報のみをレスポンスとしても良い気もする
+	 * @param hrefs
+	 *            購読解除したい対象ページの一覧
+	 * @return 購読解除したページの一覧
 	 */
-	public SubscribedPage delSubscribedPage(String userId, String pageHref) {
-		// userIdとpageHrefで指定されたユーザのデータを取得		
-		List<UserDocument> userDocs = kcucDB.findByIndex(
-				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
-						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
-				UserDocument.class);
-		
-		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
+	
+	public List<SubscribedPage> delSubscribedPages(String userId, List<String> hrefs) {
+
+		// Swagger UIでのレスポンス用に，購読解除したページのListを作成
+		List<SubscribedPage> unsubscribedPages = new ArrayList<SubscribedPage>();
+
+		// userIdで指定されたユーザのデータを取得
+		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}", UserDocument.class);
 		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
-		int target=0; // 購読ページ数(配列数)を超えるとjava.lang.ArrayIndexOutOfBoundsExceptionになるが，そもそもdelSubscribedPage()が呼ばれないので例外処理はしていない
-		for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
-			if ( targetHref.getPageHref().equals(pageHref)) break;
-			target++;
+
+		// 解除対象ページの配列番号を，指定したユーザが購読中のページ内から探して，SubscribedPagesからremoveする 
+		for (String page : hrefs){
+			int target = 0; //getSubscribedPages()した時点での購読中のページ数(解除するための配列番号を特定するために使用)
+			for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
+				if ( targetHref.getPageHref().equals(page)){
+					Collections.addAll(unsubscribedPages, updateTarget.removeSubscribedPages(target));
+					break;
+				} 
+				target++;	
+			}
 		}
-		// 対象ページの購読解除
-		SubscribedPage unsubscribedPage= updateTarget.delSubscribedPage(target);// return は，解除したsubscribedPage
-		
 		// Cloudant上のユーザ購読情報(Document)を更新
 		kcucDB.update(updateTarget);
-		
-		return unsubscribedPage;
+
+		// 購読解除したページの一覧を返す
+		return unsubscribedPages;
 	}
 }
