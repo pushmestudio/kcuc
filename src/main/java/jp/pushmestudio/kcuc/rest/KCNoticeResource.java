@@ -1,6 +1,5 @@
 package jp.pushmestudio.kcuc.rest;
 
-import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -93,7 +92,7 @@ public class KCNoticeResource {
 		Result result = data.registerSubscribedPage(user, href);
 		return Response.status(result.getCode()).entity(result).build();
 	}
-	
+
 	/**
 	 * 特定のユーザの購読するページを解除 クライアントから呼ばれる想定
 	 * 

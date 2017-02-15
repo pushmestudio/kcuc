@@ -173,7 +173,7 @@ public class UserInfoDao {
 		}
 		return props;
 	}
-	
+
 	/**
 	 * ユーザの購読ページを解除する
 	 * 
@@ -184,22 +184,23 @@ public class UserInfoDao {
 	 * @return 指定したユーザの情報一覧（ページ追加後）// 購読解除したページ情報のみをレスポンスとしても良い気もする
 	 */
 	public List<UserDocument> delSubscribedPage(String userId, String pageHref) {
-		// userIdとpageHrefで指定されたユーザのデータを取得		
+		// userIdとpageHrefで指定されたユーザのデータを取得
 		List<UserDocument> userDocs = kcucDB.findByIndex(
 				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
 						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
 				UserDocument.class);
-		
+
 		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
 		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
-		int target=0; // 購読ページ数(配列数)を超えるとjava.lang.ArrayIndexOutOfBoundsExceptionになるが，そもそもdelSubscribedPage()が呼ばれないので例外処理はしていない
+		int target = 0; // 購読ページ数(配列数)を超えるとjava.lang.ArrayIndexOutOfBoundsExceptionになるが，そもそもdelSubscribedPage()が呼ばれないので例外処理はしていない
 		for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
-			if ( targetHref.getPageHref().equals(pageHref)) break;
+			if (targetHref.getPageHref().equals(pageHref))
+				break;
 			target++;
 		}
 		// 対象ページの購読解除
 		updateTarget.delSubscribedPage(target);
-		
+
 		// Cloudant上のユーザ購読情報(Document)を更新
 		kcucDB.update(updateTarget);
 
