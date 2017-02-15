@@ -279,14 +279,17 @@ public class KCData {
 					} else if (!userInfoDao.isPageExist(userId, pageHref)) {
 						continue;
 					}
-					// Swagger UIでのレスポンス用に，購読解除したページをListに追加
-					Collections.addAll(unsubscribedPages, userInfoDao.delSubscribedPage(userId, pageHref));
 				}
 			}
 			
+			// userInfoDao.delSubscribedPages(userId, hrefs)で複数ページを解除する
+			unsubscribedPages = userInfoDao.delSubscribedPages(userId, hrefs);
+			
+			// 購読解除のAPIコールのレスポンスとして，解除したページの一覧を返す
 			Result result = new ResultPageList(userId);
 			((ResultPageList) result).setUnSubscribedPages(unsubscribedPages);
 			return result;
+			
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
