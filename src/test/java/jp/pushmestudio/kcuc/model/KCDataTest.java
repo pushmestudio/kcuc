@@ -78,6 +78,31 @@ public class KCDataTest {
 	}
 
 	@Test
+	// 購読解除の処理が実装されるまでPending
+	public void 特定ユーザーと購読ページを指定してユーザーの購読リストから解除されることを確認できる() {
+		// setup
+		KCData data = new KCData();
+		String userId = "meltest";
+		String hrefKey = "SSYRPW_9.0.1/UsingVerseMobile.html";
+
+		// テストデータが事前に登録されている状態にする
+		data.registerSubscribedPage(userId, hrefKey);
+
+		Result preResult = data.checkUpdateByUser(userId);
+		List<SubscribedPage> prePageList = ((ResultPageList) preResult).getSubscribedPages();
+
+		// execute
+		Result checkResult = data.deleteSubscribedPage(userId, hrefKey);
+
+		// verify
+		List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
+
+		boolean actual = pageList.size() < prePageList.size() ? true : false;
+
+		assertTrue(actual);
+	}
+
+	@Test
 	public void 特定ページをパラメーター付きで検索して指定したOffsetやLimitどおりの検索結果が得られる() {
 		// setup
 		// IBM Verseで検索して、検索結果の5件目から15件取得
