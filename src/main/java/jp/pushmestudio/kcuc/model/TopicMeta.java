@@ -47,7 +47,6 @@ public class TopicMeta {
 			 * watsonexplorer_11.0.2.html}の場合、productが入っていなかった
 			 * 現時点ではひとまず、foundinのキーを使用し、様子を見ることとする
 			 */
-
 			this.product = extractedMetaJson.getString("foundin");
 			this.dateCreated = extractedMetaJson.getLong("datecreated");
 			this.dateLastModified = extractedMetaJson.has("datelastmodified")
@@ -63,6 +62,7 @@ public class TopicMeta {
 		}
 	}
 
+	/** プロダクトIDを返す、{@link Product}自体ではないので注意 */
 	public String getProduct() {
 		return product;
 	}
