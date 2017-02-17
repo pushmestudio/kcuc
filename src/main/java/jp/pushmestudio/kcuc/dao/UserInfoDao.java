@@ -105,7 +105,7 @@ public class UserInfoDao {
 
 		// 追加するページの情報を作成
 		Date currentTime = new Date();
-		String timestamp = Long.toString(currentTime.getTime());
+		long timestamp = currentTime.getTime();
 		SubscribedPage targetPage = new SubscribedPage(pageHref, false, timestamp, "unknown");
 
 		// 指定されたユーザに該当するレコードを更新

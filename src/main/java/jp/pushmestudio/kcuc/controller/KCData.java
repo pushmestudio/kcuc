@@ -25,6 +25,7 @@ import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.model.SubscribedPage;
 import jp.pushmestudio.kcuc.model.Topic;
+import jp.pushmestudio.kcuc.model.TopicMeta;
 import jp.pushmestudio.kcuc.model.UserDocument;
 import jp.pushmestudio.kcuc.model.UserInfo;
 import jp.pushmestudio.kcuc.util.KCMessageFactory;
@@ -32,6 +33,7 @@ import jp.pushmestudio.kcuc.util.Result;
 
 /**
  * ページ応答と各種処理とをつなぐ コンテキストを共有するわけではないので、シングルトンにした方が良いかもしれない
+ * Result型を応答して
  */
 public class KCData {
 	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
@@ -48,14 +50,15 @@ public class KCData {
 	 */
 	public Result checkUpdateByPage(String pageKey) {
 		try {
+			// KCからのデータ取得処理
+			TopicMeta topicMeta = getSpecificPageMeta(pageKey);
+
 			// ページキーが取得できない場合はエラーメッセージを返す
-			if (!isTopicExist(pageKey)) {
+			if (!topicMeta.isExist()) {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
 			}
 
-			// KCからのデータ取得処理
-			String dateLastModified = getSpecificPageMeta(pageKey);
-			Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
@@ -66,12 +69,12 @@ public class KCData {
 
 			for (UserDocument userDoc : userList) {
 				// userDocにはsubscribedPagesがListで複数保持されているため、該当のpageKeyをもつもののみ抽出
-				List<String> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
+				List<Long> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
 						.filter(s -> s.getPageHref().equals(pageKey)).map(s -> s.getUpdatedTime())
 						.collect(Collectors.toList());
 
 				// ↑の結果はListで返るが、1ユーザが同じページを購読することは仕様上禁止されるはずであるため最初の値を常に使用できる
-				Long preservedDate = Long.parseLong(targetPageUpdatedTime.get(0));
+				long preservedDate = targetPageUpdatedTime.get(0);
 				UserInfo eachUser = new UserInfo(userDoc.getUserId(), preservedDate < lastModifiedDate.getTime());
 				((ResultUserList) result).addSubscriber(eachUser);
 			}
@@ -115,17 +118,17 @@ public class KCData {
 
 				for (SubscribedPage entry : subscribedPages) {
 					String pageKey = entry.getPageHref();
-					Long preservedDate = Long.parseLong(entry.getUpdatedTime());
+					long preservedDate = entry.getUpdatedTime();
 
 					// KCからのデータ取得処理
-					String dateLastModified = getSpecificPageMeta(pageKey);
+					TopicMeta topicMeta = getSpecificPageMeta(pageKey);
 
-					// ページキーが取得できない場合はエラーメッセージを返す
-					if (dateLastModified == "none") {
+					// ページの更新情報が取得できないときは0を返す
+					if (!topicMeta.isExist()) {
 						return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
 					}
 
-					Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
 					entry.setIsUpdated(preservedDate < lastModifiedDate.getTime());
 					((ResultPageList) result).addSubscribedPage(entry);
@@ -244,17 +247,13 @@ public class KCData {
 	}
 
 	/**
-	 * 現時点では最終更新日付けのみ返しているが、Metadataを返すのであれば、
-	 * 戻りの型はJSONObjectにして情報を詰める形にするし、そうではなくて最終更新日付けのみのままにするのであれば
-	 * メソッドや戻りの型を適切なものに修正する
+	 * KCに問い合わせた結果を、メタ情報を持ったオブジェクトに詰めて応答する
 	 * 
 	 * @param specificHref
 	 *            更新の有無を確認する対象のpageのHref
-	 * @return 最終更新日付, 該当がない場合現在は"none"を返している
-	 * @throws JSONException
-	 *             ページのメタ情報が見つからない場合はJSONExceptionをスロー
+	 * @return topic_metadataから得られた応答を抽出してプロパティとしてセットした{@link TopicMeta}
 	 */
-	private String getSpecificPageMeta(String specificHref) throws JSONException {
+	private TopicMeta getSpecificPageMeta(String specificHref) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String topicMetaUrl = "https://www.ibm.com/support/knowledgecenter/v1/topic_metadata";
@@ -264,18 +263,8 @@ public class KCData {
 		Response res = invocationBuilder.get();
 
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
+		return new TopicMeta(resJson);
 
-		// ページがclassification情報を持つ場合
-		if (resJson.has("classification")) {
-			return resJson.getJSONObject("classification").has("datelastmodified")
-					? resJson.getJSONObject("classification").getString("datelastmodified")
-					: resJson.getJSONObject("classification").getString("datecreated");
-
-			// Objects.nonNullはJava SE8からなので、Java SE7環境なら書き換え必須
-			// return Objects.nonNull(dateLastModified) ? dateLastModified :
-			// dateCreated;
-		} else
-			return "none"; // TODO 文字列で単に記載すると危ないので、例えばENUMなどで定義して共有すること
 	}
 
 	@SuppressWarnings("unused")
@@ -299,14 +288,19 @@ public class KCData {
 	}
 
 	/**
-	 * 購読ページがKnowledgeCenter上に存在するか確認する
+	 * 購読ページがKnowledgeCenter上に存在するか確認する、ページが存在しない場合、最終更新日時の値が初期値の-1となって応答される
+	 * 複数回参照する場合やページのメタ情報を利用する場合には{@link TopicMeta#isExist()}を利用する
 	 * 
 	 * @param pageHref
 	 *            確認する購読ページキー
 	 * @return True or False
 	 */
-	public Boolean isTopicExist(String pageHref) {
-		return getSpecificPageMeta(pageHref) != "none" ? true : false;
+	private boolean isTopicExist(String pageHref) {
+		try {
+			return getSpecificPageMeta(pageHref).isExist();
+		} catch (JSONException | NullPointerException e) {
+			return false;
+		}
 	}
 
 	/**

@@ -5,12 +5,12 @@ package jp.pushmestudio.kcuc.model;
  */
 public class SubscribedPage {
 	private String pageHref;
-	private Boolean isUpdated;
-	private String updatedTime; // TODO 正しくはlong型なので要修正
+	private boolean isUpdated;
+	private long updatedTime;
+	private String prodId;
 	private String prodName;
 
-	// コンストラクタ(未使用)
-	public SubscribedPage(String pageHref, Boolean isUpdated, String updatedTime, String prodName) {
+	public SubscribedPage(String pageHref, boolean isUpdated, long updatedTime, String prodName) {
 		this.pageHref = pageHref;
 		this.isUpdated = isUpdated;
 		this.updatedTime = updatedTime;
@@ -21,11 +21,11 @@ public class SubscribedPage {
 		return pageHref;
 	}
 
-	public Boolean getIsUpdated() {
+	public boolean getIsUpdated() {
 		return isUpdated;
 	}
 
-	public String getUpdatedTime() {
+	public long getUpdatedTime() {
 		return updatedTime;
 	}
 
@@ -33,7 +33,7 @@ public class SubscribedPage {
 		return prodName;
 	}
 
-	public Boolean setIsUpdated(boolean isUpdated) {
+	public boolean setIsUpdated(boolean isUpdated) {
 		return this.isUpdated = isUpdated;
 	}
 
