@@ -46,12 +46,11 @@ public class KCDataTest {
 	}
 
 	@Test
-	@Ignore
 	// 購読解除の処理が実装されるまでPending
 	public void 特定ユーザーと購読ページを指定してユーザーの購読リストに登録されることを確認できる() {
 		KCData data = new KCData();
 		String userId = "tkhm";
-		String hrefKey = "SS42VS_7.2.7/com.ibm.qradar.doc/b_qradar_qsg.html";
+		String hrefKey = "SSYRPW_9.0.1/UsingVerseMobile.html";
 
 		Result preResult = data.checkUpdateByUser(userId);
 		List<SubscribedPage> prePageList = ((ResultPageList) preResult).getSubscribedPages();

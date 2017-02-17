@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
+import jp.pushmestudio.kcuc.model.Product;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
@@ -33,7 +34,7 @@ import jp.pushmestudio.kcuc.util.Result;
 
 /**
  * ページ応答と各種処理とをつなぐ コンテキストを共有するわけではないので、シングルトンにした方が良いかもしれない
- * Result型を応答して
+ * Result型を応答する(=APIインタフェースから呼ばれる)場合は、必ずtry-catch処理を実施すること
  */
 public class KCData {
 	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
@@ -164,10 +165,13 @@ public class KCData {
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
 
+			// KCからのデータ取得処理
+			TopicMeta topicMeta = getSpecificPageMeta(pageHref);
+
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
-			} else if (!isTopicExist(pageHref)) {
+			} else if (!topicMeta.isExist()) {
 				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
 			} else if (userInfoDao.isPageExist(userId, pageHref)) {
@@ -175,7 +179,9 @@ public class KCData {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "You Already Subscribe This Page.");
 			}
 
-			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref);
+			String prodId = topicMeta.getProduct();
+			String prodName = this.searchProduct(prodId).getLabel();
+			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref, prodId, prodName);
 			// return用
 			Result result = new ResultPageList(userId);
 			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
@@ -184,7 +190,7 @@ public class KCData {
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Communication Error");
 		}
 	}
 
@@ -242,6 +248,33 @@ public class KCData {
 			Result result = new ResultSearchList(resOffset, resNext, resPrev, resCount, resTotal, resTopics);
 			return ((ResultSearchList) result);
 		} else {
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Can't get search result");
+		}
+	}
+
+	/**
+	 * 特定ページが属する製品をKCから取得する
+	 * 
+	 * @param query
+	 *            特定ページ
+	 * @return 得られたJSONを元に生成した{@link Product}オブジェクト | null
+	 */
+	private Product searchProduct(String productKey) {
+		// @see https://jersey.java.net/documentation/latest/client.html
+		Client client = ClientBuilder.newClient();
+		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/products/";
+
+		WebTarget target = client.target(searchUrl + productKey);
+
+		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+		Response res = invocationBuilder.get();
+
+		JSONObject resJson = new JSONObject(res.readEntity(String.class));
+
+		// ページがtopics情報を持つ場合
+		if (resJson.has("product")) {
+			return new Product(resJson.getJSONObject("product"));
+		} else {
 			return null;
 		}
 	}
@@ -268,7 +301,7 @@ public class KCData {
 	}
 
 	@SuppressWarnings("unused")
-	private JSONObject getTOC(String productKey) throws JSONException {
+	private JSONObject getTOC(String productKey) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String tocUrl = "https://www.ibm.com/support/knowledgecenter/v1/toc/";
