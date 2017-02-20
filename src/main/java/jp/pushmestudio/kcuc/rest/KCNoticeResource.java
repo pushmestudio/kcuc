@@ -18,6 +18,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
 import jp.pushmestudio.kcuc.model.ResultPageList;
+import jp.pushmestudio.kcuc.model.ResultProductList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.util.Result;
 
@@ -113,6 +114,27 @@ public class KCNoticeResource {
 			@ApiParam(value = "購読解除対象のページキー", required = true) @FormParam("href") String href) {
 
 		Result result = data.deleteSubscribedPage(user, href);
+		return Response.status(result.getCode()).entity(result).build();
+	}
+	
+
+	/**
+	 * 特定のユーザーの購読しているページ一覧を取得・確認 クライアントから呼ばれる想定
+	 * 
+	 * @param user
+	 *            更新確認対象のユーザー名
+	 * @return 更新確認結果
+	 */
+	@Path("/products")
+	@GET
+	@Produces({ MediaType.APPLICATION_JSON })
+	@ApiOperation(value = "購読製品一覧取得", response = ResultProductList.class, notes = "特定のユーザーの購読しているページが属する製品一覧を取得")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
+			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	public Response getSubscribedProducts(
+			@ApiParam(value = "確認対象のユーザー名", required = true) @QueryParam("user") @DefaultValue("") String user) {
+
+		Result result = data.getSubscribedProductList(user);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 }

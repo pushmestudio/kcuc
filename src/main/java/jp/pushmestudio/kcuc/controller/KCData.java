@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.Product;
 import jp.pushmestudio.kcuc.model.ResultPageList;
+import jp.pushmestudio.kcuc.model.ResultProductList;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.model.SubscribedPage;
@@ -250,6 +251,51 @@ public class KCData {
 		} else {
 			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Can't get search result");
 		}
+	}
+
+	/**
+	 * 購読しているページ一覧を取得し、その中から製品情報を抽出して一覧にして返す
+	 * 同じ製品を重複して登録しないためにHashMapで処理した結果をリストに渡している
+	 * 
+	 * @param userId
+	 *            製品一覧
+	 * @return 購読している製品一覧とユーザーID
+	 * @see {@link ResultProductList}
+	 */
+	public Result getSubscribedProductList(String userId) {
+		/*
+		 * TODO ネットワークエラーなどで接続に失敗すると java.net.UnknownHostException,
+		 * java.net.ConnectException,
+		 * com.cloudant.client.org.lightcouch.CouchDbExceptionなどが起きうるがどこまで対処するか
+		 */
+		// DBのユーザーからのデータ取得処理
+		UserInfoDao userInfoDao = new UserInfoDao();
+
+		// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
+		if (!userInfoDao.isUserExist(userId)) {
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found");
+		}
+
+		// IDはユニークなはずなので、Listにする必要はない
+		List<UserDocument> userList = userInfoDao.getUserList(userId);
+
+		// return用
+		Result result = new ResultProductList(userId);
+
+		/*
+		 * TODO 現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
+		 * 直接購読している製品一覧を取得しても良いかもしれない(特に購読件数が増えたときに通信量の低減と速度向上に繋がる)
+		 */
+		for (UserDocument userDoc : userList) {
+			List<Product> subscribedProducts = new ArrayList<>();
+			List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
+
+			subscribedPages.forEach(entry -> {
+				subscribedProducts.add(new Product(entry.getProdId(), entry.getProdName()));
+			});
+			((ResultProductList) result).addSubscribedProduct(subscribedProducts);
+		}
+		return result;
 	}
 
 	/**
