@@ -1,8 +1,7 @@
 package jp.pushmestudio.kcuc.model;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import jp.pushmestudio.kcuc.util.Result;
 
@@ -12,34 +11,34 @@ import jp.pushmestudio.kcuc.util.Result;
  */
 public class ResultProductList implements Result {
 	private String userId;
-	/** 製品名を重複して持たせないためHashSetにしている、これにより重複リストを渡されてもセット時にユニークになる */
-	private Set<Product> subscribedProducts;
+	/** 製品名を重複して持たせないためHashMapにしている */
+	private Map<String, String> subscribedProducts;
 
 	public ResultProductList(String userId) {
 		this.userId = userId;
-		this.subscribedProducts = new HashSet<>();
+		this.subscribedProducts = new HashMap<>();
 	}
 
 	public String getUserId() {
 		return userId;
 	}
 
-	public Set<Product> getSubscribedProducts() {
+	public Map<String, String> getSubscribedProducts() {
 		return subscribedProducts;
 	}
 
-	public void setSubscribedProducts(Set<Product> subscribedProducts) {
+	public void setSubscribedProducts(Map<String, String> subscribedProducts) {
 		this.subscribedProducts = subscribedProducts;
 	}
 
 	/**
-	 * 重複ありのリストをHashSetによってユニーク化して登録する
+	 * ID：名前の形でHashMapに追加する、既にID：名前で登録済みの場合は上書きしない
 	 * 
-	 * @param products
-	 *            購読製品一覧(重複OK)
+	 * @param prodId 購読している製品のID
+	 * @param prodName 購読している製品の名前
 	 */
-	public void addSubscribedProduct(List<Product> products) {
-		subscribedProducts.addAll(products);
+	public void addSubscribedProduct(String prodId, String prodName) {
+		subscribedProducts.putIfAbsent(prodId, prodName);
 	}
 
 	@Override

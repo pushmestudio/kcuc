@@ -287,13 +287,12 @@ public class KCData {
 		 * 直接購読している製品一覧を取得しても良いかもしれない(特に購読件数が増えたときに通信量の低減と速度向上に繋がる)
 		 */
 		for (UserDocument userDoc : userList) {
-			List<Product> subscribedProducts = new ArrayList<>();
 			List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
 
 			subscribedPages.forEach(entry -> {
-				subscribedProducts.add(new Product(entry.getProdId(), entry.getProdName()));
+				((ResultProductList) result).addSubscribedProduct(entry.getProdId(), entry.getProdName());
 			});
-			((ResultProductList) result).addSubscribedProduct(subscribedProducts);
+
 		}
 		return result;
 	}
