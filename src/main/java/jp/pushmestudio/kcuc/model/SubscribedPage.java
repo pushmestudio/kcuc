@@ -42,7 +42,7 @@ public class SubscribedPage {
 		return this.isUpdated = isUpdated;
 	}
 
-	// TODO toStringをoverrideしてる目的を明らかにする, cloudantで使用するため, か？
+	// @see https://github.com/cloudant/java-cloudant toStringをoverrideする実装の際に参考にしたもの
 	public String toString() {
 		return "{pageHref: " + pageHref + ",\nisUpdated: " + isUpdated + ",\nupdatedTime: " + updatedTime
 				+ ",\nprodId: " + prodId + ",\nprodName: " + prodName + "\n}";
