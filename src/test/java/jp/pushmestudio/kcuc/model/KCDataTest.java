@@ -4,9 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import jp.pushmestudio.kcuc.controller.KCData;
@@ -129,7 +128,6 @@ public class KCDataTest {
 		assertTrue(actualTopicSize > 0); // 1件以上の値が取得できているか
 	}
 
-	@Ignore
 	@Test
 	public void 特定ユーザーに同製品の異なる2ページを登録して1件の購読製品が追加されることを確認できる() {
 		// setup
@@ -144,14 +142,14 @@ public class KCDataTest {
 		data.deleteSubscribedPage(userId, hrefKey2);
 
 		Result preResult = data.getSubscribedProductList(userId);
-		Set<Product> preProductSet = ((ResultProductList) preResult).getSubscribedProducts();
+		Map<String, String> preProductSet = ((ResultProductList) preResult).getSubscribedProducts();
 
 		data.registerSubscribedPage(userId, hrefKey1);
 		data.registerSubscribedPage(userId, hrefKey2);
 
 		// execute
 		Result gotResult = data.getSubscribedProductList(userId);
-		Set<Product> productSet = ((ResultProductList) gotResult).getSubscribedProducts();
+		Map<String, String> productSet = ((ResultProductList) gotResult).getSubscribedProducts();
 
 		// verify
 		final int expectedSize = preProductSet.size() + 1;
