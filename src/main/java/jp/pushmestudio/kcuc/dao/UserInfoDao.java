@@ -2,6 +2,7 @@ package jp.pushmestudio.kcuc.dao;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -200,6 +201,52 @@ public class UserInfoDao {
 		}
 		// 対象ページの購読解除
 		updateTarget.delSubscribedPage(target);
+
+		// Cloudant上のユーザ購読情報(Document)を更新
+		kcucDB.update(updateTarget);
+
+		// 更新後の購読ページ情報をCloudantから取得
+		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
+				UserDocument.class);
+		return updatedInfo;
+	}
+
+	/**
+	 * To be added
+	 * 
+	 * @param userId
+	 * @param pageHref
+	 * @return
+	 */
+	public List<UserDocument> cancelSubscribedProduct(String userId, String prodId) throws IndexOutOfBoundsException {
+		// userIdとpageHrefで指定されたユーザのデータを取得
+		List<UserDocument> userDocs = kcucDB.findByIndex(
+				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
+						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"prodId\":\"" + prodId + "\"}}}]}}",
+				UserDocument.class);
+
+		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
+		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
+		int targetIndex = 0; // 購読ページ数(配列数)を超えるとjava.lang.ArrayIndexOutOfBoundsExceptionになるが，そもそもdelSubscribedPage()が呼ばれないので例外処理はしていない
+		List<Integer> targetIndexList = new ArrayList<>();
+		for (SubscribedPage targetPage : updateTarget.getSubscribedPages()) {
+			if (targetPage.getProdId().equals(prodId)) {
+				targetIndexList.add(targetIndex);
+				continue;
+			}
+			/*
+			 * 該当しない時だけ数字をプラスする。実装の意図としては、配列の[0,1,2,3,4]の
+			 * 0,3,4だけを消したい場合、順に消していくと [1,2,3,4] -> [1,2,4] ->
+			 * [1,2]}のように消えていくこととなる。そのため、例えばすべて消すときはindexは常に0になる。
+			 * そのため、該当しない時だけindexの値を増やすことで効率的に該当する対象のみを消す処理を書いている。
+			 */
+			targetIndex++;
+		}
+
+		// 対象ページの購読解除
+		for (int eachTarget : targetIndexList) {
+			updateTarget.delSubscribedPage(eachTarget);
+		}
 
 		// Cloudant上のユーザ購読情報(Document)を更新
 		kcucDB.update(updateTarget);
