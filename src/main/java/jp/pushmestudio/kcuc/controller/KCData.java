@@ -422,4 +422,58 @@ public class KCData {
 			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
+
+	/**
+	 * 購読解除したいページを削除し、購読情報を結果として返す
+	 * 
+	 * @param userId
+	 *            対象のユーザーID
+	 * @param prodId
+	 *            購読解除する製品ID、このIDに紐づくすべてのページを購読解除する
+	 * @return 購読解除の成否と、解除後の購読情報
+	 * 
+	 */
+	public Result cancelSubscribedProduct(String userId, String prodId) {
+		try {
+			// DBのユーザーからのデータ取得処理
+			UserInfoDao userInfoDao = new UserInfoDao();
+
+			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
+			if (!userInfoDao.isUserExist(userId)) {
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
+				// 指定された製品がKnowledgeCenterに存在しない場合もエラーメッセージを返す、という処理は必要か？必要なら下記のような形で実装する
+				/*
+				 * } else if (!isProductExist(prodId)) { return
+				 * KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR,
+				 * "Prodcut Not Found.");
+				 */
+
+				// 指定された製品をを購読していない場合もエラーメッセージを返す、要実装 TODO
+				// 実装するまではArrayIndexOutOfBoundsExceptionをcatchすることで代替
+				/*
+				 * } else if (!userInfoDao.isPageExist(userId, pageHref)) {
+				 * return
+				 * KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR,
+				 * "Not Yet Subscribed This Product.");
+				 */
+			}
+
+			List<UserDocument> userList = userInfoDao.cancelSubscribedProduct(userId, prodId);
+
+			Result result = new ResultPageList(userId);
+			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
+
+			return result;
+		} catch (JSONException e) {
+			e.printStackTrace();
+			// エラーメッセージを作成
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+		} catch (IndexOutOfBoundsException ee) {
+			// 購読しているページの中に指定製品が含まれるかを確認するメソッドを実装したらこの処理は削除する
+			ee.printStackTrace();
+			// エラーメッセージを作成
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Product.");
+		}
+	}
+
 }

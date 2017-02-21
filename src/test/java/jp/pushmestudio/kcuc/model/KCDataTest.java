@@ -133,27 +133,26 @@ public class KCDataTest {
 		// setup
 		KCData data = new KCData();
 		final String userId = "tkhm";
+		final String prodId = "SSTPQH_1.0.0";
 		final String hrefKey1 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_planning_install_location.html";
 		final String hrefKey2 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_tuning_automatic_compactor.html";
 
 		// テストデータが事前に登録されていない状態にする
-		// TODO 製品指定による購読解除ができるようになったらそちらに切り替える
-		data.deleteSubscribedPage(userId, hrefKey1);
-		data.deleteSubscribedPage(userId, hrefKey2);
+		data.cancelSubscribedProduct(userId, prodId);
 
 		Result preResult = data.getSubscribedProductList(userId);
-		Map<String, String> preProductSet = ((ResultProductList) preResult).getSubscribedProducts();
+		Map<String, String> preProductMap = ((ResultProductList) preResult).getSubscribedProducts();
 
 		data.registerSubscribedPage(userId, hrefKey1);
 		data.registerSubscribedPage(userId, hrefKey2);
 
 		// execute
 		Result gotResult = data.getSubscribedProductList(userId);
-		Map<String, String> productSet = ((ResultProductList) gotResult).getSubscribedProducts();
+		Map<String, String> productMap = ((ResultProductList) gotResult).getSubscribedProducts();
 
 		// verify
-		final int expectedSize = preProductSet.size() + 1;
-		final int actualSize = productSet.size();
+		final int expectedSize = preProductMap.size() + 1;
+		final int actualSize = productMap.size();
 
 		// teardown
 		/*
@@ -161,8 +160,7 @@ public class KCDataTest {
 		 * 本来はteardownメソッド内に書くが現時点ではこの削除処理を必要としていないテストケースが多いため割愛
 		 * assertTrueよりも後に書くと、assertionErrorになったときに削除されずに終わってしまうので注意
 		 */
-		data.deleteSubscribedPage(userId, hrefKey1);
-		data.deleteSubscribedPage(userId, hrefKey2);
+		data.cancelSubscribedProduct(userId, prodId);
 
 		assertEquals(expectedSize, actualSize);
 	}
