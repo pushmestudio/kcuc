@@ -11,7 +11,6 @@ public class UserDocument {
 	private String userId;
 	private List<SubscribedPage> subscribedPages;
 
-	// コンストラクタ(未使用)
 	public UserDocument(String userId) {
 		this.userId = userId;
 	}
@@ -40,6 +39,7 @@ public class UserDocument {
 		subscribedPages.remove(target);
 	}
 
+	// @see https://github.com/cloudant/java-cloudant toStringをoverrideする実装の際に参考にしたもの
 	public String toString() {
 		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserId: " + userId + ",\nsubscribedPages: " + subscribedPages
 				+ "\n}";

@@ -20,11 +20,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
+import jp.pushmestudio.kcuc.model.Product;
 import jp.pushmestudio.kcuc.model.ResultPageList;
+import jp.pushmestudio.kcuc.model.ResultProductList;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
 import jp.pushmestudio.kcuc.model.SubscribedPage;
 import jp.pushmestudio.kcuc.model.Topic;
+import jp.pushmestudio.kcuc.model.TopicMeta;
 import jp.pushmestudio.kcuc.model.UserDocument;
 import jp.pushmestudio.kcuc.model.UserInfo;
 import jp.pushmestudio.kcuc.util.KCMessageFactory;
@@ -32,6 +35,7 @@ import jp.pushmestudio.kcuc.util.Result;
 
 /**
  * ページ応答と各種処理とをつなぐ コンテキストを共有するわけではないので、シングルトンにした方が良いかもしれない
+ * Result型を応答する(=APIインタフェースから呼ばれる)場合は、必ずtry-catch処理を実施すること
  */
 public class KCData {
 	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
@@ -48,14 +52,15 @@ public class KCData {
 	 */
 	public Result checkUpdateByPage(String pageKey) {
 		try {
+			// KCからのデータ取得処理
+			TopicMeta topicMeta = getSpecificPageMeta(pageKey);
+
 			// ページキーが取得できない場合はエラーメッセージを返す
-			if (!isTopicExist(pageKey)) {
+			if (!topicMeta.isExist()) {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
 			}
 
-			// KCからのデータ取得処理
-			String dateLastModified = getSpecificPageMeta(pageKey);
-			Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
@@ -66,12 +71,12 @@ public class KCData {
 
 			for (UserDocument userDoc : userList) {
 				// userDocにはsubscribedPagesがListで複数保持されているため、該当のpageKeyをもつもののみ抽出
-				List<String> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
+				List<Long> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
 						.filter(s -> s.getPageHref().equals(pageKey)).map(s -> s.getUpdatedTime())
 						.collect(Collectors.toList());
 
 				// ↑の結果はListで返るが、1ユーザが同じページを購読することは仕様上禁止されるはずであるため最初の値を常に使用できる
-				Long preservedDate = Long.parseLong(targetPageUpdatedTime.get(0));
+				long preservedDate = targetPageUpdatedTime.get(0);
 				UserInfo eachUser = new UserInfo(userDoc.getUserId(), preservedDate < lastModifiedDate.getTime());
 				((ResultUserList) result).addSubscriber(eachUser);
 			}
@@ -115,17 +120,17 @@ public class KCData {
 
 				for (SubscribedPage entry : subscribedPages) {
 					String pageKey = entry.getPageHref();
-					Long preservedDate = Long.parseLong(entry.getUpdatedTime());
+					long preservedDate = entry.getUpdatedTime();
 
 					// KCからのデータ取得処理
-					String dateLastModified = getSpecificPageMeta(pageKey);
+					TopicMeta topicMeta = getSpecificPageMeta(pageKey);
 
-					// ページキーが取得できない場合はエラーメッセージを返す
-					if (dateLastModified == "none") {
+					// ページの更新情報が取得できないときは0を返す
+					if (!topicMeta.isExist()) {
 						return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
 					}
 
-					Date lastModifiedDate = new Date(Long.parseLong(dateLastModified));
+					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
 					entry.setIsUpdated(preservedDate < lastModifiedDate.getTime());
 					((ResultPageList) result).addSubscribedPage(entry);
@@ -161,10 +166,13 @@ public class KCData {
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
 
+			// KCからのデータ取得処理
+			TopicMeta topicMeta = getSpecificPageMeta(pageHref);
+
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
-			} else if (!isTopicExist(pageHref)) {
+			} else if (!topicMeta.isExist()) {
 				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
 			} else if (userInfoDao.isPageExist(userId, pageHref)) {
@@ -172,7 +180,9 @@ public class KCData {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "You Already Subscribe This Page.");
 			}
 
-			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref);
+			String prodId = topicMeta.getProduct();
+			String prodName = this.searchProduct(prodId).getLabel();
+			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref, prodId, prodName);
 			// return用
 			Result result = new ResultPageList(userId);
 			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
@@ -181,7 +191,7 @@ public class KCData {
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Communication Error");
 		}
 	}
 
@@ -239,22 +249,89 @@ public class KCData {
 			Result result = new ResultSearchList(resOffset, resNext, resPrev, resCount, resTotal, resTopics);
 			return ((ResultSearchList) result);
 		} else {
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Can't get search result");
+		}
+	}
+
+	/**
+	 * 購読しているページ一覧を取得し、その中から製品情報を抽出して一覧にして返す
+	 * 同じ製品を重複して登録しないためにHashMapで処理した結果をリストに渡している
+	 * 
+	 * @param userId
+	 *            製品一覧
+	 * @return 購読している製品一覧とユーザーID
+	 * @see {@link ResultProductList}
+	 */
+	public Result getSubscribedProductList(String userId) {
+		/*
+		 * TODO ネットワークエラーなどで接続に失敗すると java.net.UnknownHostException,
+		 * java.net.ConnectException,
+		 * com.cloudant.client.org.lightcouch.CouchDbExceptionなどが起きうるがどこまで対処するか
+		 */
+		// DBのユーザーからのデータ取得処理
+		UserInfoDao userInfoDao = new UserInfoDao();
+
+		// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
+		if (!userInfoDao.isUserExist(userId)) {
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found");
+		}
+
+		// IDはユニークなはずなので、Listにする必要はない
+		List<UserDocument> userList = userInfoDao.getUserList(userId);
+
+		// return用
+		Result result = new ResultProductList(userId);
+
+		/*
+		 * TODO 現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
+		 * 直接購読している製品一覧を取得しても良いかもしれない(特に購読件数が増えたときに通信量の低減と速度向上に繋がる)
+		 */
+		for (UserDocument userDoc : userList) {
+			List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
+
+			subscribedPages.forEach(entry -> {
+				((ResultProductList) result).addSubscribedProduct(entry.getProdId(), entry.getProdName());
+			});
+
+		}
+		return result;
+	}
+
+	/**
+	 * 特定ページが属する製品をKCから取得する
+	 * 
+	 * @param query
+	 *            特定ページ
+	 * @return 得られたJSONを元に生成した{@link Product}オブジェクト | null
+	 */
+	private Product searchProduct(String productKey) {
+		// @see https://jersey.java.net/documentation/latest/client.html
+		Client client = ClientBuilder.newClient();
+		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/products/";
+
+		WebTarget target = client.target(searchUrl + productKey);
+
+		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+		Response res = invocationBuilder.get();
+
+		JSONObject resJson = new JSONObject(res.readEntity(String.class));
+
+		// ページがtopics情報を持つ場合
+		if (resJson.has("product")) {
+			return new Product(resJson.getJSONObject("product"));
+		} else {
 			return null;
 		}
 	}
 
 	/**
-	 * 現時点では最終更新日付けのみ返しているが、Metadataを返すのであれば、
-	 * 戻りの型はJSONObjectにして情報を詰める形にするし、そうではなくて最終更新日付けのみのままにするのであれば
-	 * メソッドや戻りの型を適切なものに修正する
+	 * KCに問い合わせた結果を、メタ情報を持ったオブジェクトに詰めて応答する
 	 * 
 	 * @param specificHref
 	 *            更新の有無を確認する対象のpageのHref
-	 * @return 最終更新日付, 該当がない場合現在は"none"を返している
-	 * @throws JSONException
-	 *             ページのメタ情報が見つからない場合はJSONExceptionをスロー
+	 * @return topic_metadataから得られた応答を抽出してプロパティとしてセットした{@link TopicMeta}
 	 */
-	private String getSpecificPageMeta(String specificHref) throws JSONException {
+	private TopicMeta getSpecificPageMeta(String specificHref) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String topicMetaUrl = "https://www.ibm.com/support/knowledgecenter/v1/topic_metadata";
@@ -264,22 +341,12 @@ public class KCData {
 		Response res = invocationBuilder.get();
 
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
+		return new TopicMeta(resJson);
 
-		// ページがclassification情報を持つ場合
-		if (resJson.has("classification")) {
-			return resJson.getJSONObject("classification").has("datelastmodified")
-					? resJson.getJSONObject("classification").getString("datelastmodified")
-					: resJson.getJSONObject("classification").getString("datecreated");
-
-			// Objects.nonNullはJava SE8からなので、Java SE7環境なら書き換え必須
-			// return Objects.nonNull(dateLastModified) ? dateLastModified :
-			// dateCreated;
-		} else
-			return "none"; // TODO 文字列で単に記載すると危ないので、例えばENUMなどで定義して共有すること
 	}
 
 	@SuppressWarnings("unused")
-	private JSONObject getTOC(String productKey) throws JSONException {
+	private JSONObject getTOC(String productKey) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String tocUrl = "https://www.ibm.com/support/knowledgecenter/v1/toc/";
@@ -299,14 +366,19 @@ public class KCData {
 	}
 
 	/**
-	 * 購読ページがKnowledgeCenter上に存在するか確認する
+	 * 購読ページがKnowledgeCenter上に存在するか確認する、ページが存在しない場合、最終更新日時の値が初期値の-1となって応答される
+	 * 複数回参照する場合やページのメタ情報を利用する場合には{@link TopicMeta#isExist()}を利用する
 	 * 
 	 * @param pageHref
 	 *            確認する購読ページキー
 	 * @return True or False
 	 */
-	public Boolean isTopicExist(String pageHref) {
-		return getSpecificPageMeta(pageHref) != "none" ? true : false;
+	private boolean isTopicExist(String pageHref) {
+		try {
+			return getSpecificPageMeta(pageHref).isExist();
+		} catch (JSONException | NullPointerException e) {
+			return false;
+		}
 	}
 
 	/**

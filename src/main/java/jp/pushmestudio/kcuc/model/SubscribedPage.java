@@ -5,15 +5,16 @@ package jp.pushmestudio.kcuc.model;
  */
 public class SubscribedPage {
 	private String pageHref;
-	private Boolean isUpdated;
-	private String updatedTime; // TODO 正しくはlong型なので要修正
+	private boolean isUpdated;
+	private long updatedTime;
+	private String prodId;
 	private String prodName;
 
-	// コンストラクタ(未使用)
-	public SubscribedPage(String pageHref, Boolean isUpdated, String updatedTime, String prodName) {
+	public SubscribedPage(String pageHref, boolean isUpdated, long updatedTime, String prodId, String prodName) {
 		this.pageHref = pageHref;
 		this.isUpdated = isUpdated;
 		this.updatedTime = updatedTime;
+		this.prodId = prodId;
 		this.prodName = prodName;
 	}
 
@@ -21,25 +22,29 @@ public class SubscribedPage {
 		return pageHref;
 	}
 
-	public Boolean getIsUpdated() {
+	public boolean getIsUpdated() {
 		return isUpdated;
 	}
 
-	public String getUpdatedTime() {
+	public long getUpdatedTime() {
 		return updatedTime;
+	}
+
+	public String getProdId() {
+		return prodId;
 	}
 
 	public String getProdName() {
 		return prodName;
 	}
 
-	public Boolean setIsUpdated(boolean isUpdated) {
+	public boolean setIsUpdated(boolean isUpdated) {
 		return this.isUpdated = isUpdated;
 	}
 
+	// @see https://github.com/cloudant/java-cloudant toStringをoverrideする実装の際に参考にしたもの
 	public String toString() {
 		return "{pageHref: " + pageHref + ",\nisUpdated: " + isUpdated + ",\nupdatedTime: " + updatedTime
-				+ ",\nprodName: " + prodName + "\n}";
+				+ ",\nprodId: " + prodId + ",\nprodName: " + prodName + "\n}";
 	}
-
 }
