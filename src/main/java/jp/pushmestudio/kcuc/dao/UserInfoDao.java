@@ -133,7 +133,7 @@ public class UserInfoDao {
 	 *            確認するユーザ名
 	 * @return True or False
 	 */
-	public Boolean isUserExist(String userId) {
+	public boolean isUserExist(String userId) {
 		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
 				UserDocument.class);
 		return userDocs.size() > 0 ? true : false;
@@ -148,7 +148,7 @@ public class UserInfoDao {
 	 *            確認する購読ページキー
 	 * @return True or False
 	 */
-	public Boolean isPageExist(String userId, String pageHref) {
+	public boolean isPageExist(String userId, String pageHref) {
 		List<UserDocument> userDocs = kcucDB.findByIndex(
 				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
 						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",

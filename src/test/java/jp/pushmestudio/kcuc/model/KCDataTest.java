@@ -1,7 +1,7 @@
 package jp.pushmestudio.kcuc.model;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +15,7 @@ public class KCDataTest {
 
 	@Test
 	public void 特定ページを取得して1人以上の購読しているユーザーを確認できる() {
-		// setup
+		// setup TODO セットアップ実装すること
 		KCData data = new KCData();
 		String hrefKey = "SSMTU9/welcometoibmverse.html";
 
@@ -31,7 +31,7 @@ public class KCDataTest {
 
 	@Test
 	public void 特定ユーザーの購読ページを取得して1件以上ページが存在することを確認できる() {
-		// setup
+		// setup TODO セットアップ実装すること
 		KCData data = new KCData();
 		String userId = "tkhm";
 
@@ -63,22 +63,16 @@ public class KCDataTest {
 
 		// verify
 		List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
+		int actual = pageList.size();
 
-		boolean actual = pageList.size() > prePageList.size() ? true : false;
+		// 1件追加されているか
+		assertThat(actual, is(prePageList.size() + 1));
 
 		// teardown
-		/*
-		 * テストデータとして登録したページを削除する,
-		 * 本来はteardownメソッド内に書くが現時点ではこの削除処理を必要としていないテストケースが多いため割愛
-		 * assertTrueよりも後に書くと、assertionErrorになったときに削除されずに終わってしまうので注意
-		 */
 		data.deleteSubscribedPage(userId, hrefKey);
-
-		assertTrue(actual);
 	}
 
 	@Test
-	// 購読解除の処理が実装されるまでPending
 	public void 特定ユーザーと購読ページを指定してユーザーの購読リストから解除されることを確認できる() {
 		// setup
 		KCData data = new KCData();
@@ -96,10 +90,10 @@ public class KCDataTest {
 
 		// verify
 		List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
+		int actual = pageList.size();
 
-		boolean actual = pageList.size() < prePageList.size() ? true : false;
-
-		assertTrue(actual);
+		// 1件削除されているか
+		assertThat(actual, is(prePageList.size() - 1));
 	}
 
 	@Test
@@ -123,8 +117,8 @@ public class KCDataTest {
 
 		// TODO
 		// テストを正しく書く場合、下記のように3つまとめて1つのテストケースの中に書かずにグループテストを用いるべき、今後テストケースが増えるようであれば検討する
-		assertEquals(expectedOffset, actualOffset); // offset位置を正しく取れているか
-		assertEquals(expectedNext, actualNext); // next位置が正しく取れているか
+		assertThat(actualOffset, is(expectedOffset)); // offset位置を正しく取れているか
+		assertThat(actualNext, is(expectedNext)); // next位置が正しく取れているか
 		assertTrue(actualTopicSize > 0); // 1件以上の値が取得できているか
 	}
 
@@ -153,15 +147,9 @@ public class KCDataTest {
 		// verify
 		final int expectedSize = preProductMap.size() + 1;
 		final int actualSize = productMap.size();
+		assertThat(actualSize, is(expectedSize));
 
 		// teardown
-		/*
-		 * テストデータとして登録したページを削除する,
-		 * 本来はteardownメソッド内に書くが現時点ではこの削除処理を必要としていないテストケースが多いため割愛
-		 * assertTrueよりも後に書くと、assertionErrorになったときに削除されずに終わってしまうので注意
-		 */
 		data.cancelSubscribedProduct(userId, prodId);
-
-		assertEquals(expectedSize, actualSize);
 	}
 }

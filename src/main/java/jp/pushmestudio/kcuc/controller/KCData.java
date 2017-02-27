@@ -300,7 +300,7 @@ public class KCData {
 	/**
 	 * 特定ページが属する製品をKCから取得する
 	 * 
-	 * @param query
+	 * @param productKey
 	 *            特定ページ
 	 * @return 得られたJSONを元に生成した{@link Product}オブジェクト | null
 	 */
@@ -445,7 +445,7 @@ public class KCData {
 				/*
 				 * } else if (!isProductExist(prodId)) { return
 				 * KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR,
-				 * "Prodcut Not Found.");
+				 * "Product Not Found.");
 				 */
 
 				// 指定された製品をを購読していない場合もエラーメッセージを返す、要実装 TODO
