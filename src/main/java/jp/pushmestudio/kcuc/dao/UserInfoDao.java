@@ -98,7 +98,7 @@ public class UserInfoDao {
 	 *            購読ページ
 	 * @return 指定したユーザの情報一覧（ページ追加後）
 	 */
-	public List<UserDocument> setSubscribedPages(String userId, String pageHref, String prodId, String prodName) {
+	public List<UserDocument> setSubscribedPages(String userId, String pageHref, String pageName, String prodId, String prodName) {
 		// useNameのインデックスを使用して、指定されたユーザのデータを取得
 		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
 				UserDocument.class);
@@ -106,7 +106,7 @@ public class UserInfoDao {
 		// 追加するページの情報を作成
 		Date currentTime = new Date();
 		long timestamp = currentTime.getTime();
-		SubscribedPage targetPage = new SubscribedPage(pageHref, false, timestamp, prodId, prodName);
+		SubscribedPage targetPage = new SubscribedPage(pageHref, pageName, false, timestamp, prodId, prodName);
 
 		// 指定されたユーザに該当するレコードを更新
 		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());

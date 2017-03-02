@@ -180,9 +180,18 @@ public class KCData {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "You Already Subscribe This Page.");
 			}
 
+			// hrefを使用し、ページのキーからページの情報を取得する、pageHrefとinurlの指定で必ず1件、一致するページが取れる想定
+			// 本当に既存の検索用メソッドを使って取得するのが良いかは判断の余地あり(無駄にResultにWrapされているので)
+			Result pageInfo = this.searchPages(pageHref, null, pageHref, null, 1, null);
+			String pageName = "";
+
+			if (pageInfo instanceof ResultPageList && pageInfo.getCode() == Result.CODE_NORMAL) {
+				pageName = ((ResultPageList) pageInfo).getSubscribedPages().get(0).getPageHref();
+			}
+
 			String prodId = topicMeta.getProduct();
 			String prodName = this.searchProduct(prodId).getLabel();
-			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref, prodId, prodName);
+			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref, pageName, prodId, prodName);
 			// return用
 			Result result = new ResultPageList(userId);
 			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
@@ -197,9 +206,14 @@ public class KCData {
 
 	/**
 	 * キーワード検索、現時点では特段の独自拡張はしていない 検索されたキーワードをログに残してどういうものが多く探されているか調べてもいいかもしれない
+	 * 不要なパラメーターに対してはnullを渡せばOK
 	 * 
 	 * @param query
-	 *            スペース区切りで複数ワードが与えられた場合はAND検索
+	 *            スペース区切りで複数ワードが与えられた場合はOR検索
+	 * @param products
+	 *            取得対象の製品ID、カンマ区切りで複数指定可能
+	 * @param inurl
+	 *            検索対象とするページのURL、カンマ区切りで複数指定可能
 	 * @param offset
 	 *            検索結果を何件目から取得するか
 	 * @param limit
@@ -234,7 +248,7 @@ public class KCData {
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
 		Response res = invocationBuilder.get();
-
+		System.out.println(res.getHeaders());
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
 
 		// ページがtopics情報を持つ場合
