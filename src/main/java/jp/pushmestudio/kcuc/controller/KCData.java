@@ -161,7 +161,8 @@ public class KCData {
 	public Result registerSubscribedPage(String userId, String href) {
 		try {
 			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
-			String pageHref = href.replaceFirst("\\.htm$", "\\.html");
+			// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
+			String pageHref = href.replaceFirst("\\.htm$|\\.html\\?sc=_latest$", "\\.html");
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
@@ -180,17 +181,18 @@ public class KCData {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "You Already Subscribe This Page.");
 			}
 
-			// hrefを使用し、ページのキーからページの情報を取得する、pageHrefとinurlの指定で必ず1件、一致するページが取れる想定
-			// 本当に既存の検索用メソッドを使って取得するのが良いかは判断の余地あり(無駄にResultにWrapされているので)
-			Result pageInfo = this.searchPages(pageHref, null, pageHref, null, 1, null);
-			String pageName = "";
-
-			if (pageInfo instanceof ResultPageList && pageInfo.getCode() == Result.CODE_NORMAL) {
-				pageName = ((ResultPageList) pageInfo).getSubscribedPages().get(0).getPageHref();
-			}
-
 			String prodId = topicMeta.getProduct();
 			String prodName = this.searchProduct(prodId).getLabel();
+
+			// hrefを使用し、ページのキーからページの情報を取得する、pageHrefとinurlの指定で必ず1件、一致するページが取れる想定
+			// 本当に既存の検索用メソッドを使って取得するのが良いかは判断の余地あり(無駄にResultにWrapされているので)
+			Result pageInfo = this.searchPages(pageHref, prodId, null, null, 1, null);
+			String pageName = "";
+
+			if (pageInfo instanceof ResultSearchList && ((ResultSearchList)pageInfo).getCount() == 1) {
+				pageName = ((ResultSearchList) pageInfo).getTopics().get(0).getLabel();
+			}
+
 			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref, pageName, prodId, prodName);
 			// return用
 			Result result = new ResultPageList(userId);
@@ -236,6 +238,7 @@ public class KCData {
 		 */
 		Map<String, String> queryMap = new HashMap<>();
 
+		queryMap.put("sort", "date:d"); // 並び替え日付降順、パラメーターで受け取ってもいいが現時点では決めうちで
 		Optional.ofNullable(products).ifPresent(_products -> queryMap.put("products", _products));
 		Optional.ofNullable(inurl).ifPresent(_inurl -> queryMap.put("inurl", _inurl));
 		Optional.ofNullable(offset).ifPresent(_offset -> queryMap.put("offset", _offset.toString()));
@@ -248,7 +251,6 @@ public class KCData {
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
 		Response res = invocationBuilder.get();
-		System.out.println(res.getHeaders());
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
 
 		// ページがtopics情報を持つ場合
