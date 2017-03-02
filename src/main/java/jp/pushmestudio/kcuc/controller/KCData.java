@@ -208,7 +208,7 @@ public class KCData {
 	 *            検索結果がサポートしている言語
 	 * @return
 	 */
-	public Result searchPages(String query, Integer offset, Integer limit, String lang) {
+	public Result searchPages(String query, String products, String inurl, Integer offset, Integer limit, String lang) {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/search";
@@ -222,6 +222,8 @@ public class KCData {
 		 */
 		Map<String, String> queryMap = new HashMap<>();
 
+		Optional.ofNullable(products).ifPresent(_products -> queryMap.put("products", _products));
+		Optional.ofNullable(inurl).ifPresent(_inurl -> queryMap.put("inurl", _inurl));
 		Optional.ofNullable(offset).ifPresent(_offset -> queryMap.put("offset", _offset.toString()));
 		Optional.ofNullable(limit).ifPresent(_limit -> queryMap.put("limit", _limit.toString()));
 		Optional.ofNullable(lang).ifPresent(_lang -> queryMap.put("lang", _lang));
@@ -316,7 +318,7 @@ public class KCData {
 
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
 
-		// ページがtopics情報を持つ場合
+		// ページがproduct情報を持つ場合
 		if (resJson.has("product")) {
 			return new Product(resJson.getJSONObject("product"));
 		} else {
