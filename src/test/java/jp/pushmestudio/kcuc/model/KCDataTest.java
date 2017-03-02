@@ -50,7 +50,7 @@ public class KCDataTest {
 		// setup
 		KCData data = new KCData();
 		String userId = "tkhm";
-		String hrefKey = "SSYRPW_9.0.1/UsingVerseMobile.html";
+		String hrefKey = "SSYRPW_9.0.1/UsingVerseMobile.html?sc=_latest";
 
 		// テストデータが事前に登録されていない状態にする
 		data.deleteSubscribedPage(userId, hrefKey);
