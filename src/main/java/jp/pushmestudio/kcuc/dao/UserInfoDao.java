@@ -19,6 +19,11 @@ public class UserInfoDao {
 
 	private Database kcucDB;
 
+	// 取得元のデータソースが増えることがあれば次の記事を参考に、DaoFactoryなどを使う形にする
+	// http://www.nulab.co.jp/designPatterns/designPatterns3/designPatterns3-4.html#list17-2
+
+	// TODO CRUD別にグルーピングしてメソッドを管理する
+
 	// コンストラクタの生成時にCloudantへ接続
 	public UserInfoDao() {
 		final String accountProp = "CLOUDANT_ACCOUNT";
