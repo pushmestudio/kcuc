@@ -41,11 +41,13 @@ public class KCNoticeSearch {
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response searchPages(
 			@ApiParam(value = "検索キーワード、スペース区切りでOR検索", required = true) @QueryParam("query") @DefaultValue("") String query,
+			@ApiParam(value = "取得対象の製品ID、カンマ区切りで複数指定可能") @QueryParam("products") String products,
+			@ApiParam(value = "検索対象とするページのURL、カンマ区切りで複数指定可能") @QueryParam("inurl") String inurl,
 			@ApiParam(value = "結果取得のオフセット(表示開始位置)") @QueryParam("offset") Integer offset,
 			@ApiParam(value = "検索結果取得件数, 最大20, デフォルト10") @QueryParam("limit") Integer limit,
 			@ApiParam(value = "サポートしている言語による絞り込み (e.g. ja)") @QueryParam("lang") String lang) {
 
-		Result result = data.searchPages(query, offset, limit, lang);
+		Result result = data.searchPages(query, products, inurl, offset, limit, lang);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 }
