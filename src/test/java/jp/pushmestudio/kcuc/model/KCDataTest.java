@@ -17,9 +17,9 @@ import jp.pushmestudio.kcuc.util.Result;
 
 @RunWith(Enclosed.class)
 public class KCDataTest {
+	static KCData data = new KCData();
 
 	public static class 購読済ページの存在を確認するケース {
-		static KCData data = new KCData();
 		static String userId = "tkhm";
 		static String hrefKey = "SSMTU9/welcometoibmverse.html";
 
@@ -73,7 +73,6 @@ public class KCDataTest {
 	}
 
 	public static class 購読済ページの追加を確認するケース {
-		static KCData data = new KCData();
 		static String userId = "tkhm";
 		static String prodId = "SSTPQH_1.0.0";
 		static String hrefKey1 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_planning_install_location.html";
@@ -145,7 +144,6 @@ public class KCDataTest {
 	}
 
 	public static class 購読済ページの削除を確認するケース {
-		static KCData data = new KCData();
 		static String userId = "meltest";
 		static String hrefKey = "SSYRPW_9.0.1/UsingVerseMobile.html";
 		static Result preResult;
@@ -195,7 +193,6 @@ public class KCDataTest {
 	}
 
 	public static class 検索結果を確認するケース {
-		static KCData data = new KCData();
 		static String searchQuery = "IBM Verse";
 		static int offset = 5;
 		static int limit = 15;
