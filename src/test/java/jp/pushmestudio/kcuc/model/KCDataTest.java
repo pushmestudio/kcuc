@@ -90,6 +90,7 @@ public class KCDataTest {
 			try {
 				// 事前に登録がない状態にする、APIへの負荷を懸念しスリープ処理を入れている
 				data.cancelSubscribedProduct(userId, prodId);
+				Thread.sleep(1000);
 
 				preResultPages = data.checkUpdateByUser(userId);
 				prePageList = ((ResultPageList) preResultPages).getSubscribedPages();
