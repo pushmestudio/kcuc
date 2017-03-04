@@ -15,6 +15,10 @@ import org.junit.runner.RunWith;
 import jp.pushmestudio.kcuc.controller.KCData;
 import jp.pushmestudio.kcuc.util.Result;
 
+/**
+ * APIへの負荷低減のために各所にsleep処理を入れている 方針としては、setUp時はsetUp終了のタイミングで1秒のスリープ+必要に応じてスリープ、
+ * tearDown時は今回のテスト及び次のテストへの影響を考慮する関係からtearDownに入る前と後にそれぞれ0.5秒、スリープを入れている
+ */
 @RunWith(Enclosed.class)
 public class KCDataTest {
 	static KCData data = new KCData();
@@ -42,6 +46,7 @@ public class KCDataTest {
 			try {
 				Thread.sleep(500);
 				data.deleteSubscribedPage(userId, hrefKey);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -115,6 +120,7 @@ public class KCDataTest {
 				// 事後に登録がない状態にする、APIへの負荷を懸念しスリープ処理を入れている
 				Thread.sleep(500);
 				data.cancelSubscribedProduct(userId, prodId);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -173,6 +179,7 @@ public class KCDataTest {
 			try {
 				Thread.sleep(500);
 				data.deleteSubscribedPage(userId, hrefKey);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
