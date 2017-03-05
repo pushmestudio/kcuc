@@ -217,11 +217,13 @@ public class UserInfoDao {
 	}
 
 	/**
-	 * To be added
+	 * ユーザーの購読しているページのうち、特定の製品IDを持つものをまとめて購読解除する
 	 * 
 	 * @param userId
-	 * @param pageHref
-	 * @return
+	 *            対象ユーザーのID
+	 * @param prodId
+	 *            対象製品のID
+	 * @return 購読解除後の購読済みページ一覧
 	 */
 	public List<UserDocument> cancelSubscribedProduct(String userId, String prodId) throws IndexOutOfBoundsException {
 		// userIdとpageHrefで指定されたユーザのデータを取得
