@@ -441,21 +441,6 @@ public class KCData {
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
-				// 指定された製品がKnowledgeCenterに存在しない場合もエラーメッセージを返す、という処理は必要か？必要なら下記のような形で実装する
-				/*
-				 * } else if (!isProductExist(prodId)) { return
-				 * KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR,
-				 * "Product Not Found.");
-				 */
-
-				// 指定された製品をを購読していない場合もエラーメッセージを返す、要実装 TODO
-				// 実装するまではArrayIndexOutOfBoundsExceptionをcatchすることで代替
-				/*
-				 * } else if (!userInfoDao.isPageExist(userId, pageHref)) {
-				 * return
-				 * KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR,
-				 * "Not Yet Subscribed This Product.");
-				 */
 			}
 
 			List<UserDocument> userList = userInfoDao.cancelSubscribedProduct(userId, prodId);
