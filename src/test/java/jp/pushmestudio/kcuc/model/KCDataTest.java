@@ -112,7 +112,7 @@ public class KCDataTest {
 		int limit = 15;
 
 		// execute
-		Result searchResult = data.searchPages(searchQuery, null, null, offset, limit, "");
+		Result searchResult = data.searchPages(searchQuery, null, null, offset, limit, "", "");
 
 		// verify
 		int expectedOffset = offset;

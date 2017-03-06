@@ -186,10 +186,11 @@ public class KCData {
 
 			// hrefを使用し、ページのキーからページの情報を取得する、pageHrefとinurlの指定で必ず1件、一致するページが取れる想定
 			// 本当に既存の検索用メソッドを使って取得するのが良いかは判断の余地あり(無駄にResultにWrapされているので)
-			Result pageInfo = this.searchPages(pageHref, prodId, null, null, 1, null);
+			Result pageInfo = this.searchPages(pageHref, prodId, null, null, 1, null, "date:d");
 			String pageName = "";
 
-			if (pageInfo instanceof ResultSearchList && ((ResultSearchList)pageInfo).getCount() == 1) {
+			// ページ番号が適切に取れている時だけページラベルを取得する処理を行う
+			if (pageInfo instanceof ResultSearchList && ((ResultSearchList) pageInfo).getCount() == 1) {
 				pageName = ((ResultSearchList) pageInfo).getTopics().get(0).getLabel();
 			}
 
@@ -222,9 +223,12 @@ public class KCData {
 	 *            取得件数、MAXは20
 	 * @param lang
 	 *            検索結果がサポートしている言語
+	 * @param sort
+	 *            並び替え、現時点では日付昇順・降順のみAPIでサポートしている、date:aかdate:d以外が来たら指定がなかったものとみなす
 	 * @return
 	 */
-	public Result searchPages(String query, String products, String inurl, Integer offset, Integer limit, String lang) {
+	public Result searchPages(String query, String products, String inurl, Integer offset, Integer limit, String lang,
+			String sort) {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/search";
@@ -238,12 +242,17 @@ public class KCData {
 		 */
 		Map<String, String> queryMap = new HashMap<>();
 
-		queryMap.put("sort", "date:d"); // 並び替え日付降順、パラメーターで受け取ってもいいが現時点では決めうちで
 		Optional.ofNullable(products).ifPresent(_products -> queryMap.put("products", _products));
 		Optional.ofNullable(inurl).ifPresent(_inurl -> queryMap.put("inurl", _inurl));
 		Optional.ofNullable(offset).ifPresent(_offset -> queryMap.put("offset", _offset.toString()));
 		Optional.ofNullable(limit).ifPresent(_limit -> queryMap.put("limit", _limit.toString()));
 		Optional.ofNullable(lang).ifPresent(_lang -> queryMap.put("lang", _lang));
+
+		// 不正な日付並び順を指定された場合はnullとしておくことでパラメーターに使われることを防ぐ
+		if (!"date:a".equals(sort) && !"date:d".equals(sort)) {
+			sort = null;
+		}
+		Optional.ofNullable(sort).ifPresent(_sort -> queryMap.put("sort", _sort));
 
 		for (Entry<String, String> each : queryMap.entrySet()) {
 			target = target.queryParam(each.getKey(), each.getValue());
@@ -412,7 +421,8 @@ public class KCData {
 	public Result deleteSubscribedPage(String userId, String href) {
 		try {
 			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
-			String pageHref = href.replaceFirst("\\.htm$", "\\.html");
+			// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
+			String pageHref = href.replaceFirst("\\.htm$|\\.html\\?sc=_latest$", "\\.html");
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
