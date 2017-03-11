@@ -1,6 +1,5 @@
 package jp.pushmestudio.kcuc.rest;
 
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -32,7 +31,7 @@ public class KCNoticeResource {
 	KCData data = new KCData();
 
 	/**
-	 * 特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定
+	 * 特定のページを購読しているユーザー一覧を取得・確認
 	 * 
 	 * @param href
 	 *            更新確認対象のページキー
@@ -41,18 +40,18 @@ public class KCNoticeResource {
 	@Path("/users")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ユーザー一覧取得", response = ResultUserList.class, notes = "特定のページを購読しているユーザー一覧を取得・確認 バッチから呼ばれる想定")
+	@ApiOperation(value = "ユーザー一覧取得", response = ResultUserList.class, notes = "特定のページを購読しているユーザー一覧を取得・確認")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response getUpdatedUsers(
-			@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("href") @DefaultValue("") String href) {
+			@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("href") String href) {
 
 		Result result = data.checkUpdateByPage(href);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
 	/**
-	 * 特定のユーザーの購読しているページ一覧を取得・確認 クライアントから呼ばれる想定
+	 * 特定のユーザーの購読しているページ一覧を取得・確認
 	 * 
 	 * @param user
 	 *            更新確認対象のユーザー名
@@ -61,18 +60,18 @@ public class KCNoticeResource {
 	@Path("/pages")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ページ一覧取得", response = ResultPageList.class, notes = "特定のユーザーの購読しているページ一覧を取得・確認 クライアントから呼ばれる想定")
+	@ApiOperation(value = "ページ一覧取得", response = ResultPageList.class, notes = "特定のユーザーの購読しているページ一覧を取得・確認")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response getUpdatedPages(
-			@ApiParam(value = "更新確認対象のユーザー名", required = true) @QueryParam("user") @DefaultValue("") String user) {
+			@ApiParam(value = "更新確認対象のユーザー名", required = true) @QueryParam("user") String user) {
 
 		Result result = data.checkUpdateByUser(user);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
 	/**
-	 * 特定のユーザの購読するページを追加・確認 クライアントから呼ばれる想定
+	 * 特定のユーザの購読するページを追加・確認
 	 * 
 	 * @param user
 	 *            購読ページを登録するユーザ（いずれはCookieなど）
@@ -83,11 +82,11 @@ public class KCNoticeResource {
 	@Path("/pages")
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読ページ追加", response = ResultPageList.class, notes = "特定のユーザの購読するページを追加・確認 クライアントから呼ばれる想定")
+	@ApiOperation(value = "購読ページ追加", response = ResultPageList.class, notes = "特定のユーザの購読するページを追加・確認")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response setSubscribe(
-			@ApiParam(value = "更新対象のユーザー名", required = true) @FormParam("user") @DefaultValue("") String user,
+			@ApiParam(value = "更新対象のユーザー名", required = true) @FormParam("user") String user,
 			@ApiParam(value = "購読対象のページキー", required = true) @FormParam("href") String href) {
 
 		Result result = data.registerSubscribedPage(user, href);
@@ -95,7 +94,7 @@ public class KCNoticeResource {
 	}
 
 	/**
-	 * 特定のユーザの購読するページを解除 クライアントから呼ばれる想定
+	 * 特定のユーザの購読するページを解除
 	 * 
 	 * @param user
 	 *            購読ページを解除するユーザ（いずれはCookieなど）
@@ -106,11 +105,11 @@ public class KCNoticeResource {
 	@Path("/pages")
 	@PUT
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読ページ解除", response = ResultPageList.class, notes = "特定のユーザの購読するページを解除 クライアントから呼ばれる想定")
+	@ApiOperation(value = "購読ページ解除", response = ResultPageList.class, notes = "特定のユーザの購読するページを解除")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response unsetSubscribe(
-			@ApiParam(value = "対象のユーザー名", required = true) @FormParam("user") @DefaultValue("") String user,
+			@ApiParam(value = "対象のユーザー名", required = true) @FormParam("user") String user,
 			@ApiParam(value = "購読解除対象のページキー", required = true) @FormParam("href") String href) {
 
 		Result result = data.deleteSubscribedPage(user, href);
@@ -119,7 +118,7 @@ public class KCNoticeResource {
 	
 
 	/**
-	 * 特定のユーザーの購読しているページ一覧を取得・確認 クライアントから呼ばれる想定
+	 * 特定のユーザーの購読しているページ一覧を取得・確認
 	 * 
 	 * @param user
 	 *            更新確認対象のユーザー名
@@ -132,9 +131,33 @@ public class KCNoticeResource {
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response getSubscribedProducts(
-			@ApiParam(value = "確認対象のユーザー名", required = true) @QueryParam("user") @DefaultValue("") String user) {
+			@ApiParam(value = "確認対象のユーザー名", required = true) @QueryParam("user") String user) {
 
 		Result result = data.getSubscribedProductList(user);
 		return Response.status(result.getCode()).entity(result).build();
 	}
+	
+	/**
+	 * ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する
+	 * 
+	 * @param user
+	 *            購読ページを解除するユーザ（いずれはCookieなど）
+	 * @param product
+	 *            購読解除対象の製品のID
+	 * @return 購読解除後の購読ページ一覧
+	 */
+	@Path("/products")
+	@PUT
+	@Produces({ MediaType.APPLICATION_JSON })
+	@ApiOperation(value = "購読ページの製品指定解除", response = ResultPageList.class, notes = "ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
+			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	public Response unsetSubscribeProduct(
+			@ApiParam(value = "対象のユーザー名", required = true) @FormParam("user") String userId,
+			@ApiParam(value = "購読解除対象の製品ID", required = true) @FormParam("product") String productId) {
+
+		Result result = data.cancelSubscribedProduct(userId, productId);
+		return Response.status(result.getCode()).entity(result).build();
+	}
+
 }
