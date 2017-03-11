@@ -87,15 +87,13 @@ Eclipse上にて、プロジェクトルートディレクトリを選択した�
 
 2. CheckStyleの導入準備をする
 
-    インストール後、プロジェクトを右クリックし、`Properties`を表示。メニュー内上方にある`Checkstyle`を選択する。
-
-    `Local Check Configuration`を選択し、`New`で表示される設定画面を次のようにする。
-
     * Type: `Project Relative Configuration`
     * Name: `kcuc.checkstyle`
     * Location: `/kcuc/checkstyle.xml`(or Browseからプロジェクトディレクトリ直下にあるcheckstyle.xmlを選択する)
     * Description: (空白のまま)
     * Advanced options: (チェックしない)
+
+    インストール後、プロジェクトを右クリックし、`Properties`を表示。メニュー内上方にある`Checkstyle`を選択する。`Local Check Configuration`を選択し、`New`で表示される設定画面を上記のようにする。
 
     続いて、`Main`を選択肢し、`Simple - use the following check configuraiton for all files`から`kcuc.checkstyle - (Local)`を選択する。
 
