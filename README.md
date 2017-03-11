@@ -22,9 +22,11 @@
 
     使用するプロパティファイルについては`${プロジェクトルート}/src/main/resources/jp/pushmestudio/credentials/`以下に`cloudant.properties`として配置し、以下の値を記載する。
 
-    * `CLOUDANT_ACCOUNT`: CloudantのアカウントID
-    * `CLOUDANT_USER`: DB接続用のユーザーID
-    * `CLOUDANT_PW`: DB接続用のユーザーIDに紐づくパスワード
+    ```properties
+    CLOUDANT_ACCOUNT=CloudantのアカウントID
+    CLOUDANT_USER=DB接続用のユーザーID
+    CLOUDANT_PW=DB接続用のユーザーIDに紐づくパスワード
+    ```
 
     なお、プロパティファイルを用意せずに、同名の環境変数を用意している場合はそちらの変数の読み取りを優先する。
 
@@ -136,9 +138,11 @@ Checkstyleによって、未使用の変数名等や`if`や変数の後のスペ
 
 次の環境変数が定義されている場合には、その値を読み取り使用する。
 
-* `CLOUDANT_ACCOUNT`: CloudantのアカウントID
-* `CLOUDANT_USER`: DB接続用のユーザーID
-* `CLOUDANT_PW`: DB接続用のユーザーIDに紐づくパスワード
+```properties
+CLOUDANT_ACCOUNT=CloudantのアカウントID
+CLOUDANT_USER=DB接続用のユーザーID
+CLOUDANT_PW=DB接続用のユーザーIDに紐づくパスワード
+```
 
 BluemixのRuntimeからCloudantにアクセスする場合にはこれらを事前に環境変数として定義することにより読み取るが、ローカルのDocker環境からCloudantにアクセスする場合にはプロパティファイルを用いる方法を推奨している。
 
