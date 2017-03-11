@@ -92,13 +92,9 @@ Eclipse上にて、プロジェクトルートディレクトリを選択した�
     `Local Check Configuration`を選択し、`New`で表示される設定画面を次のようにする。
 
     * Type: `Project Relative Configuration`
-
     * Name: `kcuc.checkstyle`
-
     * Location: `/kcuc/checkstyle.xml`(or Browseからプロジェクトディレクトリ直下にあるcheckstyle.xmlを選択する)
-
     * Description: (空白のまま)
-
     * Advanced options: (チェックしない)
 
     続いて、`Main`を選択肢し、`Simple - use the following check configuraiton for all files`から`kcuc.checkstyle - (Local)`を選択する。
