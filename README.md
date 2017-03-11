@@ -51,20 +51,20 @@
 ## Eclipseへのプロジェクトのインポート
 初回セットアップは、今後どのような方法で開発を実施したいかによって2種類に分かれる。
 
-1. Eclipse内で可能な限りコマンドラインを使わない(Eclipseで完結させる)方法((Recommended)
+### Eclipse内で可能な限りコマンドラインを使わない(Eclipseで完結させる)方法((Recommended)
 
-    Eclipse起動後、`File` > `Import` > `Gradle`を選択。本プロジェクトのルートディレクトリを指した状態でImportを進める。途中、Gradleを選択する画面では、`Gradle Wrapper(Recommended)`のまま進めればOK。
+Eclipse起動後、`File` > `Import` > `Gradle`を選択。本プロジェクトのルートディレクトリを指した状態でImportを進める。途中、Gradleを選択する画面では、`Gradle Wrapper(Recommended)`のまま進めればOK。
 
-    この方法による場合、Eclipse上でGradleのコマンドが実行できるようになるので便利。また、実行しているGradleのタスクの実行状況が視覚的に把握しやすいのと、サーバーサイドプロジェクトにおいては基本的にオールインワンで済ませることができる点で優れる。
+この方法による場合、Eclipse上でGradleのコマンドが実行できるようになるので便利。また、実行しているGradleのタスクの実行状況が視覚的に把握しやすいのと、サーバーサイドプロジェクトにおいては基本的にオールインワンで済ませることができる点で優れる。
 
 
-2. コマンドラインとEclipseを併用する方法
+### コマンドラインとEclipseを併用する方法
 
-    Eclipse起動前に、プロジェクトトップディレクトリにて`./gradlew eclipse`を実行して事前準備する。(このコマンドにて、Eclipseが必要とする`.project`や`.classpath`が設定される。)
+Eclipse起動前に、プロジェクトトップディレクトリにて`./gradlew eclipse`を実行して事前準備する。(このコマンドにて、Eclipseが必要とする`.project`や`.classpath`が設定される。)
 
-    その後、Eclipseを起動し、`File` > `Import` > `General` > `Existing Project into Workspace`を選択。
+その後、Eclipseを起動し、`File` > `Import` > `General` > `Existing Project into Workspace`を選択。
 
-    この方法による場合、Eclipse上でGradleのコマンドは実行できないものの、Eclipse Luna等Gradleのプラグインが導入されていないマシンでも容易にセットアップできるのが利点。また、EclipseのGradleプラグインは比較的新しいが、その場合でもそこで発生するバグを回避できる点に優れる。
+この方法による場合、Eclipse上でGradleのコマンドは実行できないものの、Eclipse Luna等Gradleのプラグインが導入されていないマシンでも容易にセットアップできるのが利点。また、EclipseのGradleプラグインは比較的新しいが、その場合でもそこで発生するバグを回避できる点に優れる。
 
 ここまでのセットアップが済んだら、EclipseがJS系のモジュールを理解できないために発生するエラー表示を抑制するための手続きおよびソースコード標準化のための`checkstyle`のセットアップを実施する。
 
@@ -73,35 +73,35 @@
 ## EclipseのValidationの停止
 Eclipse上にて、プロジェクトルートディレクトリを選択した状態で右クリックし`Properties`を表示。メニュー内下半にある`Validation`を選択し、次の2つをチェックする。
 
-- `Enable project specific settings`
-- `Suspend all validators`
+- [x] `Enable project specific settings`
+- [x] `Suspend all validators`
 
 設定完了後、再びプロジェクトを右クリックし、`Validate`を実施すれば、既存のJS関連のエラーは消える。
 
 ## Checkstyleの導入
 ある程度標準的なコードの作りにするために静的チェックツールを使う。Googleが公開しているCheckStyleをベースに、Eclipse上で使用しやすいように、また、ルールが厳しくなりすぎないようにカスタマイズしたものを使用している。
 
-1. EclipseにCheckStyleを導入する
+### 1. EclipseにCheckStyleを導入する
 
-    `Help` > `Eclipse Marketplace`を表示後、`Checktyle`で検索する。その後表示される、`Checkstyle Plug-in`をインストール。(All in oneを利用している場合はインストールされているのでこのステップをパスして次に進む)
+`Help` > `Eclipse Marketplace`を表示後、`Checktyle`で検索する。その後表示される、`Checkstyle Plug-in`をインストール。(All in oneを利用している場合はインストールされているのでこのステップをパスして次に進む)
 
-2. CheckStyleの導入準備をする
+### 2. CheckStyleの導入準備をする
 
-    インストール後、プロジェクトを右クリックし、`Properties`を表示。メニュー内上方にある`Checkstyle`を選択する。
+インストール後、プロジェクトを右クリックし、`Properties`を表示。メニュー内上方にある`Checkstyle`を選択する。
 
-    `Local Check Configuration`を選択し、`New`で表示される設定画面を次のようにする。
+`Local Check Configuration`を選択し、`New`で表示される設定画面を次のようにする。
 
-    * Type: `Project Relative Configuration`
-    * Name: `kcuc.checkstyle`
-    * Location: `/kcuc/checkstyle.xml`(or Browseからプロジェクトディレクトリ直下にあるcheckstyle.xmlを選択する)
-    * Description: (空白のまま)
-    * Advanced options: (チェックしない)
+* Type: `Project Relative Configuration`
+* Name: `kcuc.checkstyle`
+* Location: `/kcuc/checkstyle.xml`(or Browseからプロジェクトディレクトリ直下にあるcheckstyle.xmlを選択する)
+* Description: (空白のまま)
+* Advanced options: (チェックしない)
 
-    続いて、`Main`を選択肢し、`Simple - use the following check configuraiton for all files`から`kcuc.checkstyle - (Local)`を選択する。
+続いて、`Main`を選択肢し、`Simple - use the following check configuraiton for all files`から`kcuc.checkstyle - (Local)`を選択する。
 
-3. CheckStyleを適用する
+### 3. CheckStyleを適用する
 
-    上記設定後、プロジェクトを右クリックし、`Checkstyle` > `Activate Checkstyle`を実施し、設定・適用完了。
+上記設定後、プロジェクトを右クリックし、`Checkstyle` > `Activate Checkstyle`を実施し、設定・適用完了。
 
 Checkstyleによって、未使用の変数名等や`if`や変数の後のスペースがついているかのチェックなどが実施される。少なくともマージリクエストを出す時点においては`Warning`(黄色)以上の指摘事項がない状態にすること。(checkstyleのスタイルに抵触してしまう、プロジェクト上の困難な設定等々がある際にはチームに相談すること)
 
@@ -111,27 +111,27 @@ Checkstyleによって、未使用の変数名等や`if`や変数の後のスペ
 ## よくあるエラーとその対策
 ビルド・デプロイ時によくあるエラーとその原因としては、次のようなものがある。
 
-* ビルドに失敗する、テストに失敗する
+### ビルドに失敗する、テストに失敗する
 
-    * プロパティファイルor環境変数がセットされていない
+* プロパティファイルor環境変数がセットされていない
 
-        プロパティ関連はQuick Start内を参照の上、対応する。
+    プロパティ関連はQuick Start内を参照の上、対応する。
 
-    * インターネットに接続されていない
+* インターネットに接続されていない
 
-        インターネット接続については、現行ではテスト時にKnowledge Center及びDBaaSを利用しているため必要となる。諸般の事情により一時的にテストなしでのビルドが必要な場合には、`./gradlew build -x test`によってテストを省略してビルドすることができる。
+    インターネット接続については、現行ではテスト時にKnowledge Center及びDBaaSを利用しているため必要となる。諸般の事情により一時的にテストなしでのビルドが必要な場合には、`./gradlew build -x test`によってテストを省略してビルドすることができる。
 
-    * 既存テストに影響のある変更をしたがテストケースを修正していない
+* 既存テストに影響のある変更をしたがテストケースを修正していない
 
-        `build/reports/tests/test/index.html`にテストのレポートが出力されるので、ブラウザで参照の上、修正をする。諸般の事情により一時的にテストなしでのビルドが必要な場合には、`./gradlew build -x test`によってテストを省略してビルドすることができる。
+    `build/reports/tests/test/index.html`にテストのレポートが出力されるので、ブラウザで参照の上、修正をする。諸般の事情により一時的にテストなしでのビルドが必要な場合には、`./gradlew build -x test`によってテストを省略してビルドすることができる。
 
-* ローカルでデプロイしたアプリが見れない
+### ローカルでデプロイしたアプリが見れない
 
-    * ローカル環境のパーミッション設定がされていない
+* ローカル環境のパーミッション設定がされていない
 
-        パーミッションが適切に設定されていないとデプロイしたWarがTomcatのディレクトリ上に展開されない場合がある。`/opt/tomcat/webapps`以下に`ROOT`ディレクトリが生成され、`WEB-INF/classes`にクラスファイルが含まれているかなどを確認し、そのようになっていなければ、ディレクトリの読み書きが実行ユーザー・Dockerいずれからでも可能になるよう設定にする。
+    パーミッションが適切に設定されていないとデプロイしたWarがTomcatのディレクトリ上に展開されない場合がある。`/opt/tomcat/webapps`以下に`ROOT`ディレクトリが生成され、`WEB-INF/classes`にクラスファイルが含まれているかなどを確認し、そのようになっていなければ、ディレクトリの読み書きが実行ユーザー・Dockerいずれからでも可能になるよう設定にする。
 
-        Macユーザーの場合は、Dockerにおいて共有ディレクトリとして`/opt/tomcat`を指定する必要がある。
+    Macユーザーの場合は、Dockerにおいて共有ディレクトリとして`/opt/tomcat`を指定する必要がある。
 
 ## Build時の環境変数とプロパティファイル
 既にQuick Startにて触れている内容だが、Cloudant接続に際し、接続情報を読み込ませる必要がある。現在はこの接続情報を、環境変数あるいはプロパティファイルから読み取るようにしている。
