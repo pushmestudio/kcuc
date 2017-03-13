@@ -23,7 +23,7 @@ public class Topic {
 	/**
 	 * JSONObjectから簡単にセットできるようにしたコンストラクタ
 	 * 
-	 * @param topicJson
+	 * @param topicJson topicを格納したJSONオブジェクト
 	 */
 	public Topic(JSONObject topicJson) {
 		this.date = topicJson.getLong("date");

@@ -25,6 +25,11 @@ public class UserInfoDao {
 	// TODO CRUD別にグルーピングしてメソッドを管理する
 
 	// コンストラクタの生成時にCloudantへ接続
+	/**
+	 * DBへの接続処理を実施する。デフォルトでは環境変数から接続情報を取得するが、
+	 * 環境変数からの取得に失敗した場合にはプロパティファイルから値を読み取る
+	 * これらはテスト環境と本番環境で使い分けるための設定
+	 */
 	public UserInfoDao() {
 		final String accountProp = "CLOUDANT_ACCOUNT";
 		final String userProp = "CLOUDANT_USER";
@@ -46,10 +51,10 @@ public class UserInfoDao {
 		// 環境変数から値を取れていない場合にはローカルのプロパティファイルを読み込む
 		if (Objects.isNull(envAccount) || envAccount.length() <= 0 || Objects.isNull(envUser) || envUser.length() <= 0
 				|| Objects.isNull(envPw) || envPw.length() <= 0) {
-			Properties CLOUDANT_CONFIG = this.loadProperty(cloudantPropPath);
-			envAccount = (String) CLOUDANT_CONFIG.get(accountProp);
-			envUser = (String) CLOUDANT_CONFIG.get(userProp);
-			envPw = (String) CLOUDANT_CONFIG.get(pwProp);
+			Properties cloudantConfig = this.loadProperty(cloudantPropPath);
+			envAccount = (String) cloudantConfig.get(accountProp);
+			envUser = (String) cloudantConfig.get(userProp);
+			envPw = (String) cloudantConfig.get(pwProp);
 		}
 
 		// Cloudantのインスタンスを作成
@@ -183,7 +188,7 @@ public class UserInfoDao {
 	/**
 	 * ユーザの購読ページを解除する
 	 * 
-	 * @param userID
+	 * @param userId
 	 *            対象ユーザのID
 	 * @param pageHref
 	 *            購読解除ページ
@@ -200,8 +205,9 @@ public class UserInfoDao {
 		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
 		int target = 0; // 購読ページ数(配列数)を超えるとjava.lang.ArrayIndexOutOfBoundsExceptionになるが，そもそもdelSubscribedPage()が呼ばれないので例外処理はしていない
 		for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
-			if (targetHref.getPageHref().equals(pageHref))
+			if (targetHref.getPageHref().equals(pageHref)) {
 				break;
+			}
 			target++;
 		}
 		// 対象ページの購読解除

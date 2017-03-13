@@ -25,7 +25,7 @@ public class KCDataTest {
 
 	public static class 購読済ページの存在を確認するケース {
 		static String userId = "tkhm";
-		static String hrefKey = "SSMTU9/welcometoibmverse.html";
+		static String hrefKey = "SS5RWK_3.5.0/com.ibm.discovery.es.nav.doc/iiypofnv_prodover_cont.htm?sc=_latest";
 
 		/** テストデータが事前に登録されている状態にする、グループ内で一度だけ実行 */
 		@BeforeClass
