@@ -51,9 +51,13 @@ public class KCData {
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}</code>
 	 */
 	public Result checkUpdateByPage(String pageKey) {
+		// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
+		// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
+		String pageHref = pageKey.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
+				"\\.html");
 		try {
 			// KCからのデータ取得処理
-			TopicMeta topicMeta = getSpecificPageMeta(pageKey);
+			TopicMeta topicMeta = getSpecificPageMeta(pageHref);
 
 			// ページキーが取得できない場合はエラーメッセージを返す
 			if (!topicMeta.isExist()) {
@@ -64,15 +68,15 @@ public class KCData {
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
-			List<UserDocument> userList = userInfoDao.getSubscribedUserList(pageKey);
+			List<UserDocument> userList = userInfoDao.getSubscribedUserList(pageHref);
 
 			// return用
-			Result result = new ResultUserList(pageKey);
+			Result result = new ResultUserList(pageHref);
 
 			for (UserDocument userDoc : userList) {
 				// userDocにはsubscribedPagesがListで複数保持されているため、該当のpageKeyをもつもののみ抽出
 				List<Long> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
-						.filter(s -> s.getPageHref().equals(pageKey)).map(s -> s.getUpdatedTime())
+						.filter(s -> s.getPageHref().equals(pageHref)).map(s -> s.getUpdatedTime())
 						.collect(Collectors.toList());
 
 				// ↑の結果はListで返るが、1ユーザが同じページを購読することは仕様上禁止されるはずであるため最初の値を常に使用できる
@@ -151,7 +155,7 @@ public class KCData {
 	 * 
 	 * @param userId
 	 *            登録確認対象のユーザーID
-	 * @param pageHref
+	 * @param href
 	 *            購読登録するページ
 	 * @return 登録の成否と、あるユーザが購読しているリストの一覧。以下は例示
 	 *         <code>{"result":"success", "pages":[{"pageHref":"SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"},
@@ -162,7 +166,8 @@ public class KCData {
 		try {
 			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
 			// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
-			String pageHref = href.replaceFirst("\\.htm$|\\.html\\?sc=_latest$", "\\.html");
+			String pageHref = href.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
+					"\\.html");
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();
@@ -225,7 +230,7 @@ public class KCData {
 	 *            検索結果がサポートしている言語
 	 * @param sort
 	 *            並び替え、現時点では日付昇順・降順のみAPIでサポートしている、date:aかdate:d以外が来たら指定がなかったものとみなす
-	 * @return
+	 * @return 検索結果
 	 */
 	public Result searchPages(String query, String products, String inurl, Integer offset, Integer limit, String lang,
 			String sort) {
@@ -373,7 +378,7 @@ public class KCData {
 	}
 
 	@SuppressWarnings("unused")
-	private JSONObject getTOC(String productKey) throws JSONException {
+	private JSONObject getTOC(String productKey) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String tocUrl = "https://www.ibm.com/support/knowledgecenter/v1/toc/";
@@ -413,16 +418,17 @@ public class KCData {
 	 * 
 	 * @param userId
 	 *            対象のユーザーID
-	 * @param pageHref
+	 * @param href
 	 *            購読解除するページ
 	 * @return 購読解除の成否と、解除後の購読情報
 	 * 
 	 */
 	public Result deleteSubscribedPage(String userId, String href) {
 		try {
-			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
+			// .htmでの解除は行わせず、全て.htmlで解除を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
 			// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
-			String pageHref = href.replaceFirst("\\.htm$|\\.html\\?sc=_latest$", "\\.html");
+			String pageHref = href.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
+					"\\.html");
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = new UserInfoDao();

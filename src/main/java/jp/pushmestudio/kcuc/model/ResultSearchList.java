@@ -16,6 +16,14 @@ public class ResultSearchList implements Result {
 	private int total;
 	private List<Topic> topics;
 
+	/**
+	 * @param offset 検索結果取得開始位置
+	 * @param next 次に取得すべき検索結果取得開始位置
+	 * @param prev 一つ前に戻る場合に取得すべき検索結果の取得開始位置
+	 * @param count 取得件数
+	 * @param total 合計ヒット数
+	 * @param topics 取得件数分の実際の検索結果
+	 */
 	public ResultSearchList(int offset, int next, int prev, int count, int total, List<Topic> topics) {
 		this.offset = offset;
 		this.next = next;
