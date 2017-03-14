@@ -199,6 +199,69 @@ public class KCDataTest {
 		}
 	}
 
+	public static class 購読済製品の購読を解除するケース {
+		static String userId = "meltest";
+		static String prodId = "SSTPQH_1.0.0";
+		static String hrefKey1 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_planning_install_location.html";
+		static String hrefKey2 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_tuning_automatic_compactor.html";
+		static Result preResultPages;
+		static List<SubscribedPage> prePageList;
+		static Result preResultProducts;
+		static Map<String, String> preProductMap;
+		static Result checkResultPages;
+
+		/** テストデータが事前に登録されている状態にする、グループ内で一度だけ実行 */
+		@BeforeClass
+		public static void setUp() {
+			try {
+				// 事前に登録された状態にする、APIへの負荷を懸念しスリープ処理を入れている
+				data.registerSubscribedPage(userId, hrefKey1);
+				Thread.sleep(1000);
+				data.registerSubscribedPage(userId, hrefKey2);
+				Thread.sleep(1000);
+
+				preResultPages = data.checkUpdateByUser(userId);
+				prePageList = ((ResultPageList) preResultPages).getSubscribedPages();
+
+				preResultProducts = data.getSubscribedProductList(userId);
+				preProductMap = ((ResultProductList) preResultProducts).getSubscribedProducts();
+				Thread.sleep(1000);
+
+				// execute
+				data.cancelSubscribedProduct(userId, prodId);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Test
+		public void 購読解除している2件のページが購読済リストから取り除かれる() {
+			// execute
+
+			// verify
+			Result checkResult = data.checkUpdateByUser(userId);
+			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
+			int actual = pageList.size();
+
+			// 2件削除されているか
+			assertThat(actual, is(prePageList.size() - 2));
+		}
+
+		@Test
+		public void 購読解除している製品が製品リストから取り除かれる() {
+			// verify
+			Result checkResult = data.getSubscribedProductList(userId);
+			Map<String, String> productMap = ((ResultProductList) checkResult).getSubscribedProducts();
+			int actual = productMap.size();
+
+			// 1件削除されているか
+			assertThat(actual, is(preProductMap.size() - 1));
+
+			// 製品IDに紐づく製品が登録されていないか
+			assertNull(productMap.get(prodId));
+		}
+	}
+
 	public static class 検索結果を確認するケース {
 		static String searchQuery = "IBM Verse";
 		static int offset = 5;
