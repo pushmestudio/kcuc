@@ -70,20 +70,12 @@ Eclipse起動前に、プロジェクトトップディレクトリにて`./grad
 
 **注意**：ライブラリを追加・削除した際には`./gradlew eclipse`を実行する必要がある。
 
-## EclipseのValidationの停止
-Eclipse上にて、プロジェクトルートディレクトリを選択した状態で右クリックし`Properties`を表示。メニュー内下半にある`Validation`を選択し、次の2つをチェックする。
-
-- [x] `Enable project specific settings`
-- [x] `Suspend all validators`
-
-設定完了後、再びプロジェクトを右クリックし、`Validate`を実施すれば、既存のJS関連のエラーは消える。
-
 ## Checkstyleの導入
 ある程度標準的なコードの作りにするために静的チェックツールを使う。Googleが公開しているCheckStyleをベースに、Eclipse上で使用しやすいように、また、ルールが厳しくなりすぎないようにカスタマイズしたものを使用している。
 
 ### 1. EclipseにCheckStyleを導入する
 
-`Help` > `Eclipse Marketplace`を表示後、`Checktyle`で検索する。その後表示される、`Checkstyle Plug-in`をインストール。(All in oneを利用している場合はインストールされているのでこのステップをパスして次に進む)
+`Help` > `Eclipse Marketplace`を表示後、`Checkstyle`で検索する。その後表示される、`Checkstyle Plug-in`をインストール。(All in oneを利用している場合はインストールされているのでこのステップをパスして次に進む)
 
 ### 2. CheckStyleの導入準備をする
 
@@ -104,6 +96,14 @@ Eclipse上にて、プロジェクトルートディレクトリを選択した�
 上記設定後、プロジェクトを右クリックし、`Checkstyle` > `Activate Checkstyle`を実施し、設定・適用完了。
 
 Checkstyleによって、未使用の変数名等や`if`や変数の後のスペースがついているかのチェックなどが実施される。少なくともマージリクエストを出す時点においては`Warning`(黄色)以上の指摘事項がない状態にすること。(checkstyleのスタイルに抵触してしまう、プロジェクト上の困難な設定等々がある際にはチームに相談すること)
+
+## EclipseのValidationの停止
+(特にエラーが出ていない場合はスキップしても良い) Eclipse上にて、プロジェクトルートディレクトリを選択した状態で右クリックし`Properties`を表示。メニュー内下半にある`Validation`を選択し、次の2つをチェックする。
+
+- [x] `Enable project specific settings`
+- [x] `Suspend all validators`
+
+設定完了後、再びプロジェクトを右クリックし、`Validate`を実施すれば、既存のJS関連のエラーは消える。
 
 # Build and Deploy
 基本的な内容はQuick Startを参照する。
