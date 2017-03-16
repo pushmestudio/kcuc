@@ -67,7 +67,7 @@ public class KCData {
 			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
 			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
 			List<UserDocument> userList = userInfoDao.getSubscribedUserList(pageHref);
 
 			// return用
@@ -107,7 +107,7 @@ public class KCData {
 	public Result checkUpdateByUser(String userId) {
 		try {
 			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
@@ -170,7 +170,7 @@ public class KCData {
 					"\\.html");
 
 			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 			// KCからのデータ取得処理
 			TopicMeta topicMeta = getSpecificPageMeta(pageHref);
@@ -301,7 +301,7 @@ public class KCData {
 		 * com.cloudant.client.org.lightcouch.CouchDbExceptionなどが起きうるがどこまで対処するか
 		 */
 		// DBのユーザーからのデータ取得処理
-		UserInfoDao userInfoDao = new UserInfoDao();
+		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 		// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 		if (!userInfoDao.isUserExist(userId)) {
@@ -431,7 +431,7 @@ public class KCData {
 					"\\.html");
 
 			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
@@ -470,7 +470,7 @@ public class KCData {
 	public Result cancelSubscribedProduct(String userId, String prodId) {
 		try {
 			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
