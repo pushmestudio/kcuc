@@ -1,6 +1,5 @@
 package jp.pushmestudio.kcuc.rest;
 
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -40,7 +39,7 @@ public class KCNoticeSearch {
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response searchPages(
-			@ApiParam(value = "検索キーワード, スペース区切りでOR検索", required = true) @QueryParam("query") @DefaultValue("") String query,
+			@ApiParam(value = "検索キーワード, スペース区切りでOR検索", required = true) @QueryParam("query") String query,
 			@ApiParam(value = "取得対象の製品ID, カンマ区切りで複数指定可能") @QueryParam("products") String products,
 			@ApiParam(value = "検索対象とするページのURL, カンマ区切りで複数指定可能") @QueryParam("inurl") String inurl,
 			@ApiParam(value = "結果取得のオフセット(表示開始位置)") @QueryParam("offset") Integer offset,
