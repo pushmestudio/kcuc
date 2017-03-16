@@ -229,6 +229,7 @@ public class KCDataTest {
 
 				// execute
 				data.cancelSubscribedProduct(userId, prodId);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -236,8 +237,6 @@ public class KCDataTest {
 
 		@Test
 		public void 購読解除している2件のページが購読済リストから取り除かれる() {
-			// execute
-
 			// verify
 			Result checkResult = data.checkUpdateByUser(userId);
 			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
