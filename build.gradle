@@ -46,10 +46,6 @@ dependencies {
   testCompile 'junit:junit:4.12'
 }
 
-// enclosed testが2回実行されることを防ぐ
-test {
-  exclude '**/*$*'
-}
 war {
   archiveName 'kcuc.war'
 }
