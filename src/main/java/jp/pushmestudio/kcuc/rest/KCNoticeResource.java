@@ -55,6 +55,8 @@ public class KCNoticeResource {
 	 * 
 	 * @param user
 	 *            更新確認対象のユーザー名
+	 * @param product
+	 *            確認対象の製品ID
 	 * @return 更新確認結果
 	 */
 	@Path("/pages")
@@ -63,10 +65,10 @@ public class KCNoticeResource {
 	@ApiOperation(value = "ページ一覧取得", response = ResultPageList.class, notes = "特定のユーザーの購読しているページ一覧を取得・確認")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
-	public Response getUpdatedPages(
-			@ApiParam(value = "更新確認対象のユーザー名", required = true) @QueryParam("user") String user) {
+	public Response getUpdatedPages(@ApiParam(value = "更新確認対象のユーザー名", required = true) @QueryParam("user") String user,
+			@ApiParam(value = "更新確認対象の製品ID", required = false) @QueryParam("product") String product) {
 
-		Result result = data.checkUpdateByUser(user);
+		Result result = data.checkUpdateByUser(user, product);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -85,8 +87,7 @@ public class KCNoticeResource {
 	@ApiOperation(value = "購読ページ追加", response = ResultPageList.class, notes = "特定のユーザの購読するページを追加・確認")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
-	public Response setSubscribe(
-			@ApiParam(value = "更新対象のユーザー名", required = true) @FormParam("user") String user,
+	public Response setSubscribe(@ApiParam(value = "更新対象のユーザー名", required = true) @FormParam("user") String user,
 			@ApiParam(value = "購読対象のページキー", required = true) @FormParam("href") String href) {
 
 		Result result = data.registerSubscribedPage(user, href);
@@ -108,14 +109,12 @@ public class KCNoticeResource {
 	@ApiOperation(value = "購読ページ解除", response = ResultPageList.class, notes = "特定のユーザの購読するページを解除")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
-	public Response unsetSubscribe(
-			@ApiParam(value = "対象のユーザー名", required = true) @FormParam("user") String user,
+	public Response unsetSubscribe(@ApiParam(value = "対象のユーザー名", required = true) @FormParam("user") String user,
 			@ApiParam(value = "購読解除対象のページキー", required = true) @FormParam("href") String href) {
 
 		Result result = data.deleteSubscribedPage(user, href);
 		return Response.status(result.getCode()).entity(result).build();
 	}
-	
 
 	/**
 	 * 特定のユーザーの購読しているページ一覧を取得・確認
@@ -136,7 +135,7 @@ public class KCNoticeResource {
 		Result result = data.getSubscribedProductList(user);
 		return Response.status(result.getCode()).entity(result).build();
 	}
-	
+
 	/**
 	 * ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する
 	 * 
