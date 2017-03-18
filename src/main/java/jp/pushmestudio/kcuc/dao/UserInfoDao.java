@@ -19,45 +19,60 @@ public class UserInfoDao {
 
 	private Database kcucDB;
 
-	// 取得元のデータソースが増えることがあれば次の記事を参考に、DaoFactoryなどを使う形にする
-	// http://www.nulab.co.jp/designPatterns/designPatterns3/designPatterns3-4.html#list17-2
+	/*
+	 * シングルトンパターン使用(private staticなインスタンス、privateなコンストラクタ、public
+	 * staticなgetInstance)
+	 * DB接続回数を抑えるための施策で、CloudantにおいてはRDBのようなコネクション維持について考慮しなくて良いのでこのような作りにしている
+	 * マルチスレッドに対応できないので拡張が進んだ際には別途対応を検討か
+	 */
+	private static UserInfoDao singleton;
 
-	// TODO CRUD別にグルーピングしてメソッドを管理する
+	private UserInfoDao(Database kcucDB) {
+		this.kcucDB = kcucDB;
+	};
 
-	// コンストラクタの生成時にCloudantへ接続
-	public UserInfoDao() {
-		final String accountProp = "CLOUDANT_ACCOUNT";
-		final String userProp = "CLOUDANT_USER";
-		final String pwProp = "CLOUDANT_PW";
-		final String cloudantPropPath = "/jp/pushmestudio/credentials/cloudant.properties";
+	public static UserInfoDao getInstance() {
+		if (Objects.isNull(singleton)) {
+			final String accountProp = "CLOUDANT_ACCOUNT";
+			final String userProp = "CLOUDANT_USER";
+			final String pwProp = "CLOUDANT_PW";
+			final String cloudantPropPath = "/jp/pushmestudio/credentials/cloudant.properties";
 
-		String envAccount = "";
-		String envUser = "";
-		String envPw = "";
-		// 環境変数から値を取得する
-		try {
-			envAccount = System.getenv(accountProp);
-			envUser = System.getenv(userProp);
-			envPw = System.getenv(pwProp);
-		} catch (NullPointerException | SecurityException e) {
-			e.printStackTrace();
+			String envAccount = "";
+			String envUser = "";
+			String envPw = "";
+			// 環境変数から値を取得する
+			try {
+				envAccount = System.getenv(accountProp);
+				envUser = System.getenv(userProp);
+				envPw = System.getenv(pwProp);
+			} catch (NullPointerException | SecurityException e) {
+				e.printStackTrace();
+			}
+
+			// 環境変数から値を取れていない場合にはローカルのプロパティファイルを読み込む
+			if (Objects.isNull(envAccount) || envAccount.length() <= 0 || Objects.isNull(envUser)
+					|| envUser.length() <= 0 || Objects.isNull(envPw) || envPw.length() <= 0) {
+				Properties cloudantConfig = loadProperty(cloudantPropPath);
+				envAccount = (String) cloudantConfig.get(accountProp);
+				envUser = (String) cloudantConfig.get(userProp);
+				envPw = (String) cloudantConfig.get(pwProp);
+			}
+
+			// Cloudantのインスタンスを作成
+			CloudantClient cldClient = ClientBuilder.account(envAccount).username(envUser).password(envPw).build();
+
+			// Databaseのインスタンスを取得
+			Database dbInstance = cldClient.database("kcucdb", false);
+			singleton = new UserInfoDao(dbInstance);
 		}
 
-		// 環境変数から値を取れていない場合にはローカルのプロパティファイルを読み込む
-		if (Objects.isNull(envAccount) || envAccount.length() <= 0 || Objects.isNull(envUser) || envUser.length() <= 0
-				|| Objects.isNull(envPw) || envPw.length() <= 0) {
-			Properties CLOUDANT_CONFIG = this.loadProperty(cloudantPropPath);
-			envAccount = (String) CLOUDANT_CONFIG.get(accountProp);
-			envUser = (String) CLOUDANT_CONFIG.get(userProp);
-			envPw = (String) CLOUDANT_CONFIG.get(pwProp);
-		}
-
-		// Cloudantのインスタンスを作成
-		CloudantClient cldClient = ClientBuilder.account(envAccount).username(envUser).password(envPw).build();
-
-		// Databaseのインスタンスを取得
-		this.kcucDB = cldClient.database("kcucdb", false);
+		return singleton;
 	}
+
+	// CREATE - CRUD
+
+	// READ - CRUD
 
 	/**
 	 * 指定したIDのユーザーを返す
@@ -96,42 +111,6 @@ public class UserInfoDao {
 	}
 
 	/**
-	 * ユーザの購読ページを登録する
-	 * 
-	 * @param userId
-	 *            登録するユーザのID
-	 * @param pageHref
-	 *            購読ページ
-	 * @return 指定したユーザの情報一覧（ページ追加後）
-	 */
-	public List<UserDocument> setSubscribedPages(String userId, String pageHref, String prodId, String prodName) {
-		// useNameのインデックスを使用して、指定されたユーザのデータを取得
-		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
-				UserDocument.class);
-
-		// 追加するページの情報を作成
-		Date currentTime = new Date();
-		long timestamp = currentTime.getTime();
-		SubscribedPage targetPage = new SubscribedPage(pageHref, false, timestamp, prodId, prodName);
-
-		// 指定されたユーザに該当するレコードを更新
-		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
-		updateTarget.addSubscribedPages(targetPage);
-		kcucDB.update(updateTarget);
-		// 1レコードに限定した場合に使用予定
-		// Response responseUpdate = kcucDB.update(updateTarget);
-
-		// TODO 本来であればupdateは1つのレコードに対してのみ実施されるため、返り値をListにする必要はない。
-		// UserDocument updatedInfo = kcucDB.find(UserDocument.class,
-		// responseUpdate.getId());
-
-		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
-				UserDocument.class);
-
-		return updatedInfo;
-	}
-
-	/**
 	 * ユーザがDBに存在するか確認する
 	 * 
 	 * @param userId
@@ -161,29 +140,49 @@ public class UserInfoDao {
 		return userDocs.size() > 0 ? true : false;
 	}
 
+	// UPDATE - CRUD
+
 	/**
-	 * 指定されたファイル名をクラスパスから探し出し、プロパティとして読み込んで返す
-	 * {@code loadProperty("/jp/pushmestudio/credentials/cloudant.properties");}
+	 * ユーザの購読ページを登録する
 	 * 
-	 * @param fileName
-	 *            探索対象のファイル名
-	 * @return 探索対象のファイルを読み込んだプロパティ
+	 * @param userId
+	 *            登録するユーザのID
+	 * @param pageHref
+	 *            購読ページ
+	 * @return 指定したユーザの情報一覧（ページ追加後）
 	 */
-	private Properties loadProperty(String fileName) {
-		Properties props = new Properties();
-		try (InputStream input = getClass().getResourceAsStream(fileName)) {
-			props.load(input);
-			input.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return props;
+	public List<UserDocument> setSubscribedPages(String userId, String pageHref, String pageName, String prodId,
+			String prodName) {
+		// useNameのインデックスを使用して、指定されたユーザのデータを取得
+		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
+				UserDocument.class);
+
+		// 追加するページの情報を作成
+		Date currentTime = new Date();
+		long timestamp = currentTime.getTime();
+		SubscribedPage targetPage = new SubscribedPage(pageHref, pageName, false, timestamp, prodId, prodName);
+
+		// 指定されたユーザに該当するレコードを更新
+		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
+		updateTarget.addSubscribedPages(targetPage);
+		kcucDB.update(updateTarget);
+		// 1レコードに限定した場合に使用予定
+		// Response responseUpdate = kcucDB.update(updateTarget);
+
+		// TODO 本来であればupdateは1つのレコードに対してのみ実施されるため、返り値をListにする必要はない。
+		// UserDocument updatedInfo = kcucDB.find(UserDocument.class,
+		// responseUpdate.getId());
+
+		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
+				UserDocument.class);
+
+		return updatedInfo;
 	}
 
 	/**
 	 * ユーザの購読ページを解除する
 	 * 
-	 * @param userID
+	 * @param userId
 	 *            対象ユーザのID
 	 * @param pageHref
 	 *            購読解除ページ
@@ -200,8 +199,9 @@ public class UserInfoDao {
 		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
 		int target = 0; // 購読ページ数(配列数)を超えるとjava.lang.ArrayIndexOutOfBoundsExceptionになるが，そもそもdelSubscribedPage()が呼ばれないので例外処理はしていない
 		for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
-			if (targetHref.getPageHref().equals(pageHref))
+			if (targetHref.getPageHref().equals(pageHref)) {
 				break;
+			}
 			target++;
 		}
 		// 対象ページの購読解除
@@ -262,5 +262,24 @@ public class UserInfoDao {
 		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
 				UserDocument.class);
 		return updatedInfo;
+	}
+
+	/**
+	 * 指定されたファイル名をクラスパスから探し出し、プロパティとして読み込んで返す
+	 * {@code loadProperty("/jp/pushmestudio/credentials/cloudant.properties");}
+	 * 
+	 * @param fileName
+	 *            探索対象のファイル名
+	 * @return 探索対象のファイルを読み込んだプロパティ
+	 */
+	private static Properties loadProperty(String fileName) {
+		Properties props = new Properties();
+		try (InputStream input = UserInfoDao.class.getResourceAsStream(fileName)) {
+			props.load(input);
+			input.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return props;
 	}
 }
