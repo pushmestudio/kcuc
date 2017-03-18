@@ -17,6 +17,9 @@ public class TopicMeta {
 	private long dateLastUpdated;
 	private boolean exist;
 
+	/**
+	 * topicのメタ情報、いつ更新されたかや製品名など
+	 */
 	public TopicMeta() {
 		this.product = "";
 		this.dateCreated = -1;
@@ -62,7 +65,9 @@ public class TopicMeta {
 		}
 	}
 
-	/** プロダクトIDを返す、{@link Product}自体ではないので注意 */
+	/** 
+	 * プロダクトIDを返す、{@link Product}自体ではないので注意
+	 **/
 	public String getProduct() {
 		return product;
 	}

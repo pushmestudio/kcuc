@@ -51,9 +51,13 @@ public class KCData {
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}</code>
 	 */
 	public Result checkUpdateByPage(String pageKey) {
+		// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
+		// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
+		String pageHref = pageKey.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
+				"\\.html");
 		try {
 			// KCからのデータ取得処理
-			TopicMeta topicMeta = getSpecificPageMeta(pageKey);
+			TopicMeta topicMeta = getSpecificPageMeta(pageHref);
 
 			// ページキーが取得できない場合はエラーメッセージを返す
 			if (!topicMeta.isExist()) {
@@ -63,16 +67,16 @@ public class KCData {
 			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
 			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
-			List<UserDocument> userList = userInfoDao.getSubscribedUserList(pageKey);
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
+			List<UserDocument> userList = userInfoDao.getSubscribedUserList(pageHref);
 
 			// return用
-			Result result = new ResultUserList(pageKey);
+			Result result = new ResultUserList(pageHref);
 
 			for (UserDocument userDoc : userList) {
 				// userDocにはsubscribedPagesがListで複数保持されているため、該当のpageKeyをもつもののみ抽出
 				List<Long> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
-						.filter(s -> s.getPageHref().equals(pageKey)).map(s -> s.getUpdatedTime())
+						.filter(s -> s.getPageHref().equals(pageHref)).map(s -> s.getUpdatedTime())
 						.collect(Collectors.toList());
 
 				// ↑の結果はListで返るが、1ユーザが同じページを購読することは仕様上禁止されるはずであるため最初の値を常に使用できる
@@ -103,7 +107,7 @@ public class KCData {
 	public Result checkUpdateByUser(String userId) {
 		try {
 			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
@@ -151,7 +155,7 @@ public class KCData {
 	 * 
 	 * @param userId
 	 *            登録確認対象のユーザーID
-	 * @param pageHref
+	 * @param href
 	 *            購読登録するページ
 	 * @return 登録の成否と、あるユーザが購読しているリストの一覧。以下は例示
 	 *         <code>{"result":"success", "pages":[{"pageHref":"SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"},
@@ -161,10 +165,12 @@ public class KCData {
 	public Result registerSubscribedPage(String userId, String href) {
 		try {
 			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
-			String pageHref = href.replaceFirst("\\.htm$", "\\.html");
+			// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
+			String pageHref = href.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
+					"\\.html");
 
 			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 			// KCからのデータ取得処理
 			TopicMeta topicMeta = getSpecificPageMeta(pageHref);
@@ -182,7 +188,18 @@ public class KCData {
 
 			String prodId = topicMeta.getProduct();
 			String prodName = this.searchProduct(prodId).getLabel();
-			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref, prodId, prodName);
+
+			// hrefを使用し、ページのキーからページの情報を取得する、pageHrefとinurlの指定で必ず1件、一致するページが取れる想定
+			// 本当に既存の検索用メソッドを使って取得するのが良いかは判断の余地あり(無駄にResultにWrapされているので)
+			Result pageInfo = this.searchPages(pageHref, prodId, null, null, 1, null, "date:d");
+			String pageName = "";
+
+			// ページ番号が適切に取れている時だけページラベルを取得する処理を行う
+			if (pageInfo instanceof ResultSearchList && ((ResultSearchList) pageInfo).getCount() == 1) {
+				pageName = ((ResultSearchList) pageInfo).getTopics().get(0).getLabel();
+			}
+
+			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref, pageName, prodId, prodName);
 			// return用
 			Result result = new ResultPageList(userId);
 			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
@@ -197,18 +214,26 @@ public class KCData {
 
 	/**
 	 * キーワード検索、現時点では特段の独自拡張はしていない 検索されたキーワードをログに残してどういうものが多く探されているか調べてもいいかもしれない
+	 * 不要なパラメーターに対してはnullを渡せばOK
 	 * 
 	 * @param query
-	 *            スペース区切りで複数ワードが与えられた場合はAND検索
+	 *            スペース区切りで複数ワードが与えられた場合はOR検索
+	 * @param products
+	 *            取得対象の製品ID、カンマ区切りで複数指定可能
+	 * @param inurl
+	 *            検索対象とするページのURL、カンマ区切りで複数指定可能
 	 * @param offset
 	 *            検索結果を何件目から取得するか
 	 * @param limit
 	 *            取得件数、MAXは20
 	 * @param lang
 	 *            検索結果がサポートしている言語
-	 * @return
+	 * @param sort
+	 *            並び替え、現時点では日付昇順・降順のみAPIでサポートしている、date:aかdate:d以外が来たら指定がなかったものとみなす
+	 * @return 検索結果
 	 */
-	public Result searchPages(String query, Integer offset, Integer limit, String lang) {
+	public Result searchPages(String query, String products, String inurl, Integer offset, Integer limit, String lang,
+			String sort) {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/search";
@@ -222,9 +247,17 @@ public class KCData {
 		 */
 		Map<String, String> queryMap = new HashMap<>();
 
+		Optional.ofNullable(products).ifPresent(_products -> queryMap.put("products", _products));
+		Optional.ofNullable(inurl).ifPresent(_inurl -> queryMap.put("inurl", _inurl));
 		Optional.ofNullable(offset).ifPresent(_offset -> queryMap.put("offset", _offset.toString()));
 		Optional.ofNullable(limit).ifPresent(_limit -> queryMap.put("limit", _limit.toString()));
 		Optional.ofNullable(lang).ifPresent(_lang -> queryMap.put("lang", _lang));
+
+		// 不正な日付並び順を指定された場合はnullとしておくことでパラメーターに使われることを防ぐ
+		if (!"date:a".equals(sort) && !"date:d".equals(sort)) {
+			sort = null;
+		}
+		Optional.ofNullable(sort).ifPresent(_sort -> queryMap.put("sort", _sort));
 
 		for (Entry<String, String> each : queryMap.entrySet()) {
 			target = target.queryParam(each.getKey(), each.getValue());
@@ -232,7 +265,6 @@ public class KCData {
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
 		Response res = invocationBuilder.get();
-
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
 
 		// ページがtopics情報を持つ場合
@@ -269,7 +301,7 @@ public class KCData {
 		 * com.cloudant.client.org.lightcouch.CouchDbExceptionなどが起きうるがどこまで対処するか
 		 */
 		// DBのユーザーからのデータ取得処理
-		UserInfoDao userInfoDao = new UserInfoDao();
+		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 		// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 		if (!userInfoDao.isUserExist(userId)) {
@@ -316,7 +348,7 @@ public class KCData {
 
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
 
-		// ページがtopics情報を持つ場合
+		// ページがproduct情報を持つ場合
 		if (resJson.has("product")) {
 			return new Product(resJson.getJSONObject("product"));
 		} else {
@@ -346,7 +378,7 @@ public class KCData {
 	}
 
 	@SuppressWarnings("unused")
-	private JSONObject getTOC(String productKey) throws JSONException {
+	private JSONObject getTOC(String productKey) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String tocUrl = "https://www.ibm.com/support/knowledgecenter/v1/toc/";
@@ -386,18 +418,20 @@ public class KCData {
 	 * 
 	 * @param userId
 	 *            対象のユーザーID
-	 * @param pageHref
+	 * @param href
 	 *            購読解除するページ
 	 * @return 購読解除の成否と、解除後の購読情報
 	 * 
 	 */
 	public Result deleteSubscribedPage(String userId, String href) {
 		try {
-			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
-			String pageHref = href.replaceFirst("\\.htm$", "\\.html");
+			// .htmでの解除は行わせず、全て.htmlで解除を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
+			// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
+			String pageHref = href.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
+					"\\.html");
 
 			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
@@ -436,7 +470,7 @@ public class KCData {
 	public Result cancelSubscribedProduct(String userId, String prodId) {
 		try {
 			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = new UserInfoDao();
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {

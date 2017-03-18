@@ -25,7 +25,7 @@ public class KCDataTest {
 
 	public static class 購読済ページの存在を確認するケース {
 		static String userId = "tkhm";
-		static String hrefKey = "SSMTU9/welcometoibmverse.html";
+		static String hrefKey = "SS5RWK_3.5.0/com.ibm.discovery.es.nav.doc/iiypofnv_prodover_cont.htm?sc=_latest";
 
 		/** テストデータが事前に登録されている状態にする、グループ内で一度だけ実行 */
 		@BeforeClass
@@ -229,6 +229,7 @@ public class KCDataTest {
 
 				// execute
 				data.cancelSubscribedProduct(userId, prodId);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -236,8 +237,6 @@ public class KCDataTest {
 
 		@Test
 		public void 購読解除している2件のページが購読済リストから取り除かれる() {
-			// execute
-
 			// verify
 			Result checkResult = data.checkUpdateByUser(userId);
 			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
@@ -272,7 +271,7 @@ public class KCDataTest {
 		@BeforeClass
 		public static void setUp() {
 			// execute
-			searchResult = data.searchPages(searchQuery, offset, limit, "");
+			searchResult = data.searchPages(searchQuery, "", "", offset, limit, "", "");
 		}
 
 		@Test
