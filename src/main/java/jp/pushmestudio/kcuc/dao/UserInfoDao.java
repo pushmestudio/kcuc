@@ -90,7 +90,8 @@ public class UserInfoDao {
 	}
 
 	/**
-	 * 指定したIDのユーザーとその購読ページを返す
+	 * 指定したIDのユーザーとその購読ページを返す、結果を絞る方法としてはDBへのクエリで絞る方法と、受け取った結果をAPIサーバー上で絞る方法がある
+	 * 現在は簡潔・簡便な後者の方法を取っているが、クエリによる絞り込みにすることも検討の余地がある
 	 * 
 	 * @param userId
 	 *            探す対象となるユーザーのID
@@ -100,10 +101,20 @@ public class UserInfoDao {
 	 */
 	public List<UserDocument> getUserList(String userId, String prodId) {
 		// userIdのインデックスを使用して、指定されたユーザ名に一致するユーザのデータを取得
-		List<UserDocument> userDocs = kcucDB.findByIndex(
-				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
-						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"prodId\":\"" + prodId + "\"}}}]}}",
-				UserDocument.class);
+		List<UserDocument> userDocs = this.getUserList(userId);
+		List<SubscribedPage> specificProdPages = new ArrayList<>();
+
+		for (UserDocument userDoc : userDocs) {
+			// ユーザードキュメントから購読製品を取り出してIDが一致するものだけを取り出す
+			List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
+			for (SubscribedPage page : subscribedPages) {
+				if (prodId.equals(page.getProdId())) {
+					specificProdPages.add(page);
+				}
+			}
+			// 取り出した製品を絞った購読製品リストを使って既存の購読製品リストを置き換える
+			userDoc.replaceSubscribedPages(specificProdPages);
+		}
 
 		return userDocs;
 	}

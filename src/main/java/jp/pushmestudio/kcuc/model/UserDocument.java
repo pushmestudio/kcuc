@@ -1,5 +1,6 @@
 package jp.pushmestudio.kcuc.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,7 +40,12 @@ public class UserDocument {
 		subscribedPages.remove(target);
 	}
 
-	// @see https://github.com/cloudant/java-cloudant toStringをoverrideする実装の際に参考にしたもの
+	public void replaceSubscribedPages(List<SubscribedPage> pages) {
+		subscribedPages = new ArrayList<>(pages);
+	}
+
+	// @see https://github.com/cloudant/java-cloudant
+	// toStringをoverrideする実装の際に参考にしたもの
 	public String toString() {
 		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserId: " + userId + ",\nsubscribedPages: " + subscribedPages
 				+ "\n}";
