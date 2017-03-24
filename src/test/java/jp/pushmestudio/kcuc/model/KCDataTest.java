@@ -50,7 +50,7 @@ public class KCDataTest {
 			try {
 				Thread.sleep(500);
 				data.deleteSubscribedPage(userId, hrefKey1);
-				Thread.sleep(500);
+				Thread.sleep(1000);
 				data.deleteSubscribedPage(userId, hrefKey2);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
