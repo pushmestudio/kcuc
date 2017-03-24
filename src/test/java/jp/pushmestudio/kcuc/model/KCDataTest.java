@@ -25,14 +25,18 @@ public class KCDataTest {
 
 	public static class 購読済ページの存在を確認するケース {
 		static String userId = "tkhm";
-		static String hrefKey = "SS5RWK_3.5.0/com.ibm.discovery.es.nav.doc/iiypofnv_prodover_cont.htm?sc=_latest";
+		static String prodId = "SSTPQH_1.0.0";
+		static String hrefKey1 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_planning_install_location.html";
+		static String hrefKey2 = "SS5RWK_3.5.0/com.ibm.discovery.es.nav.doc/iiypofnv_prodover_cont.htm?sc=_latest";
 
 		/** テストデータが事前に登録されている状態にする、グループ内で一度だけ実行 */
 		@BeforeClass
 		public static void setUp() {
 			try {
 				// テストデータとして登録する、APIへの負荷を懸念しスリープ処理を入れている
-				data.registerSubscribedPage(userId, hrefKey);
+				data.registerSubscribedPage(userId, hrefKey1);
+				Thread.sleep(1000);
+				data.registerSubscribedPage(userId, hrefKey2);
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -45,7 +49,9 @@ public class KCDataTest {
 			// テストデータとして登録したものを削除する、APIへの負荷を懸念しスリープ処理を入れている
 			try {
 				Thread.sleep(500);
-				data.deleteSubscribedPage(userId, hrefKey);
+				data.deleteSubscribedPage(userId, hrefKey1);
+				Thread.sleep(500);
+				data.deleteSubscribedPage(userId, hrefKey2);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -55,7 +61,7 @@ public class KCDataTest {
 		@Test
 		public void 登録済みのページを指定して1人以上の購読ユーザーを確認できる() {
 			// execute
-			Result checkResult = data.checkUpdateByPage(hrefKey);
+			Result checkResult = data.checkUpdateByPage(hrefKey2);
 
 			// verify
 			List<UserInfo> userList = ((ResultUserList) checkResult).getSubscribers();
@@ -65,15 +71,28 @@ public class KCDataTest {
 		}
 
 		@Test
-		public void ページを購読しているユーザーを指定して1件以上購読ページを確認できる() {
+		public void ページを購読しているユーザーを指定して2件以上購読ページを確認できる() {
 			// execute
 			Result checkResult = data.checkUpdateByUser(userId);
 
 			// verify
 			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
 
-			boolean actual = pageList.size() >= 1;
+			boolean actual = pageList.size() >= 2;
 			assertTrue(actual);
+		}
+
+		@Test
+		public void ページを購読しているユーザーと製品IDを指定して製品IDが指定したものと同じ購読ページのみが得られることを確認できる() {
+			// execute
+			Result checkResult = data.checkUpdateByUser(userId, prodId);
+
+			// verify
+			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
+			for (SubscribedPage page : pageList) {
+				String actual = page.getProdId();
+				assertThat(actual, is(prodId));
+			}
 		}
 	}
 
