@@ -75,21 +75,46 @@ public class UserInfoDao {
 	// READ - CRUD
 
 	/**
-	 * 指定したIDのユーザーを返す
+	 * 指定したIDのユーザーとその購読ページを返す
 	 * 
 	 * @param userId
 	 *            探す対象となるユーザーのID
 	 * @return DBから取得した、IDに該当するユーザーの情報
 	 */
 	public List<UserDocument> getUserList(String userId) {
-		/*
-		 * 20161222 接続先をCloudantに移行 public List<UserInfo> getUserList(String
-		 * searchId) { List<UserInfo> userList = new ArrayList<>();
-		 */
-
 		// userIdのインデックスを使用して、指定されたユーザ名に一致するユーザのデータを取得
 		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
 				UserDocument.class);
+
+		return userDocs;
+	}
+
+	/**
+	 * 指定したIDのユーザーとその購読ページを返す、結果を絞る方法としてはDBへのクエリで絞る方法と、受け取った結果をAPIサーバー上で絞る方法がある
+	 * 現在は簡潔・簡便な後者の方法を取っているが、クエリによる絞り込みにすることも検討の余地がある
+	 * 
+	 * @param userId
+	 *            探す対象となるユーザーのID
+	 * @param prodId
+	 *            探す対象となる製品のID
+	 * @return DBから取得した、IDに該当するユーザーの、特定製品に限定したページ情報
+	 */
+	public List<UserDocument> getUserList(String userId, String prodId) {
+		// userIdのインデックスを使用して、指定されたユーザ名に一致するユーザのデータを取得
+		List<UserDocument> userDocs = this.getUserList(userId);
+		List<SubscribedPage> specificProdPages = new ArrayList<>();
+
+		for (UserDocument userDoc : userDocs) {
+			// ユーザードキュメントから購読製品を取り出してIDが一致するものだけを取り出す
+			List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
+			for (SubscribedPage page : subscribedPages) {
+				if (prodId.equals(page.getProdId())) {
+					specificProdPages.add(page);
+				}
+			}
+			// 取り出した製品を絞った購読製品リストを使って既存の購読製品リストを置き換える
+			userDoc.replaceSubscribedPages(specificProdPages);
+		}
 
 		return userDocs;
 	}
@@ -118,8 +143,7 @@ public class UserInfoDao {
 	 * @return True or False
 	 */
 	public boolean isUserExist(String userId) {
-		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
-				UserDocument.class);
+		List<UserDocument> userDocs = this.getUserList(userId);
 		return userDocs.size() > 0 ? true : false;
 	}
 
@@ -154,8 +178,7 @@ public class UserInfoDao {
 	public List<UserDocument> setSubscribedPages(String userId, String pageHref, String pageName, String prodId,
 			String prodName) {
 		// useNameのインデックスを使用して、指定されたユーザのデータを取得
-		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
-				UserDocument.class);
+		List<UserDocument> userDocs = this.getUserList(userId);
 
 		// 追加するページの情報を作成
 		Date currentTime = new Date();
@@ -173,8 +196,7 @@ public class UserInfoDao {
 		// UserDocument updatedInfo = kcucDB.find(UserDocument.class,
 		// responseUpdate.getId());
 
-		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
-				UserDocument.class);
+		List<UserDocument> updatedInfo = this.getUserList(userId);
 
 		return updatedInfo;
 	}
@@ -211,8 +233,7 @@ public class UserInfoDao {
 		kcucDB.update(updateTarget);
 
 		// 更新後の購読ページ情報をCloudantから取得
-		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
-				UserDocument.class);
+		List<UserDocument> updatedInfo = this.getUserList(userId);
 		return updatedInfo;
 	}
 
@@ -227,10 +248,7 @@ public class UserInfoDao {
 	 */
 	public List<UserDocument> cancelSubscribedProduct(String userId, String prodId) throws IndexOutOfBoundsException {
 		// userIdとpageHrefで指定されたユーザのデータを取得
-		List<UserDocument> userDocs = kcucDB.findByIndex(
-				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
-						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"prodId\":\"" + prodId + "\"}}}]}}",
-				UserDocument.class);
+		List<UserDocument> userDocs = this.getUserList(userId, prodId);
 
 		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
 		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
@@ -259,8 +277,7 @@ public class UserInfoDao {
 		kcucDB.update(updateTarget);
 
 		// 更新後の購読ページ情報をCloudantから取得
-		List<UserDocument> updatedInfo = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
-				UserDocument.class);
+		List<UserDocument> updatedInfo = this.getUserList(userId);
 		return updatedInfo;
 	}
 

@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -105,6 +106,23 @@ public class KCData {
 	 *         "id":"capsmalt"}</code>
 	 */
 	public Result checkUpdateByUser(String userId) {
+		return this.checkUpdateByUser(userId, null);
+	}
+
+	/**
+	 * 更新確認対象のユーザーIDを元に 最終更新日時を比較した結果を返す
+	 * 製品ID指定の指定も可能にしている
+	 * 
+	 * @param userId
+	 *            更新確認対象のユーザーID
+	 * @param prodId
+	 *            更新確認対象の製品ID, Optional
+	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
+	 *         <code>{"pages":[{"isUpdated":true,"pageHref":
+	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}],
+	 *         "id":"capsmalt"}</code>
+	 */
+	public Result checkUpdateByUser(String userId, String prodId) {
 		try {
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = UserInfoDao.getInstance();
@@ -115,7 +133,14 @@ public class KCData {
 			}
 
 			// IDはユニークなはずなので、Listにする必要はない
-			List<UserDocument> userList = userInfoDao.getUserList(userId);
+			List<UserDocument> userList;
+			if (Objects.isNull(prodId)) {
+				userList = userInfoDao.getUserList(userId);
+			} else {
+				// 製品ID指定による限定
+				userList = userInfoDao.getUserList(userId, prodId);
+			}
+
 			// return用
 			Result result = new ResultPageList(userId);
 
