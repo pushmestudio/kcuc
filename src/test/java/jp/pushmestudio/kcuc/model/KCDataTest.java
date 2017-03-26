@@ -4,7 +4,6 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.util.List;
-import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -104,7 +103,7 @@ public class KCDataTest {
 		static Result preResultPages;
 		static List<SubscribedPage> prePageList;
 		static Result preResultProducts;
-		static Map<String, String> preProductMap;
+		static List<Product> preProductList;
 		static Result checkResultPages;
 
 		/** テストデータが事前に登録されている状態にする、グループ内で一度だけ実行 */
@@ -119,7 +118,7 @@ public class KCDataTest {
 				prePageList = ((ResultPageList) preResultPages).getSubscribedPages();
 
 				preResultProducts = data.getSubscribedProductList(userId);
-				preProductMap = ((ResultProductList) preResultProducts).getSubscribedProducts();
+				preProductList = ((ResultProductList) preResultProducts).getSubscribedProducts();
 				Thread.sleep(1000);
 
 				// execute
@@ -159,11 +158,11 @@ public class KCDataTest {
 		public void 同製品の異なる2ページを登録して購読製品として1件が取得される() {
 			// execute
 			Result gotResult = data.getSubscribedProductList(userId);
-			Map<String, String> productMap = ((ResultProductList) gotResult).getSubscribedProducts();
+			List<Product> productList = ((ResultProductList) gotResult).getSubscribedProducts();
 
 			// verify
-			final int expectedSize = preProductMap.size() + 1;
-			final int actualSize = productMap.size();
+			final int expectedSize = preProductList.size() + 1;
+			final int actualSize = productList.size();
 			assertThat(actualSize, is(expectedSize));
 		}
 	}
@@ -226,7 +225,7 @@ public class KCDataTest {
 		static Result preResultPages;
 		static List<SubscribedPage> prePageList;
 		static Result preResultProducts;
-		static Map<String, String> preProductMap;
+		static List<Product> preProductList;
 		static Result checkResultPages;
 
 		/** テストデータが事前に登録されている状態にする、グループ内で一度だけ実行 */
@@ -243,7 +242,7 @@ public class KCDataTest {
 				prePageList = ((ResultPageList) preResultPages).getSubscribedPages();
 
 				preResultProducts = data.getSubscribedProductList(userId);
-				preProductMap = ((ResultProductList) preResultProducts).getSubscribedProducts();
+				preProductList = ((ResultProductList) preResultProducts).getSubscribedProducts();
 				Thread.sleep(1000);
 
 				// execute
@@ -269,14 +268,11 @@ public class KCDataTest {
 		public void 購読解除している製品が製品リストから取り除かれる() {
 			// verify
 			Result checkResult = data.getSubscribedProductList(userId);
-			Map<String, String> productMap = ((ResultProductList) checkResult).getSubscribedProducts();
-			int actual = productMap.size();
+			List<Product> productList = ((ResultProductList) checkResult).getSubscribedProducts();
+			int actual = productList.size();
 
 			// 1件削除されているか
-			assertThat(actual, is(preProductMap.size() - 1));
-
-			// 製品IDに紐づく製品が登録されていないか
-			assertNull(productMap.get(prodId));
+			assertThat(actual, is(preProductList.size() - 1));
 		}
 	}
 
