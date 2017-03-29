@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
+import jp.pushmestudio.kcuc.model.ResultDocument;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.util.Result;
 
@@ -27,7 +28,7 @@ public class KCNoticeSearch {
 
 	/**
 	 * 検索キーワードにマッチするページを検索して返す
-	 * 
+	 *
 	 * @param query
 	 *            検索キーワード
 	 * @return 更新確認結果
@@ -49,5 +50,27 @@ public class KCNoticeSearch {
 
 		Result result = data.searchPages(query, products, inurl, offset, limit, lang, sort);
 		return Response.status(result.getCode()).entity(result).build();
+	}
+
+	/**
+	 * ページキーに対応するページ内容を返す
+	 *
+	 * @param href 検索対象ページキー
+	 * @param lang 言語コード(ISO 639-1)
+	 *
+	 * @return ページ内容
+	 */
+	@Path("/document")
+	@GET
+	@Produces({ MediaType.TEXT_HTML })
+	@ApiOperation(value = "ページ内容検索", response = ResultDocument.class, notes = "与えられたページキーに対応するページ内容を取得")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
+			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	public Response searchDocument(
+			@ApiParam(value = "検索対象ページキー", required = true) @QueryParam("href") String href,
+			@ApiParam(value = "表示言語の指定(e.g. ja)") @QueryParam("lang") String lang){
+
+		Result result = data.searchDocument(href, lang);
+		return Response.status(result.getCode()).entity(((ResultDocument) result).getPagestr()).build();
 	}
 }
