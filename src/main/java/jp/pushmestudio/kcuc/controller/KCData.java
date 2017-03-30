@@ -22,7 +22,7 @@ import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.Product;
-import jp.pushmestudio.kcuc.model.ResultDocument;
+import jp.pushmestudio.kcuc.model.ResultContent;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultProductList;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
@@ -111,8 +111,7 @@ public class KCData {
 	}
 
 	/**
-	 * 更新確認対象のユーザーIDを元に 最終更新日時を比較した結果を返す
-	 * 製品ID指定の指定も可能にしている
+	 * 更新確認対象のユーザーIDを元に 最終更新日時を比較した結果を返す 製品ID指定の指定も可能にしている
 	 *
 	 * @param userId
 	 *            更新確認対象のユーザーID
@@ -356,34 +355,36 @@ public class KCData {
 	}
 
 	/**
-	 * 引数のページキーに対応する内容を返す。
-	 * 表示言語はデフォルトでは英語(en)とし、不正な値が引き渡された場合はエラーとする
+	 * 引数のページキーに対応する内容を返す、誤った言語コードの場合にはKCが自動的に英語で返すようになっているが、
+	 * もし誤っている場合は日本語にしたい、などの要件が加わった場合はLocaleクラスを使った判定を加える必要がある
 	 *
 	 * @param href
 	 *            検索対象ページキー
 	 * @param lang
-	 *            言語コード
+	 *            言語コード(ISO 639-1)
+	 * @see https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html
 	 *
 	 * @return ページ内容
 	 */
-	public Result searchDocument(String href, String lang) {
+	public Result searchContent(String href, String lang) {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/content";
 
-		//引数の言語コードを確認し、nullなら英語(en)で設定し、誤っている場合はエラーメッセージを返す。
+		// "?sc=latest"を含むページキーで検索をかけるとエラーとなるため、削除する
+		String pagehref = href.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$", "\\.html");
+
+		WebTarget target;
+		// 引数の言語コードを確認し、nullなら言語コード指定なしのパス指定とする
 		if (Objects.isNull(lang)) {
-			lang = "en";
+			target = client.target(searchUrl).path(pagehref);
+		} else {
+			target = client.target(searchUrl).path(lang).path(pagehref);
 		}
-
-		//「?sc=latest」を含むページキーで検索をかけるとエラーとなるため、削除する
-		String pagehref = href.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$","\\.html");
-
-		WebTarget target = client.target(searchUrl).path(lang).path(pagehref);
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
 		Response res = invocationBuilder.get();
-		Result result = new ResultDocument(res.readEntity(String.class));
+		Result result = new ResultContent(res.readEntity(String.class));
 
 		return result;
 	}
