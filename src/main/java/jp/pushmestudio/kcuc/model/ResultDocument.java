@@ -7,13 +7,13 @@ import jp.pushmestudio.kcuc.util.Result;
  * Result系のクラスはSwaggerの応答にも用いられるため、数字・文字列・配列・リスト以外をメンバー変数に使用しない
  */
 public class ResultDocument implements Result {
-	private String pagestr;
+	private String pageRawHtml;
 
 	/**
-	 * @param str ページ内容を示す文字列
+	 * @param pageRawHtml ページ内容を示すHTMLドキュメントを文字列として持ったもの
 	 */
-	public ResultDocument(String pagestr){
-		this.pagestr = pagestr;
+	public ResultDocument(String pageRawHtml){
+		this.pageRawHtml = pageRawHtml;
 	}
 
 	@Override
@@ -21,12 +21,12 @@ public class ResultDocument implements Result {
 		return Result.CODE_NORMAL;
 	}
 
-	public String getPagestr(){
-		return pagestr;
+	public String getPageRawHtml(){
+		return pageRawHtml;
 	}
 
-	public void setPagestr(String pagestr){
-		this.pagestr = pagestr;
+	public void setPageRawHtml(String pageRawHtml){
+		this.pageRawHtml = pageRawHtml;
 	}
 
 }

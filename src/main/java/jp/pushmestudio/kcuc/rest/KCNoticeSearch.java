@@ -63,7 +63,7 @@ public class KCNoticeSearch {
 	@Path("/document")
 	@GET
 	@Produces({ MediaType.TEXT_HTML })
-	@ApiOperation(value = "ページ内容検索", response = ResultDocument.class, notes = "与えられたページキーに対応するページ内容を取得")
+	@ApiOperation(value = "ページ内容検索", notes = "与えられたページキーに対応するHTMLを取得、言語指定時に対応した言語が存在しなかった場合は英語にて応答する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response searchDocument(
@@ -71,6 +71,6 @@ public class KCNoticeSearch {
 			@ApiParam(value = "表示言語の指定(e.g. ja)") @QueryParam("lang") String lang){
 
 		Result result = data.searchDocument(href, lang);
-		return Response.status(result.getCode()).entity(((ResultDocument) result).getPagestr()).build();
+		return Response.status(result.getCode()).entity(((ResultDocument) result).getPageRawHtml()).build();
 	}
 }
