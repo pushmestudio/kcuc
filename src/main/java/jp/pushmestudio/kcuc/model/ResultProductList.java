@@ -1,7 +1,9 @@
 package jp.pushmestudio.kcuc.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import jp.pushmestudio.kcuc.util.Result;
 
@@ -11,24 +13,38 @@ import jp.pushmestudio.kcuc.util.Result;
  */
 public class ResultProductList implements Result {
 	private String userId;
-	/** 製品名を重複して持たせないためHashMapにしている */
-	private Map<String, String> subscribedProducts;
+	/** 製品名を重複して持たせないためHashSetにしている */
+	private List<Product> subscribedProducts;
+	private Set<String> uniqueProductIds;
 
 	public ResultProductList(String userId) {
 		this.userId = userId;
-		this.subscribedProducts = new HashMap<>();
+		this.subscribedProducts = new ArrayList<>();
+		this.uniqueProductIds = new HashSet<>();
 	}
 
 	public String getUserId() {
 		return userId;
 	}
 
-	public Map<String, String> getSubscribedProducts() {
+	public List<Product> getSubscribedProducts() {
 		return subscribedProducts;
 	}
 
-	public void setSubscribedProducts(Map<String, String> subscribedProducts) {
-		this.subscribedProducts = subscribedProducts;
+	/**
+	 * 重複のあるリストを渡されても重複のない形に補正するように、ユニークチェック後に格納している
+	 * 速度を求めるなら単に代入の形を取ればいい
+	 * @param subscribedProducts
+	 */
+	public void setSubscribedProducts(List<Product> subscribedProducts) {
+		this.subscribedProducts = new ArrayList<>();;
+		this.uniqueProductIds = new HashSet<>();
+
+		for (Product each: subscribedProducts) {
+			if (this.uniqueProductIds.add(each.getHref())) {
+				this.subscribedProducts.add(each);
+			};
+		}
 	}
 
 	/**
@@ -38,7 +54,9 @@ public class ResultProductList implements Result {
 	 * @param prodName 購読している製品の名前
 	 */
 	public void addSubscribedProduct(String prodId, String prodName) {
-		subscribedProducts.putIfAbsent(prodId, prodName);
+		if (uniqueProductIds.add(prodId)) {
+			subscribedProducts.add(new Product(prodId, prodName));
+		}
 	}
 
 	@Override

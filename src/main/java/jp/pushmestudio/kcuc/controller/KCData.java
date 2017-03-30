@@ -313,7 +313,7 @@ public class KCData {
 
 	/**
 	 * 購読しているページ一覧を取得し、その中から製品情報を抽出して一覧にして返す
-	 * 同じ製品を重複して登録しないためにHashMapで処理した結果をリストに渡している
+	 * 同じ製品を重複して登録しないためにHashSetで処理した結果をリストに渡している
 	 *
 	 * @param userId
 	 *            製品一覧
@@ -538,9 +538,21 @@ public class KCData {
 
 			List<UserDocument> userList = userInfoDao.cancelSubscribedProduct(userId, prodId);
 
-			Result result = new ResultPageList(userId);
-			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
+			// return用
+			Result result = new ResultProductList(userId);
 
+			/*
+			 * TODO 現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
+			 * 直接購読している製品一覧を取得しても良いかもしれない(特に購読件数が増えたときに通信量の低減と速度向上に繋がる)
+			 */
+			for (UserDocument userDoc : userList) {
+				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
+
+				subscribedPages.forEach(entry -> {
+					((ResultProductList) result).addSubscribedProduct(entry.getProdId(), entry.getProdName());
+				});
+
+			}
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
