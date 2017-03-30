@@ -6,13 +6,13 @@ import jp.pushmestudio.kcuc.util.Result;
  * 応答用のページ内容
  * Result系のクラスはSwaggerの応答にも用いられるため、数字・文字列・配列・リスト以外をメンバー変数に使用しない
  */
-public class ResultDocument implements Result {
+public class ResultContent implements Result {
 	private String pageRawHtml;
 
 	/**
 	 * @param pageRawHtml ページ内容を示すHTMLドキュメントを文字列として持ったもの
 	 */
-	public ResultDocument(String pageRawHtml){
+	public ResultContent(String pageRawHtml){
 		this.pageRawHtml = pageRawHtml;
 	}
 

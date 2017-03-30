@@ -22,7 +22,7 @@ import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.Product;
-import jp.pushmestudio.kcuc.model.ResultDocument;
+import jp.pushmestudio.kcuc.model.ResultContent;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultProductList;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
@@ -366,7 +366,7 @@ public class KCData {
 	 *
 	 * @return ページ内容
 	 */
-	public Result searchDocument(String href, String lang) {
+	public Result searchContent(String href, String lang) {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/content";
@@ -384,7 +384,7 @@ public class KCData {
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
 		Response res = invocationBuilder.get();
-		Result result = new ResultDocument(res.readEntity(String.class));
+		Result result = new ResultContent(res.readEntity(String.class));
 
 		return result;
 	}

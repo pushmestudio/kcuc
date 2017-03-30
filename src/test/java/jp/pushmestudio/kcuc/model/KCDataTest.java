@@ -294,7 +294,7 @@ public class KCDataTest {
 		public static void setUp() {
 			// execute
 			searchResult = data.searchPages(searchQuery, "", "", offset, limit, "", "");
-			searchContent = data.searchDocument(searchContentHref, null);
+			searchContent = data.searchContent(searchContentHref, null);
 		}
 
 		@Test
@@ -329,7 +329,7 @@ public class KCDataTest {
 			// Mar 30, 2017時点でコンテンツがない場合の応答文字列長は1155
 			// 長いURLを与えたら超えた、ということがないよう、URL文字長分も含めて超えたらOKとする
 			int noContentLength = 1155 + 255;
-			int actualLength = ((ResultDocument) searchContent).getPageRawHtml().length();
+			int actualLength = ((ResultContent) searchContent).getPageRawHtml().length();
 
 			// graterThanを使う場合には、hamcrest-allの依存を追加する必要があるが現在はそれほど使用していないのでassertEqualsで解決している
 			assertEquals("Actual returned length is grater than no content's case length.", true,
