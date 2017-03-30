@@ -148,7 +148,7 @@ public class KCNoticeResource {
 	@Path("/products")
 	@PUT
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読ページの製品指定解除", response = ResultPageList.class, notes = "ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する")
+	@ApiOperation(value = "購読ページの製品指定解除", response = ResultProductList.class, notes = "ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response unsetSubscribeProduct(
