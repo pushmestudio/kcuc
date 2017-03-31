@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -216,25 +217,31 @@ public class UserInfoDao {
 				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
 						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
 				UserDocument.class);
-
-		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
-		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
-		int target = 0; // 購読ページ数(配列数)を超えるとjava.lang.ArrayIndexOutOfBoundsExceptionになるが，そもそもdelSubscribedPage()が呼ばれないので例外処理はしていない
-		for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
-			if (targetHref.getPageHref().equals(pageHref)) {
+		
+		UserDocument updateTarget;
+		Iterator<UserDocument> i = userDocs.iterator();
+		while (i.hasNext()) {
+			UserDocument userDoc = i.next();
+			if (userDoc.getUserId().equals(userId)) {
+				updateTarget = userDoc;
+				int target = 0;
+				for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
+					if (targetHref.getPageHref().equals(pageHref)) {
+						break;
+					}
+					target++;
+				}
+				// 対象ページの購読解除
+				updateTarget.delSubscribedPage(target);
+				kcucDB.update(updateTarget);
+				// 購読解除前のUserDocumentを削除
+				i.remove();
+				// 購読解除を反映したUserDocumentをuserDocs(Return用)に追加
+				userDocs.add(updateTarget);
 				break;
 			}
-			target++;
 		}
-		// 対象ページの購読解除
-		updateTarget.delSubscribedPage(target);
-
-		// Cloudant上のユーザ購読情報(Document)を更新
-		kcucDB.update(updateTarget);
-
-		// 更新後の購読ページ情報をCloudantから取得
-		List<UserDocument> updatedInfo = this.getUserList(userId);
-		return updatedInfo;
+		return userDocs;
 	}
 
 	/**
