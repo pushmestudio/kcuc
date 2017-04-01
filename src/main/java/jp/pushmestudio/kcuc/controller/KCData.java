@@ -5,8 +5,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -22,6 +22,7 @@ import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.Product;
+import jp.pushmestudio.kcuc.model.ResultContent;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultProductList;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
@@ -44,7 +45,7 @@ public class KCData {
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
 	 * 取得に失敗した場合、エラーが発生したことを示すJSONを返す
-	 * 
+	 *
 	 * @param pageKey
 	 *            更新確認対象のページのキー
 	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
@@ -97,7 +98,7 @@ public class KCData {
 
 	/**
 	 * 更新確認対象のユーザーIDを元に 最終更新日時を比較した結果を返す
-	 * 
+	 *
 	 * @param userId
 	 *            更新確認対象のユーザーID
 	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
@@ -110,9 +111,8 @@ public class KCData {
 	}
 
 	/**
-	 * 更新確認対象のユーザーIDを元に 最終更新日時を比較した結果を返す
-	 * 製品ID指定の指定も可能にしている
-	 * 
+	 * 更新確認対象のユーザーIDを元に 最終更新日時を比較した結果を返す 製品ID指定の指定も可能にしている
+	 *
 	 * @param userId
 	 *            更新確認対象のユーザーID
 	 * @param prodId
@@ -177,7 +177,7 @@ public class KCData {
 
 	/**
 	 * 購読したいページとユーザIDを追加し、追加したページを含めた結果を返す
-	 * 
+	 *
 	 * @param userId
 	 *            登録確認対象のユーザーID
 	 * @param href
@@ -240,7 +240,7 @@ public class KCData {
 	/**
 	 * キーワード検索、現時点では特段の独自拡張はしていない 検索されたキーワードをログに残してどういうものが多く探されているか調べてもいいかもしれない
 	 * 不要なパラメーターに対してはnullを渡せばOK
-	 * 
+	 *
 	 * @param query
 	 *            スペース区切りで複数ワードが与えられた場合はOR検索
 	 * @param products
@@ -313,7 +313,7 @@ public class KCData {
 	/**
 	 * 購読しているページ一覧を取得し、その中から製品情報を抽出して一覧にして返す
 	 * 同じ製品を重複して登録しないためにHashSetで処理した結果をリストに渡している
-	 * 
+	 *
 	 * @param userId
 	 *            製品一覧
 	 * @return 購読している製品一覧とユーザーID
@@ -355,8 +355,43 @@ public class KCData {
 	}
 
 	/**
+	 * 引数のページキーに対応する内容を返す、誤った言語コードの場合にはKCが自動的に英語で返すようになっているが、
+	 * もし誤っている場合は日本語にしたい、などの要件が加わった場合はLocaleクラスを使った判定を加える必要がある
+	 *
+	 * @param href
+	 *            検索対象ページキー
+	 * @param lang
+	 *            言語コード(ISO 639-1)
+	 * @see https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html
+	 *
+	 * @return ページ内容
+	 */
+	public Result searchContent(String href, String lang) {
+		// @see https://jersey.java.net/documentation/latest/client.html
+		Client client = ClientBuilder.newClient();
+		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/content";
+
+		// "?sc=latest"を含むページキーで検索をかけるとエラーとなるため、削除する
+		String pagehref = href.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$", "\\.html");
+
+		WebTarget target;
+		// 引数の言語コードを確認し、nullなら言語コード指定なしのパス指定とする
+		if (Objects.isNull(lang)) {
+			target = client.target(searchUrl).path(pagehref);
+		} else {
+			target = client.target(searchUrl).path(lang).path(pagehref);
+		}
+
+		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+		Response res = invocationBuilder.get();
+		Result result = new ResultContent(res.readEntity(String.class));
+
+		return result;
+	}
+
+	/**
 	 * 特定ページが属する製品をKCから取得する
-	 * 
+	 *
 	 * @param productKey
 	 *            特定ページ
 	 * @return 得られたJSONを元に生成した{@link Product}オブジェクト | null
@@ -383,7 +418,7 @@ public class KCData {
 
 	/**
 	 * KCに問い合わせた結果を、メタ情報を持ったオブジェクトに詰めて応答する
-	 * 
+	 *
 	 * @param specificHref
 	 *            更新の有無を確認する対象のpageのHref
 	 * @return topic_metadataから得られた応答を抽出してプロパティとしてセットした{@link TopicMeta}
@@ -425,7 +460,7 @@ public class KCData {
 	/**
 	 * 購読ページがKnowledgeCenter上に存在するか確認する、ページが存在しない場合、最終更新日時の値が初期値の-1となって応答される
 	 * 複数回参照する場合やページのメタ情報を利用する場合には{@link TopicMeta#isExist()}を利用する
-	 * 
+	 *
 	 * @param pageHref
 	 *            確認する購読ページキー
 	 * @return True or False
@@ -440,13 +475,13 @@ public class KCData {
 
 	/**
 	 * 購読解除したいページを削除し、購読情報を結果として返す
-	 * 
+	 *
 	 * @param userId
 	 *            対象のユーザーID
 	 * @param href
 	 *            購読解除するページ
 	 * @return 購読解除の成否と、解除後の購読情報
-	 * 
+	 *
 	 */
 	public Result deleteSubscribedPage(String userId, String href) {
 		try {
@@ -484,13 +519,13 @@ public class KCData {
 
 	/**
 	 * 購読解除したいページを削除し、購読情報を結果として返す
-	 * 
+	 *
 	 * @param userId
 	 *            対象のユーザーID
 	 * @param prodId
 	 *            購読解除する製品ID、このIDに紐づくすべてのページを購読解除する
 	 * @return 購読解除の成否と、解除後の購読情報
-	 * 
+	 *
 	 */
 	public Result cancelSubscribedProduct(String userId, String prodId) {
 		try {
