@@ -27,7 +27,6 @@ public class KCDataTest {
 		static String prodId = "SSTPQH_1.0.0";
 		static String hrefKey1 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_planning_install_location.html";
 		static String hrefKey2 = "SS5RWK_3.5.0/com.ibm.discovery.es.nav.doc/iiypofnv_prodover_cont.htm?sc=_latest";
-		static String pageLabel = "Planning your <b>Cloudant Local installation</b>"; // hrefKey1のlabel
 
 		/** テストデータが事前に登録されている状態にする、グループ内で一度だけ実行 */
 		@BeforeClass
@@ -94,24 +93,6 @@ public class KCDataTest {
 				assertThat(actual, is(prodId));
 			}
 		}
-
-		@Test
-		public void 購読したページのページ名がブランクではないことを確認できる() {
-			// execute
-			Result checkResult = data.checkUpdateByUser(userId, prodId);
-
-			// verify
-			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
-
-			String actual = "";
-			for (SubscribedPage page : pageList) {
-				if (page.getPageHref().equals(hrefKey1)) {
-					actual = page.getPageName();
-					break;
-				}
-			}
-			assertThat(actual, is(pageLabel));
-		}
 	}
 
 	public static class 購読済ページの追加を確認するケース {
@@ -124,6 +105,7 @@ public class KCDataTest {
 		static Result preResultProducts;
 		static List<Product> preProductList;
 		static Result checkResultPages;
+		static String pageLabel = "Planning your Cloudant Local installation"; // hrefKey1のlabel
 
 		/** テストデータが事前に登録されている状態にする、グループ内で一度だけ実行 */
 		@BeforeClass
@@ -184,6 +166,25 @@ public class KCDataTest {
 			final int actualSize = productList.size();
 			assertThat(actualSize, is(expectedSize));
 		}
+		
+		@Test
+		public void 購読したページのページ名がブランクではないことを確認できる() {
+			// execute
+			Result gotResult = data.checkUpdateByUser(userId, prodId);
+
+			// verify
+			List<SubscribedPage> pageList = ((ResultPageList) gotResult).getSubscribedPages();
+
+			String actual = "";
+			for (SubscribedPage page : pageList) {
+				if (page.getPageHref().equals(hrefKey1)) {
+					actual = page.getPageName();
+					break;
+				}
+			}
+			assertThat(actual, is(pageLabel));
+		}
+
 	}
 
 	public static class 購読済ページの削除を確認するケース {
