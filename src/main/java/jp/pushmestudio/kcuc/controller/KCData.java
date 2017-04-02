@@ -214,9 +214,18 @@ public class KCData {
 			String prodId = topicMeta.getProduct();
 			String prodName = this.searchProduct(prodId).getLabel();
 
-			// hrefを使用し、ページのキーからページの情報を取得する、pageHrefとinurlの指定で必ず1件、一致するページが取れる想定
-			// 本当に既存の検索用メソッドを使って取得するのが良いかは判断の余地あり(無駄にResultにWrapされているので)
-			Result pageInfo = this.searchPages(pageHref, prodId, null, null, 1, null, "date:d");
+			/*
+			 * hrefとprodIdを使用し、ページのキーからページの情報を取得する
+			 * searchHrefは例えばSSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/
+			 * topics/clinstall_planning_install_location.htmlとあるときの
+			 * clinstall_planning_install_location.html
+			 * SearchAPIが何を対象にどのように検索しているのかわからないが、pageHref全てを使った場合、
+			 * 稀に1件も値を取得できなかったことを受けての措置
+			 * また、date:dを指定しているのは、場合によってxmlのマップ情報が応答で最初に帰ってきてしまう可能性を防ぐため
+			 * xmlのマップ情報はdateが必ず0になっているのでソートをかけると回避できる
+			 */
+			String searchHref = pageHref.substring(pageHref.lastIndexOf("/") + 1);
+			Result pageInfo = this.searchPages(searchHref, prodId, null, null, 1, null, "date:d");
 			String pageName = "";
 
 			// ページ番号が適切に取れている時だけページラベルを取得する処理を行う
