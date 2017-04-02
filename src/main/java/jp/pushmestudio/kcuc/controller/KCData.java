@@ -17,6 +17,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -213,25 +214,7 @@ public class KCData {
 
 			String prodId = topicMeta.getProduct();
 			String prodName = this.searchProduct(prodId).getLabel();
-
-			/*
-			 * hrefとprodIdを使用し、ページのキーからページの情報を取得する
-			 * searchHrefは例えばSSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/
-			 * topics/clinstall_planning_install_location.htmlとあるときの
-			 * clinstall_planning_install_location.html
-			 * SearchAPIが何を対象にどのように検索しているのかわからないが、pageHref全てを使った場合、
-			 * 稀に1件も値を取得できなかったことを受けての措置
-			 * また、date:dを指定しているのは、場合によってxmlのマップ情報が応答で最初に帰ってきてしまう可能性を防ぐため
-			 * xmlのマップ情報はdateが必ず0になっているのでソートをかけると回避できる
-			 */
-			String searchHref = pageHref.substring(pageHref.lastIndexOf("/") + 1);
-			Result pageInfo = this.searchPages(searchHref, prodId, null, null, 1, null, "date:d");
-			String pageName = "";
-
-			// ページ番号が適切に取れている時だけページラベルを取得する処理を行う
-			if (pageInfo instanceof ResultSearchList && ((ResultSearchList) pageInfo).getCount() == 1) {
-				pageName = ((ResultSearchList) pageInfo).getTopics().get(0).getLabel();
-			}
+			String pageName = this.getPageName(prodId, pageHref);
 
 			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref, pageName, prodId, prodName);
 			// return用
@@ -444,6 +427,36 @@ public class KCData {
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
 		return new TopicMeta(resJson);
 
+	}
+
+	/**
+	 * 特定のページのページ名を取得する。公開されているbreadcrumb(パンくずリスト)の応答がhrefとlabelである性質を利用している
+	 *
+	 * @param prodId
+	 *            ページ名を確認する対象製品ID
+	 * @param pageHref
+	 *            ページ名を確認する対象のpageのHref
+	 * @return breadcrumbから抽出したページ名
+	 */
+	private String getPageName(String prodId, String pageHref) throws JSONException {
+		// @see https://jersey.java.net/documentation/latest/client.html
+		Client client = ClientBuilder.newClient();
+		final String topicMetaUrl = "https://www.ibm.com/support/knowledgecenter/v1/breadcrumb";
+
+		WebTarget target = client.target(topicMetaUrl).path(prodId).queryParam("href", pageHref);
+
+		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+		Response res = invocationBuilder.get();
+		JSONObject resJson = new JSONObject(res.readEntity(String.class));
+
+		String pageName = "";
+		// breadcrumbの応答は指定したページまでのパス区切りごとのhrefとlabel、一番最後は必ずこの指定したhrefが入るのでその性質を利用してページ名を得ている
+		if (resJson.has("breadcrumb")) {
+			JSONArray breadCrumb = resJson.getJSONArray("breadcrumb");
+			JSONObject targetPage = breadCrumb.getJSONObject((breadCrumb.length() - 1));
+			pageName = targetPage.getString("label");
+		}
+		return pageName;
 	}
 
 	@SuppressWarnings("unused")
