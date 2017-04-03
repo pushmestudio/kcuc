@@ -105,6 +105,7 @@ public class KCDataTest {
 		static Result preResultProducts;
 		static List<Product> preProductList;
 		static Result checkResultPages;
+		static String pageLabel = "Planning your Cloudant Local installation"; // hrefKey1のlabel
 
 		/** テストデータが事前に登録されている状態にする、グループ内で一度だけ実行 */
 		@BeforeClass
@@ -165,6 +166,25 @@ public class KCDataTest {
 			final int actualSize = productList.size();
 			assertThat(actualSize, is(expectedSize));
 		}
+		
+		@Test
+		public void 購読したページのページ名がブランクではないことを確認できる() {
+			// execute
+			Result gotResult = data.checkUpdateByUser(userId, prodId);
+
+			// verify
+			List<SubscribedPage> pageList = ((ResultPageList) gotResult).getSubscribedPages();
+
+			String actual = "";
+			for (SubscribedPage page : pageList) {
+				if (page.getPageHref().equals(hrefKey1)) {
+					actual = page.getPageName();
+					break;
+				}
+			}
+			assertThat(actual, is(pageLabel));
+		}
+
 	}
 
 	public static class 購読済ページの削除を確認するケース {
@@ -278,15 +298,19 @@ public class KCDataTest {
 
 	public static class 検索結果を確認するケース {
 		static String searchQuery = "IBM Verse";
+		static String searchContentHref = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_planning_install_location.html";
+		// static String searchContentHref = "xyz";
 		static int offset = 5;
 		static int limit = 15;
 		static Result searchResult;
+		static Result searchContent;
 
 		/** テスト前に一度だけ実行 */
 		@BeforeClass
 		public static void setUp() {
 			// execute
 			searchResult = data.searchPages(searchQuery, "", "", offset, limit, "", "");
+			searchContent = data.searchContent(searchContentHref, null);
 		}
 
 		@Test
@@ -313,6 +337,19 @@ public class KCDataTest {
 			int actualNext = ((ResultSearchList) searchResult).getNext();
 
 			assertThat(actualNext, is(expectedNext)); // next位置が正しく取れているか
+		}
+
+		@Test
+		public void コンテンツ検索結果が実在する() {
+			// verify
+			// Mar 30, 2017時点でコンテンツがない場合の応答文字列長は1155
+			// 長いURLを与えたら超えた、ということがないよう、URL文字長分も含めて超えたらOKとする
+			int noContentLength = 1155 + 255;
+			int actualLength = ((ResultContent) searchContent).getPageRawHtml().length();
+
+			// graterThanを使う場合には、hamcrest-allの依存を追加する必要があるが現在はそれほど使用していないのでassertEqualsで解決している
+			assertEquals("Actual returned length is grater than no content's case length.", true,
+					(actualLength > noContentLength));
 		}
 	}
 }
