@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -185,19 +186,22 @@ public class UserInfoDao {
 		long timestamp = currentTime.getTime();
 		SubscribedPage targetPage = new SubscribedPage(pageHref, pageName, false, timestamp, prodId, prodName);
 
-		// 指定されたユーザに該当するレコードを更新
-		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
-		updateTarget.addSubscribedPages(targetPage);
-		kcucDB.update(updateTarget);
-		// 1レコードに限定した場合に使用予定
-		// Response responseUpdate = kcucDB.update(updateTarget);
+		UserDocument updateTarget;
+		Iterator<UserDocument> it = userDocs.iterator();
+		// kcucDB.findにてマッチするターゲットを見つけていたものをIteratorに置き換え
+		while (it.hasNext()) {
+			UserDocument userDoc = it.next();
+			if (userDoc.getUserId().equals(userId)) {
+				updateTarget = userDoc;
 
-		// TODO 本来であればupdateは1つのレコードに対してのみ実施されるため、返り値をListにする必要はない。
-		// UserDocument updatedInfo = kcucDB.find(UserDocument.class,
-		// responseUpdate.getId());
+				// 指定されたユーザに該当するレコードを更新
+				updateTarget.addSubscribedPages(targetPage);
+				kcucDB.update(updateTarget);
+				break;
+			}
+		}
 
 		List<UserDocument> updatedInfo = this.getUserList(userId);
-
 		return updatedInfo;
 	}
 
@@ -217,24 +221,31 @@ public class UserInfoDao {
 						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
 				UserDocument.class);
 
-		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
-		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
-		int target = 0; // 購読ページ数(配列数)を超えるとjava.lang.ArrayIndexOutOfBoundsExceptionになるが，そもそもdelSubscribedPage()が呼ばれないので例外処理はしていない
-		for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
-			if (targetHref.getPageHref().equals(pageHref)) {
+		UserDocument updateTarget;
+		Iterator<UserDocument> it = userDocs.iterator();
+		// kcucDB.findにてマッチするターゲットを見つけていたものをIteratorに置き換え
+		while (it.hasNext()) {
+			UserDocument userDoc = it.next();
+			if (userDoc.getUserId().equals(userId)) {
+				updateTarget = userDoc;
+				int target = 0;
+				for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
+					if (targetHref.getPageHref().equals(pageHref)) {
+						break;
+					}
+					target++;
+				}
+				// 対象ページの購読解除
+				updateTarget.delSubscribedPage(target);
+				kcucDB.update(updateTarget);
+				// 購読解除前のUserDocumentを削除
+				it.remove();
+				// 購読解除を反映したUserDocumentをuserDocs(Return用)に追加
+				userDocs.add(updateTarget);
 				break;
 			}
-			target++;
 		}
-		// 対象ページの購読解除
-		updateTarget.delSubscribedPage(target);
-
-		// Cloudant上のユーザ購読情報(Document)を更新
-		kcucDB.update(updateTarget);
-
-		// 更新後の購読ページ情報をCloudantから取得
-		List<UserDocument> updatedInfo = this.getUserList(userId);
-		return updatedInfo;
+		return userDocs;
 	}
 
 	/**
@@ -251,30 +262,42 @@ public class UserInfoDao {
 		List<UserDocument> userDocs = this.getUserList(userId, prodId);
 
 		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
-		UserDocument updateTarget = kcucDB.find(UserDocument.class, userDocs.get(0).getId());
-		int targetIndex = 0; // 購読ページ数(配列数)を超えるとjava.lang.ArrayIndexOutOfBoundsExceptionになるが，そもそもdelSubscribedPage()が呼ばれないので例外処理はしていない
-		List<Integer> targetIndexList = new ArrayList<>();
-		for (SubscribedPage targetPage : updateTarget.getSubscribedPages()) {
-			if (targetPage.getProdId().equals(prodId)) {
-				targetIndexList.add(targetIndex);
-				continue;
+		UserDocument updateTarget;
+		Iterator<UserDocument> it = userDocs.iterator();
+
+		// kcucDB.findにてマッチするターゲットを見つけていたものをIteratorに置き換え
+		while (it.hasNext()) {
+			UserDocument userDoc = it.next();
+			if (userDoc.getUserId().equals(userId)) {
+				updateTarget = userDoc;
+
+				int targetIndex = 0; // 購読ページ数(配列数)を超えるとjava.lang.ArrayIndexOutOfBoundsExceptionになるが，そもそもdelSubscribedPage()が呼ばれないので例外処理はしていない
+				List<Integer> targetIndexList = new ArrayList<>();
+				for (SubscribedPage targetPage : updateTarget.getSubscribedPages()) {
+					if (targetPage.getProdId().equals(prodId)) {
+						targetIndexList.add(targetIndex);
+						continue;
+					}
+					/*
+					 * 該当しない時だけ数字をプラスする。実装の意図としては、配列の[0,1,2,3,4]の
+					 * 0,3,4だけを消したい場合、順に消していくと [1,2,3,4] -> [1,2,4] ->
+					 * [1,2]}のように消えていくこととなる。そのため、例えばすべて消すときはindexは常に0になる。
+					 * そのため、該当しない時だけindexの値を増やすことで効率的に該当する対象のみを消す処理を書いている。
+					 */
+					targetIndex++;
+				}
+
+				// 対象ページの購読解除
+				for (int eachTarget : targetIndexList) {
+					updateTarget.delSubscribedPage(eachTarget);
+				}
+
+				// Cloudant上のユーザ購読情報(Document)を更新
+				kcucDB.update(updateTarget);
+
+				break;
 			}
-			/*
-			 * 該当しない時だけ数字をプラスする。実装の意図としては、配列の[0,1,2,3,4]の
-			 * 0,3,4だけを消したい場合、順に消していくと [1,2,3,4] -> [1,2,4] ->
-			 * [1,2]}のように消えていくこととなる。そのため、例えばすべて消すときはindexは常に0になる。
-			 * そのため、該当しない時だけindexの値を増やすことで効率的に該当する対象のみを消す処理を書いている。
-			 */
-			targetIndex++;
 		}
-
-		// 対象ページの購読解除
-		for (int eachTarget : targetIndexList) {
-			updateTarget.delSubscribedPage(eachTarget);
-		}
-
-		// Cloudant上のユーザ購読情報(Document)を更新
-		kcucDB.update(updateTarget);
 
 		// 更新後の購読ページ情報をCloudantから取得
 		List<UserDocument> updatedInfo = this.getUserList(userId);
