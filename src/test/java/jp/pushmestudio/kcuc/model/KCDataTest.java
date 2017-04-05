@@ -199,6 +199,7 @@ public class KCDataTest {
 			try {
 				// テストデータとして登録する、APIへの負荷を懸念しスリープ処理を入れている
 				data.registerSubscribedPage(userId, hrefKey);
+				Thread.sleep(1000);
 
 				// テスト前の事前状態を保存しておく
 				preResult = data.checkUpdateByUser(userId);
