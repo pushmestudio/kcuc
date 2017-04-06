@@ -589,4 +589,9 @@ public class KCData {
 		}
 	}
 
+	public void x() {
+		// DBのユーザーからのデータ取得処理
+		UserInfoDao userInfoDao = UserInfoDao.getInstance();
+		userInfoDao.createUser("test");
+	}
 }
