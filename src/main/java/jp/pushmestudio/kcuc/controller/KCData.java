@@ -217,7 +217,7 @@ public class KCData {
 
 		com.cloudant.client.api.model.Response res = userInfoDao.createUser(userId);
 
-		Result result = KCMessageFactory.createMessage(res.getStatusCode());
+		Result result = KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
 		return result;
 	}
 
