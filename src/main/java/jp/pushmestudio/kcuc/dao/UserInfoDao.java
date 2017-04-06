@@ -12,6 +12,7 @@ import java.util.Properties;
 import com.cloudant.client.api.ClientBuilder;
 import com.cloudant.client.api.CloudantClient;
 import com.cloudant.client.api.Database;
+import com.cloudant.client.api.model.Response;
 
 import jp.pushmestudio.kcuc.model.SubscribedPage;
 import jp.pushmestudio.kcuc.model.UserDocument;
@@ -72,6 +73,31 @@ public class UserInfoDao {
 	}
 
 	// CREATE - CRUD
+	/**
+	 * 指定したIDのユーザーとその購読ページを返す
+	 * 
+	 * @param userId
+	 *            探す対象となるユーザーのID
+	 * @return DBから取得した、IDに該当するユーザーの情報
+	 */
+	public void createUser(String userId) {
+		UserDocument newUser = new UserDocument(userId);
+		Response res = kcucDB.save(newUser);
+
+		UserDocument target;
+		// useNameのインデックスを使用して、指定されたユーザのデータを取得
+		List<UserDocument> userDocs = this.getUserList(userId);
+
+		for (UserDocument userDoc : userDocs) {
+			// ユーザードキュメントから購読製品を取り出してIDが一致するものだけを取り出す
+			if (userDoc.getUserId().equals(userId)) {
+				target = userDoc;
+				res = kcucDB.remove(target);
+				System.out.println(res.toString());
+				break;
+			}
+		}
+	}
 
 	// READ - CRUD
 

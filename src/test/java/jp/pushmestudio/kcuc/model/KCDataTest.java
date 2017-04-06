@@ -352,5 +352,11 @@ public class KCDataTest {
 			assertEquals("Actual returned length is grater than no content's case length.", true,
 					(actualLength > noContentLength));
 		}
+		
+		@Test
+		public void x() {
+			data.x();
+			fail();
+		}
 	}
 }
