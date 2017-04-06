@@ -14,6 +14,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
+import jp.pushmestudio.kcuc.util.Message;
 import jp.pushmestudio.kcuc.util.Result;
 
 /**
@@ -35,7 +36,7 @@ public class KCNoticeUser {
 	@Path("/{id}")
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ユーザー作成", response = com.cloudant.client.api.model.Response.class, notes = "与えられたIDを元にユーザーを作成する")
+	@ApiOperation(value = "ユーザー作成", response = Message.class, notes = "与えられたIDを元にユーザーを作成する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response createUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {
@@ -53,7 +54,7 @@ public class KCNoticeUser {
 	@Path("/{id}")
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ユーザー削除", response = com.cloudant.client.api.model.Response.class, notes = "与えられたIDを元にユーザーを削除する")
+	@ApiOperation(value = "ユーザー削除", response = Message.class, notes = "与えられたIDを元にユーザーを削除する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response deleteUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {

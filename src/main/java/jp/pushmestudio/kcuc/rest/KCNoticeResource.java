@@ -19,6 +19,7 @@ import jp.pushmestudio.kcuc.controller.KCData;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultProductList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
+import jp.pushmestudio.kcuc.util.Message;
 import jp.pushmestudio.kcuc.util.Result;
 
 @Api(value = "kcuc")
@@ -84,7 +85,7 @@ public class KCNoticeResource {
 	@Path("/pages")
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読ページ追加", response = ResultPageList.class, notes = "特定のユーザの購読するページを追加・確認")
+	@ApiOperation(value = "購読ページ追加", response = Message.class, notes = "特定のユーザの購読するページを追加・確認")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response setSubscribe(@ApiParam(value = "更新対象のユーザー名", required = true) @FormParam("user") String user,
@@ -106,7 +107,7 @@ public class KCNoticeResource {
 	@Path("/pages")
 	@PUT
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読ページ解除", response = ResultPageList.class, notes = "特定のユーザの購読するページを解除")
+	@ApiOperation(value = "購読ページ解除", response = Message.class, notes = "特定のユーザの購読するページを解除")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response unsetSubscribe(@ApiParam(value = "対象のユーザー名", required = true) @FormParam("user") String user,
@@ -148,7 +149,7 @@ public class KCNoticeResource {
 	@Path("/products")
 	@PUT
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読ページの製品指定解除", response = ResultProductList.class, notes = "ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する")
+	@ApiOperation(value = "購読ページの製品指定解除", response = Message.class, notes = "ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response unsetSubscribeProduct(
