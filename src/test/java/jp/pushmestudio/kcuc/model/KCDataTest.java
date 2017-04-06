@@ -34,11 +34,11 @@ public class KCDataTest {
 			try {
 				// テストデータとして登録する、APIへの負荷を懸念しスリープ処理を入れている
 				data.createUser(userId);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey1);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey2);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -112,20 +112,20 @@ public class KCDataTest {
 			try {
 				// テスト用ユーザー作成
 				data.createUser(userId);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 
 				preResultPages = data.checkUpdateByUser(userId);
 				prePageList = ((ResultPageList) preResultPages).getSubscribedPages();
 
 				preResultProducts = data.getSubscribedProductList(userId);
 				preProductList = ((ResultProductList) preResultProducts).getSubscribedProducts();
-				Thread.sleep(1000);
+				Thread.sleep(500);
 
 				// execute
 				data.registerSubscribedPage(userId, hrefKey1);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey2);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -199,18 +199,18 @@ public class KCDataTest {
 			try {
 				// テストデータとして登録する、APIへの負荷を懸念しスリープ処理を入れている
 				data.createUser(userId);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 
 				// テスト前の事前状態を保存しておく
 				preResult = data.checkUpdateByUser(userId);
 				prePageList = ((ResultPageList) preResult).getSubscribedPages();
-				Thread.sleep(1000);
+				Thread.sleep(500);
 
 				// execute
 				data.deleteSubscribedPage(userId, hrefKey);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -259,22 +259,22 @@ public class KCDataTest {
 			try {
 				// 事前に登録された状態にする、APIへの負荷を懸念しスリープ処理を入れている
 				data.createUser(userId);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey1);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey2);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 
 				preResultPages = data.checkUpdateByUser(userId);
 				prePageList = ((ResultPageList) preResultPages).getSubscribedPages();
 
 				preResultProducts = data.getSubscribedProductList(userId);
 				preProductList = ((ResultProductList) preResultProducts).getSubscribedProducts();
-				Thread.sleep(1000);
+				Thread.sleep(500);
 
 				// execute
 				data.cancelSubscribedProduct(userId, prodId);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
