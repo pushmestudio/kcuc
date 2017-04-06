@@ -48,8 +48,7 @@ public class KCData {
 	 *            対象のユーザーID
 	 * @param prodId
 	 *            購読解除する製品ID、このIDに紐づくすべてのページを購読解除する
-	 * @return 購読解除の成否と、解除後の購読情報
-	 *
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
 	 */
 	public Result cancelSubscribedProduct(String userId, String prodId) {
 		try {
@@ -61,11 +60,8 @@ public class KCData {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
 			}
 
-			userInfoDao.cancelSubscribedProduct(userId, prodId);
-			// return用, TODO 現時点では有用な情報は何も返していないので応答内容を検討する
-			Result result = new ResultProductList(userId);
-
-			return result;
+			com.cloudant.client.api.model.Response res = userInfoDao.cancelSubscribedProduct(userId, prodId);
+			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
@@ -208,7 +204,13 @@ public class KCData {
 		}
 	}
 
-	// ユーザー作成
+	/**
+	 * 指定したIDのユーザーを作成する
+	 * 
+	 * @param userId
+	 *            作成対象のユーザーのID
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
+	 */
 	public Result createUser(String userId) {
 		// DBのユーザーからのデータ取得処理
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
@@ -226,7 +228,7 @@ public class KCData {
 	 *            対象のユーザーID
 	 * @param href
 	 *            購読解除するページ
-	 * @return 購読解除の成否と、解除後の購読情報
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
 	 *
 	 */
 	public Result deleteSubscribedPage(String userId, String href) {
@@ -247,11 +249,8 @@ public class KCData {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Page.");
 			}
 
-			userInfoDao.delSubscribedPage(userId, pageHref);
-			// return用, TODO 現時点では有用な情報は何も返していないので応答内容を検討する
-			Result result = new ResultPageList(userId);
-
-			return result;
+			com.cloudant.client.api.model.Response res = userInfoDao.delSubscribedPage(userId, pageHref);
+			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
@@ -259,14 +258,20 @@ public class KCData {
 		}
 	}
 
-	// ユーザー削除
+	/**
+	 * 指定したIDのユーザーを削除する
+	 * 
+	 * @param userId
+	 *            削除対象のユーザーのID
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
+	 */
 	public Result deleteUser(String userId) {
 		// DBのユーザーからのデータ取得処理
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
 
-		Result result = KCMessageFactory.createMessage(res.getStatusCode());
+		Result result = KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
 		return result;
 	}
 
@@ -321,7 +326,7 @@ public class KCData {
 	 *            登録確認対象のユーザーID
 	 * @param href
 	 *            購読登録するページ
-	 * @return
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
 	 */
 	public Result registerSubscribedPage(String userId, String href) {
 		try {
@@ -348,11 +353,9 @@ public class KCData {
 			String prodName = this.searchProduct(prodId).getLabel();
 			String pageName = this.getPageName(prodId, pageHref);
 
-			userInfoDao.setSubscribedPages(userId, pageHref, pageName, prodId, prodName);
-			// return用, TODO 現時点では有用な情報は何も返していないので応答内容を検討する
-			Result result = new ResultPageList(userId);
-
-			return result;
+			com.cloudant.client.api.model.Response res = userInfoDao.setSubscribedPages(userId, pageHref, pageName,
+					prodId, prodName);
+			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
