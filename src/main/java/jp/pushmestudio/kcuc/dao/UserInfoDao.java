@@ -78,25 +78,13 @@ public class UserInfoDao {
 	 * 
 	 * @param userId
 	 *            探す対象となるユーザーのID
-	 * @return DBから取得した、IDに該当するユーザーの情報
+	 * @return ユーザー作成結果
 	 */
-	public void createUser(String userId) {
+	public Response createUser(String userId) {
 		UserDocument newUser = new UserDocument(userId);
 		Response res = kcucDB.save(newUser);
 
-		UserDocument target;
-		// useNameのインデックスを使用して、指定されたユーザのデータを取得
-		List<UserDocument> userDocs = this.getUserList(userId);
-
-		for (UserDocument userDoc : userDocs) {
-			// ユーザードキュメントから購読製品を取り出してIDが一致するものだけを取り出す
-			if (userDoc.getUserId().equals(userId)) {
-				target = userDoc;
-				res = kcucDB.remove(target);
-				System.out.println(res.toString());
-				break;
-			}
-		}
+		return res;
 	}
 
 	// READ - CRUD
@@ -328,6 +316,31 @@ public class UserInfoDao {
 		// 更新後の購読ページ情報をCloudantから取得
 		List<UserDocument> updatedInfo = this.getUserList(userId);
 		return updatedInfo;
+	}
+
+	// DELETE - CRUD
+	/**
+	 * 指定したIDのユーザーとその購読ページを返す
+	 * 
+	 * @param userId
+	 *            探す対象となるユーザーのID
+	 * @return ユーザー作成結果
+	 */
+	public Response deleteUser(String userId) {
+		Response res = new Response();
+		UserDocument target;
+		// useNameのインデックスを使用して、指定されたユーザのデータを取得
+		List<UserDocument> userDocs = this.getUserList(userId);
+
+		for (UserDocument userDoc : userDocs) {
+			// ユーザードキュメントから購読製品を取り出してIDが一致するものだけを取り出す
+			if (userDoc.getUserId().equals(userId)) {
+				target = userDoc;
+				res = kcucDB.remove(target);
+				break;
+			}
+		}
+		return res;
 	}
 
 	/**

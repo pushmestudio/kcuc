@@ -1,9 +1,10 @@
 package jp.pushmestudio.kcuc.rest;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -13,41 +14,50 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
-import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.util.Result;
 
 /**
  * 検索系
  */
 @Api(value = "kcuc")
-@Path("/user")
+@Path("/users")
 public class KCNoticeUser {
 	// 実際に取得処理などを行うオブジェクト
 	KCData data = new KCData();
 
 	/**
-	 * 検索キーワードにマッチするページを検索して返す
+	 * 指定されたIDのユーザーを作成する
 	 *
-	 * @param query
-	 *            検索キーワード
+	 * @param id
+	 *            作成ユーザーのID
 	 * @return 更新確認結果
 	 */
-	@Path("/pages")
-	@GET
+	@Path("/{id}")
+	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ページ検索", response = ResultSearchList.class, notes = "与えられたキーワードを元にページを購読する")
+	@ApiOperation(value = "ユーザー作成", response = com.cloudant.client.api.model.Response.class, notes = "与えられたIDを元にユーザーを作成する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
-	public Response searchPages(
-			@ApiParam(value = "検索キーワード, スペース区切りでOR検索", required = true) @QueryParam("query") String query,
-			@ApiParam(value = "取得対象の製品ID, カンマ区切りで複数指定可能") @QueryParam("products") String products,
-			@ApiParam(value = "検索対象とするページのURL, カンマ区切りで複数指定可能") @QueryParam("inurl") String inurl,
-			@ApiParam(value = "結果取得のオフセット(表示開始位置)") @QueryParam("offset") Integer offset,
-			@ApiParam(value = "検索結果取得件数, 最大20, デフォルト10") @QueryParam("limit") Integer limit,
-			@ApiParam(value = "サポートしている言語による絞り込み (e.g. ja)") @QueryParam("lang") String lang,
-			@ApiParam(value = "日付による並び替え, 無指定時は検索キーワードへの関連度順, date:a or date:d にて指定") @QueryParam("sort") String sort) {
+	public Response createUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {
 
-		Result result = data.searchPages(query, products, inurl, offset, limit, lang, sort);
-		return Response.status(result.getCode()).entity(result).build();
+		return Response.status(Response.Status.UNAUTHORIZED).build();
+	}
+
+	/**
+	 * 指定されたIDのユーザーを削除する
+	 *
+	 * @param id
+	 *            削除ユーザーのID
+	 * @return 更新確認結果
+	 */
+	@Path("/{id}")
+	@DELETE
+	@Produces({ MediaType.APPLICATION_JSON })
+	@ApiOperation(value = "ユーザー削除", response = com.cloudant.client.api.model.Response.class, notes = "与えられたIDを元にユーザーを削除する")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
+			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	public Response deleteUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {
+
+		return Response.status(Response.Status.UNAUTHORIZED).build();
 	}
 }
