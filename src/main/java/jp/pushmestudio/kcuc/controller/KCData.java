@@ -216,10 +216,9 @@ public class KCData {
 			String prodName = this.searchProduct(prodId).getLabel();
 			String pageName = this.getPageName(prodId, pageHref);
 
-			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref, pageName, prodId, prodName);
-			// return用
+			userInfoDao.setSubscribedPages(userId, pageHref, pageName, prodId, prodName);
+			// return用, TODO 現時点では有用な情報は何も返していないので応答内容を検討する
 			Result result = new ResultPageList(userId);
-			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
 
 			return result;
 		} catch (JSONException e) {
@@ -526,10 +525,9 @@ public class KCData {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Page.");
 			}
 
-			List<UserDocument> userList = userInfoDao.delSubscribedPage(userId, pageHref);
-
+			userInfoDao.delSubscribedPage(userId, pageHref);
+			// return用, TODO 現時点では有用な情報は何も返していないので応答内容を検討する
 			Result result = new ResultPageList(userId);
-			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
 
 			return result;
 		} catch (JSONException e) {
@@ -559,23 +557,10 @@ public class KCData {
 				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
 			}
 
-			List<UserDocument> userList = userInfoDao.cancelSubscribedProduct(userId, prodId);
-
-			// return用
+			userInfoDao.cancelSubscribedProduct(userId, prodId);
+			// return用, TODO 現時点では有用な情報は何も返していないので応答内容を検討する
 			Result result = new ResultProductList(userId);
 
-			/*
-			 * TODO 現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
-			 * 直接購読している製品一覧を取得しても良いかもしれない(特に購読件数が増えたときに通信量の低減と速度向上に繋がる)
-			 */
-			for (UserDocument userDoc : userList) {
-				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
-
-				subscribedPages.forEach(entry -> {
-					((ResultProductList) result).addSubscribedProduct(entry.getProdId(), entry.getProdName());
-				});
-
-			}
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
