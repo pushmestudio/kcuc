@@ -22,10 +22,11 @@ public class KCMessageFactory {
 	 * @return メッセージコードを元に生成されたメッセージオブジェクト
 	 */
 	public static Message createMessage(int messageCode, String messageParameter) {
+		// TODO どのようなときにどのような応答メッセージとするかは検討の余地あり
 		if (messageCode == Result.CODE_SERVER_ERROR) {
 			return new ErrorMessage(messageCode, messageParameter);
 		} else {
-			return new ErrorMessage(Result.CODE_UNKNOWN, messageParameter);
+			return new NormalMessage(messageCode, messageParameter);
 		}
 	}
 }
