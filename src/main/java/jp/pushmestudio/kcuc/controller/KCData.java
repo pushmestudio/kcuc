@@ -589,9 +589,25 @@ public class KCData {
 		}
 	}
 
-	public void x() {
+	// ユーザー作成
+	public Result createUser(String userId) {
 		// DBのユーザーからのデータ取得処理
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
-		userInfoDao.createUser("test");
+
+		com.cloudant.client.api.model.Response res = userInfoDao.createUser(userId);
+
+		Result result = KCMessageFactory.createMessage(res.getStatusCode());
+		return result;
+	}
+
+	// ユーザー削除
+	public Result deleteUser(String userId) {
+		// DBのユーザーからのデータ取得処理
+		UserInfoDao userInfoDao = UserInfoDao.getInstance();
+
+		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
+
+		Result result = KCMessageFactory.createMessage(res.getStatusCode());
+		return result;
 	}
 }
