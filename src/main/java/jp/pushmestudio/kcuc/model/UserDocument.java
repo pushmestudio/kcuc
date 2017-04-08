@@ -14,6 +14,7 @@ public class UserDocument {
 
 	public UserDocument(String userId) {
 		this.userId = userId;
+		this.subscribedPages = new ArrayList<>();
 	}
 
 	public String getId() {

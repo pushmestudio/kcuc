@@ -23,7 +23,7 @@ public class KCDataTest {
 	static KCData data = new KCData();
 
 	public static class 購読済ページの存在を確認するケース {
-		static String userId = "tkhm";
+		static String userId = "testuser";
 		static String prodId = "SSTPQH_1.0.0";
 		static String hrefKey1 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_planning_install_location.html";
 		static String hrefKey2 = "SS5RWK_3.5.0/com.ibm.discovery.es.nav.doc/iiypofnv_prodover_cont.htm?sc=_latest";
@@ -33,10 +33,12 @@ public class KCDataTest {
 		public static void setUp() {
 			try {
 				// テストデータとして登録する、APIへの負荷を懸念しスリープ処理を入れている
+				data.createUser(userId);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey1);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey2);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -45,12 +47,10 @@ public class KCDataTest {
 		/** テストデータが事後に登録されていない状態にする、グループ内で一度だけ実行 */
 		@AfterClass
 		public static void tearDown() {
-			// テストデータとして登録したものを削除する、APIへの負荷を懸念しスリープ処理を入れている
+			// テストデータとして登録したユーザーを削除する、APIへの負荷を懸念しスリープ処理を入れている
 			try {
 				Thread.sleep(500);
-				data.deleteSubscribedPage(userId, hrefKey1);
-				Thread.sleep(1000);
-				data.deleteSubscribedPage(userId, hrefKey2);
+				data.deleteUser(userId);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -96,7 +96,7 @@ public class KCDataTest {
 	}
 
 	public static class 購読済ページの追加を確認するケース {
-		static String userId = "tkhm";
+		static String userId = "testuser";
 		static String prodId = "SSTPQH_1.0.0";
 		static String hrefKey1 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_planning_install_location.html";
 		static String hrefKey2 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_tuning_automatic_compactor.html";
@@ -104,29 +104,28 @@ public class KCDataTest {
 		static List<SubscribedPage> prePageList;
 		static Result preResultProducts;
 		static List<Product> preProductList;
-		static Result checkResultPages;
 		static String pageLabel = "Planning your Cloudant Local installation"; // hrefKey1のlabel
 
 		/** テストデータが事前に登録されている状態にする、グループ内で一度だけ実行 */
 		@BeforeClass
 		public static void setUp() {
 			try {
-				// 事前に登録がない状態にする、APIへの負荷を懸念しスリープ処理を入れている
-				data.cancelSubscribedProduct(userId, prodId);
-				Thread.sleep(1000);
+				// テスト用ユーザー作成
+				data.createUser(userId);
+				Thread.sleep(500);
 
 				preResultPages = data.checkUpdateByUser(userId);
 				prePageList = ((ResultPageList) preResultPages).getSubscribedPages();
 
 				preResultProducts = data.getSubscribedProductList(userId);
 				preProductList = ((ResultProductList) preResultProducts).getSubscribedProducts();
-				Thread.sleep(1000);
+				Thread.sleep(500);
 
 				// execute
-				checkResultPages = data.registerSubscribedPage(userId, hrefKey1);
-				Thread.sleep(1000);
-				checkResultPages = data.registerSubscribedPage(userId, hrefKey2);
-				Thread.sleep(1000);
+				data.registerSubscribedPage(userId, hrefKey1);
+				Thread.sleep(500);
+				data.registerSubscribedPage(userId, hrefKey2);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -138,7 +137,7 @@ public class KCDataTest {
 			try {
 				// 事後に登録がない状態にする、APIへの負荷を懸念しスリープ処理を入れている
 				Thread.sleep(500);
-				data.cancelSubscribedProduct(userId, prodId);
+				data.deleteUser(userId);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -148,7 +147,8 @@ public class KCDataTest {
 		@Test
 		public void 追加した2件の購読ページが購読済リストに登録される() {
 			// verify
-			List<SubscribedPage> pageList = ((ResultPageList) checkResultPages).getSubscribedPages();
+			Result gotResult = data.checkUpdateByUser(userId);
+			List<SubscribedPage> pageList = ((ResultPageList) gotResult).getSubscribedPages();
 			int actual = pageList.size();
 
 			// 2件追加されているか
@@ -166,7 +166,7 @@ public class KCDataTest {
 			final int actualSize = productList.size();
 			assertThat(actualSize, is(expectedSize));
 		}
-		
+
 		@Test
 		public void 購読したページのページ名がブランクではないことを確認できる() {
 			// execute
@@ -188,7 +188,7 @@ public class KCDataTest {
 	}
 
 	public static class 購読済ページの削除を確認するケース {
-		static String userId = "meltest";
+		static String userId = "testuser";
 		static String hrefKey = "SSYRPW_9.0.1/UsingVerseMobile.html";
 		static Result preResult;
 		static List<SubscribedPage> prePageList;
@@ -198,13 +198,19 @@ public class KCDataTest {
 		public static void setUp() {
 			try {
 				// テストデータとして登録する、APIへの負荷を懸念しスリープ処理を入れている
+				data.createUser(userId);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 
 				// テスト前の事前状態を保存しておく
 				preResult = data.checkUpdateByUser(userId);
 				prePageList = ((ResultPageList) preResult).getSubscribedPages();
-				Thread.sleep(1000);
+				Thread.sleep(500);
+
+				// execute
+				data.deleteSubscribedPage(userId, hrefKey);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -217,7 +223,7 @@ public class KCDataTest {
 			// テストデータとして登録したものを削除する、APIへの負荷を懸念しスリープ処理を入れている
 			try {
 				Thread.sleep(500);
-				data.deleteSubscribedPage(userId, hrefKey);
+				data.deleteUser(userId);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -226,11 +232,9 @@ public class KCDataTest {
 
 		@Test
 		public void 購読解除した1件のページが購読済リストから取り除かれる() {
-			// execute
-			Result checkResult = data.deleteSubscribedPage(userId, hrefKey);
-
 			// verify
-			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
+			Result gotResult = data.checkUpdateByUser(userId);
+			List<SubscribedPage> pageList = ((ResultPageList) gotResult).getSubscribedPages();
 			int actual = pageList.size();
 
 			// 1件削除されているか
@@ -239,7 +243,7 @@ public class KCDataTest {
 	}
 
 	public static class 購読済製品の購読を解除するケース {
-		static String userId = "meltest";
+		static String userId = "testuser";
 		static String prodId = "SSTPQH_1.0.0";
 		static String hrefKey1 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_planning_install_location.html";
 		static String hrefKey2 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_tuning_automatic_compactor.html";
@@ -254,21 +258,23 @@ public class KCDataTest {
 		public static void setUp() {
 			try {
 				// 事前に登録された状態にする、APIへの負荷を懸念しスリープ処理を入れている
+				data.createUser(userId);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey1);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey2);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 
 				preResultPages = data.checkUpdateByUser(userId);
 				prePageList = ((ResultPageList) preResultPages).getSubscribedPages();
 
 				preResultProducts = data.getSubscribedProductList(userId);
 				preProductList = ((ResultProductList) preResultProducts).getSubscribedProducts();
-				Thread.sleep(1000);
+				Thread.sleep(500);
 
 				// execute
 				data.cancelSubscribedProduct(userId, prodId);
-				Thread.sleep(1000);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -294,6 +300,19 @@ public class KCDataTest {
 
 			// 1件削除されているか
 			assertThat(actual, is(preProductList.size() - 1));
+		}
+
+		/** テストデータが事後に登録されていない状態にする、グループ内で一度だけ実行 */
+		@AfterClass
+		public static void tearDown() {
+			// テストデータとして登録したものを削除する、APIへの負荷を懸念しスリープ処理を入れている
+			try {
+				Thread.sleep(500);
+				data.deleteUser(userId);
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

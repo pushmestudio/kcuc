@@ -3,21 +3,21 @@ package jp.pushmestudio.kcuc.util;
 /**
  * 非正常系のメッセージを取り扱う
  */
-public class ErrorMessage extends Message {
+public class NormalMessage extends Message {
 
-	public ErrorMessage(int messageCode, String messageParameter) {
+	public NormalMessage(int messageCode, String messageParameter) {
 		super(messageCode, messageParameter);
 	}
 
 	@Override
 	protected void setSubject(String parameter) {
-		super.setSubject("Error");
+		super.setSubject("OK");
 	}
 
 	@Override
 	protected void setDetail(String parameter) {
 		StringBuilder detail = new StringBuilder();
-		detail.append("Error is occured. The Reason is the following: ");
+		detail.append("Response message is the following: ");
 		detail.append(parameter);
 
 		super.setDetail(detail.toString());
