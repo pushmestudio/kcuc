@@ -12,26 +12,34 @@ import java.util.Properties;
 import com.cloudant.client.api.ClientBuilder;
 import com.cloudant.client.api.CloudantClient;
 import com.cloudant.client.api.Database;
+import com.cloudant.client.api.model.Response;
 
 import jp.pushmestudio.kcuc.model.SubscribedPage;
 import jp.pushmestudio.kcuc.model.UserDocument;
 
+/**
+ * シングルトンパターンを使用(private staticなインスタンス、privateなコンストラクタ、public
+ * staticなgetInstance)しているため、インスタンス生成には {@link #getInstance()}を使うこと
+ * 
+ * CRUDの順番に記載しており、Read以外についてはCloudantの応答をそのまま返している(検討の余地あり)
+ */
 public class UserInfoDao {
 
 	private Database kcucDB;
 
-	/*
-	 * シングルトンパターン使用(private staticなインスタンス、privateなコンストラクタ、public
-	 * staticなgetInstance)
-	 * DB接続回数を抑えるための施策で、CloudantにおいてはRDBのようなコネクション維持について考慮しなくて良いのでこのような作りにしている
-	 * マルチスレッドに対応できないので拡張が進んだ際には別途対応を検討か
-	 */
 	private static UserInfoDao singleton;
 
 	private UserInfoDao(Database kcucDB) {
 		this.kcucDB = kcucDB;
 	};
 
+	/**
+	 * DB接続回数を抑えるための施策としてシングルトンパターンを使用している
+	 * CloudantにおいてはRDBのようなコネクション維持について考慮しなくて良いのでこのような作りにしているが
+	 * マルチスレッドに対応できないので拡張が進んだ際には別途対応を検討か
+	 * 
+	 * @return 生成済インスタンス or インスタンス生成結果
+	 */
 	public static UserInfoDao getInstance() {
 		if (Objects.isNull(singleton)) {
 			final String accountProp = "CLOUDANT_ACCOUNT";
@@ -72,11 +80,24 @@ public class UserInfoDao {
 	}
 
 	// CREATE - CRUD
+	/**
+	 * 指定したIDのユーザーとその購読ページを返す
+	 * 
+	 * @param userId
+	 *            探す対象となるユーザーのID
+	 * @return ユーザー作成結果
+	 */
+	public Response createUser(String userId) {
+		UserDocument newUser = new UserDocument(userId);
+		Response res = kcucDB.save(newUser);
+
+		return res;
+	}
 
 	// READ - CRUD
 
 	/**
-	 * 指定したIDのユーザーとその購読ページを返す
+	 * 指定したIDのユーザーとその購読ページを返す、IDは一意なはずなのでリストではなくていいはず、変更の余地あり
 	 * 
 	 * @param userId
 	 *            探す対象となるユーザーのID
@@ -174,12 +195,14 @@ public class UserInfoDao {
 	 *            登録するユーザのID
 	 * @param pageHref
 	 *            購読ページ
-	 * @return 指定したユーザの情報一覧（ページ追加後）
+	 * @return 登録結果
 	 */
-	public List<UserDocument> setSubscribedPages(String userId, String pageHref, String pageName, String prodId,
+	public Response setSubscribedPages(String userId, String pageHref, String pageName, String prodId,
 			String prodName) {
 		// useNameのインデックスを使用して、指定されたユーザのデータを取得
 		List<UserDocument> userDocs = this.getUserList(userId);
+
+		Response res = new Response();
 
 		// 追加するページの情報を作成
 		Date currentTime = new Date();
@@ -196,13 +219,11 @@ public class UserInfoDao {
 
 				// 指定されたユーザに該当するレコードを更新
 				updateTarget.addSubscribedPages(targetPage);
-				kcucDB.update(updateTarget);
+				res = kcucDB.update(updateTarget);
 				break;
 			}
 		}
-
-		List<UserDocument> updatedInfo = this.getUserList(userId);
-		return updatedInfo;
+		return res;
 	}
 
 	/**
@@ -212,16 +233,17 @@ public class UserInfoDao {
 	 *            対象ユーザのID
 	 * @param pageHref
 	 *            購読解除ページ
-	 * @return 指定したユーザの情報一覧（ページ追加後）// 購読解除したページ情報のみをレスポンスとしても良い気もする
+	 * @return 解除結果
 	 */
-	public List<UserDocument> delSubscribedPage(String userId, String pageHref) {
+	public Response delSubscribedPage(String userId, String pageHref) {
 		// userIdとpageHrefで指定されたユーザのデータを取得
 		List<UserDocument> userDocs = kcucDB.findByIndex(
 				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
 						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
 				UserDocument.class);
-
+		Response res = new Response();
 		UserDocument updateTarget;
+
 		Iterator<UserDocument> it = userDocs.iterator();
 		// kcucDB.findにてマッチするターゲットを見つけていたものをIteratorに置き換え
 		while (it.hasNext()) {
@@ -237,15 +259,11 @@ public class UserInfoDao {
 				}
 				// 対象ページの購読解除
 				updateTarget.delSubscribedPage(target);
-				kcucDB.update(updateTarget);
-				// 購読解除前のUserDocumentを削除
-				it.remove();
-				// 購読解除を反映したUserDocumentをuserDocs(Return用)に追加
-				userDocs.add(updateTarget);
+				res = kcucDB.update(updateTarget);
 				break;
 			}
 		}
-		return userDocs;
+		return res;
 	}
 
 	/**
@@ -255,16 +273,17 @@ public class UserInfoDao {
 	 *            対象ユーザーのID
 	 * @param prodId
 	 *            対象製品のID
-	 * @return 購読解除後の購読済みページ一覧
+	 * @return 解除結果
 	 */
-	public List<UserDocument> cancelSubscribedProduct(String userId, String prodId) throws IndexOutOfBoundsException {
+	public Response cancelSubscribedProduct(String userId, String prodId) throws IndexOutOfBoundsException {
 		// userIdとpageHrefで指定されたユーザのデータを取得
 		List<UserDocument> userDocs = this.getUserList(userId, prodId);
 
-		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
+		Response res = new Response();
 		UserDocument updateTarget;
 		Iterator<UserDocument> it = userDocs.iterator();
 
+		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
 		// kcucDB.findにてマッチするターゲットを見つけていたものをIteratorに置き換え
 		while (it.hasNext()) {
 			UserDocument userDoc = it.next();
@@ -293,15 +312,38 @@ public class UserInfoDao {
 				}
 
 				// Cloudant上のユーザ購読情報(Document)を更新
-				kcucDB.update(updateTarget);
+				res = kcucDB.update(updateTarget);
 
 				break;
 			}
 		}
 
-		// 更新後の購読ページ情報をCloudantから取得
-		List<UserDocument> updatedInfo = this.getUserList(userId);
-		return updatedInfo;
+		return res;
+	}
+
+	// DELETE - CRUD
+	/**
+	 * 指定したのユーザーを削除する
+	 * 
+	 * @param userId
+	 *            削除対象となるユーザーのID
+	 * @return ユーザー削除結果
+	 */
+	public Response deleteUser(String userId) {
+		Response res = new Response();
+		UserDocument target;
+		// useNameのインデックスを使用して、指定されたユーザのデータを取得
+		List<UserDocument> userDocs = this.getUserList(userId);
+
+		for (UserDocument userDoc : userDocs) {
+			// ユーザードキュメントから購読製品を取り出してIDが一致するものだけを取り出す
+			if (userDoc.getUserId().equals(userId)) {
+				target = userDoc;
+				res = kcucDB.remove(target);
+				break;
+			}
+		}
+		return res;
 	}
 
 	/**

@@ -41,7 +41,38 @@ import jp.pushmestudio.kcuc.util.Result;
  * Result型を応答する(=APIインタフェースから呼ばれる)場合は、必ずtry-catch処理を実施すること
  */
 public class KCData {
-	// TODO メソッドの並びを、コンストラクタ, Public, Privateのようにわかりやすい並びにする
+	/**
+	 * 購読解除したいページを削除し、購読情報を結果として返す
+	 *
+	 * @param userId
+	 *            対象のユーザーID
+	 * @param prodId
+	 *            購読解除する製品ID、このIDに紐づくすべてのページを購読解除する
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
+	 */
+	public Result cancelSubscribedProduct(String userId, String prodId) {
+		try {
+			// DBのユーザーからのデータ取得処理
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
+
+			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
+			if (!userInfoDao.isUserExist(userId)) {
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
+			}
+
+			com.cloudant.client.api.model.Response res = userInfoDao.cancelSubscribedProduct(userId, prodId);
+			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			// エラーメッセージを作成
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+		} catch (IndexOutOfBoundsException ee) {
+			// 購読しているページの中に指定製品が含まれるかを確認するメソッドを実装したらこの処理は削除する
+			ee.printStackTrace();
+			// エラーメッセージを作成
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Product.");
+		}
+	}
 
 	/**
 	 * 更新確認対象のページキー(TOCの中のtopics(ページ一覧の)の中の特定のページのhref)を元に 最終更新日時を比較した結果を返す
@@ -54,10 +85,7 @@ public class KCData {
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}</code>
 	 */
 	public Result checkUpdateByPage(String pageKey) {
-		// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
-		// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
-		String pageHref = pageKey.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
-				"\\.html");
+		String pageHref = this.normalizeHref(pageKey);
 		try {
 			// KCからのデータ取得処理
 			TopicMeta topicMeta = getSpecificPageMeta(pageHref);
@@ -177,23 +205,132 @@ public class KCData {
 	}
 
 	/**
+	 * 指定したIDのユーザーを作成する
+	 * 
+	 * @param userId
+	 *            作成対象のユーザーのID
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
+	 */
+	public Result createUser(String userId) {
+		// DBのユーザーからのデータ取得処理
+		UserInfoDao userInfoDao = UserInfoDao.getInstance();
+
+		com.cloudant.client.api.model.Response res = userInfoDao.createUser(userId);
+
+		Result result = KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+		return result;
+	}
+
+	/**
+	 * 購読解除したいページを削除し、購読情報を結果として返す
+	 *
+	 * @param userId
+	 *            対象のユーザーID
+	 * @param href
+	 *            購読解除するページ
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
+	 *
+	 */
+	public Result deleteSubscribedPage(String userId, String href) {
+		try {
+			String pageHref = this.normalizeHref(href);
+
+			// DBのユーザーからのデータ取得処理
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
+
+			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
+			if (!userInfoDao.isUserExist(userId)) {
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
+				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
+			} else if (!isTopicExist(pageHref)) {
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
+				// 指定されたページを購読していない場合もエラーメッセージを返す
+			} else if (!userInfoDao.isPageExist(userId, pageHref)) {
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Page.");
+			}
+
+			com.cloudant.client.api.model.Response res = userInfoDao.delSubscribedPage(userId, pageHref);
+			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			// エラーメッセージを作成
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+		}
+	}
+
+	/**
+	 * 指定したIDのユーザーを削除する
+	 * 
+	 * @param userId
+	 *            削除対象のユーザーのID
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
+	 */
+	public Result deleteUser(String userId) {
+		// DBのユーザーからのデータ取得処理
+		UserInfoDao userInfoDao = UserInfoDao.getInstance();
+
+		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
+
+		Result result = KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+		return result;
+	}
+
+	/**
+	 * 購読しているページ一覧を取得し、その中から製品情報を抽出して一覧にして返す
+	 * 同じ製品を重複して登録しないためにHashSetで処理した結果をリストに渡している
+	 *
+	 * @param userId
+	 *            製品一覧
+	 * @return 購読している製品一覧とユーザーID
+	 * @see {@link ResultProductList}
+	 */
+	public Result getSubscribedProductList(String userId) {
+		/*
+		 * TODO ネットワークエラーなどで接続に失敗すると java.net.UnknownHostException,
+		 * java.net.ConnectException,
+		 * com.cloudant.client.org.lightcouch.CouchDbExceptionなどが起きうるがどこまで対処するか
+		 */
+		// DBのユーザーからのデータ取得処理
+		UserInfoDao userInfoDao = UserInfoDao.getInstance();
+
+		// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
+		if (!userInfoDao.isUserExist(userId)) {
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found");
+		}
+
+		// IDはユニークなはずなので、Listにする必要はない
+		List<UserDocument> userList = userInfoDao.getUserList(userId);
+
+		// return用
+		Result result = new ResultProductList(userId);
+
+		/*
+		 * TODO 現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
+		 * 直接購読している製品一覧を取得しても良いかもしれない(特に購読件数が増えたときに通信量の低減と速度向上に繋がる)
+		 */
+		for (UserDocument userDoc : userList) {
+			List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
+
+			subscribedPages.forEach(entry -> {
+				((ResultProductList) result).addSubscribedProduct(entry.getProdId(), entry.getProdName());
+			});
+		}
+
+		return result;
+	}
+
+	/**
 	 * 購読したいページとユーザIDを追加し、追加したページを含めた結果を返す
 	 *
 	 * @param userId
 	 *            登録確認対象のユーザーID
 	 * @param href
 	 *            購読登録するページ
-	 * @return 登録の成否と、あるユーザが購読しているリストの一覧。以下は例示
-	 *         <code>{"result":"success", "pages":[{"pageHref":"SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"},
-	 *         {"pageHref":"SS42VS_7.2.7/com.ibm.qradar.doc/b_qradar_qsg.html"}],
-	 *         "id":"capsmalt"}</code>
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
 	 */
 	public Result registerSubscribedPage(String userId, String href) {
 		try {
-			// .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
-			// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
-			String pageHref = href.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
-					"\\.html");
+			String pageHref = this.normalizeHref(href);
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = UserInfoDao.getInstance();
@@ -216,17 +353,48 @@ public class KCData {
 			String prodName = this.searchProduct(prodId).getLabel();
 			String pageName = this.getPageName(prodId, pageHref);
 
-			List<UserDocument> userList = userInfoDao.setSubscribedPages(userId, pageHref, pageName, prodId, prodName);
-			// return用
-			Result result = new ResultPageList(userId);
-			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
-
-			return result;
+			com.cloudant.client.api.model.Response res = userInfoDao.setSubscribedPages(userId, pageHref, pageName,
+					prodId, prodName);
+			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
 			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Communication Error");
 		}
+	}
+
+	/**
+	 * 引数のページキーに対応する内容を返す、誤った言語コードの場合にはKCが自動的に英語で返すようになっているが、
+	 * もし誤っている場合は日本語にしたい、などの要件が加わった場合はLocaleクラスを使った判定を加える必要がある
+	 *
+	 * @param href
+	 *            検索対象ページキー
+	 * @param lang
+	 *            言語コード(ISO 639-1)
+	 * @see https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html
+	 *
+	 * @return ページ内容
+	 */
+	public Result searchContent(String href, String lang) {
+		// @see https://jersey.java.net/documentation/latest/client.html
+		Client client = ClientBuilder.newClient();
+		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/content";
+
+		String pagehref = this.normalizeHref(href);
+
+		WebTarget target;
+		// 引数の言語コードを確認し、nullなら言語コード指定なしのパス指定とする
+		if (Objects.isNull(lang)) {
+			target = client.target(searchUrl).path(pagehref);
+		} else {
+			target = client.target(searchUrl).path(lang).path(pagehref);
+		}
+
+		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+		Response res = invocationBuilder.get();
+		Result result = new ResultContent(res.readEntity(String.class));
+
+		return result;
 	}
 
 	/**
@@ -303,133 +471,6 @@ public class KCData {
 	}
 
 	/**
-	 * 購読しているページ一覧を取得し、その中から製品情報を抽出して一覧にして返す
-	 * 同じ製品を重複して登録しないためにHashSetで処理した結果をリストに渡している
-	 *
-	 * @param userId
-	 *            製品一覧
-	 * @return 購読している製品一覧とユーザーID
-	 * @see {@link ResultProductList}
-	 */
-	public Result getSubscribedProductList(String userId) {
-		/*
-		 * TODO ネットワークエラーなどで接続に失敗すると java.net.UnknownHostException,
-		 * java.net.ConnectException,
-		 * com.cloudant.client.org.lightcouch.CouchDbExceptionなどが起きうるがどこまで対処するか
-		 */
-		// DBのユーザーからのデータ取得処理
-		UserInfoDao userInfoDao = UserInfoDao.getInstance();
-
-		// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
-		if (!userInfoDao.isUserExist(userId)) {
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found");
-		}
-
-		// IDはユニークなはずなので、Listにする必要はない
-		List<UserDocument> userList = userInfoDao.getUserList(userId);
-
-		// return用
-		Result result = new ResultProductList(userId);
-
-		/*
-		 * TODO 現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
-		 * 直接購読している製品一覧を取得しても良いかもしれない(特に購読件数が増えたときに通信量の低減と速度向上に繋がる)
-		 */
-		for (UserDocument userDoc : userList) {
-			List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
-
-			subscribedPages.forEach(entry -> {
-				((ResultProductList) result).addSubscribedProduct(entry.getProdId(), entry.getProdName());
-			});
-
-		}
-		return result;
-	}
-
-	/**
-	 * 引数のページキーに対応する内容を返す、誤った言語コードの場合にはKCが自動的に英語で返すようになっているが、
-	 * もし誤っている場合は日本語にしたい、などの要件が加わった場合はLocaleクラスを使った判定を加える必要がある
-	 *
-	 * @param href
-	 *            検索対象ページキー
-	 * @param lang
-	 *            言語コード(ISO 639-1)
-	 * @see https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html
-	 *
-	 * @return ページ内容
-	 */
-	public Result searchContent(String href, String lang) {
-		// @see https://jersey.java.net/documentation/latest/client.html
-		Client client = ClientBuilder.newClient();
-		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/content";
-
-		// "?sc=latest"を含むページキーで検索をかけるとエラーとなるため、削除する
-		String pagehref = href.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$", "\\.html");
-
-		WebTarget target;
-		// 引数の言語コードを確認し、nullなら言語コード指定なしのパス指定とする
-		if (Objects.isNull(lang)) {
-			target = client.target(searchUrl).path(pagehref);
-		} else {
-			target = client.target(searchUrl).path(lang).path(pagehref);
-		}
-
-		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
-		Response res = invocationBuilder.get();
-		Result result = new ResultContent(res.readEntity(String.class));
-
-		return result;
-	}
-
-	/**
-	 * 特定ページが属する製品をKCから取得する
-	 *
-	 * @param productKey
-	 *            特定ページ
-	 * @return 得られたJSONを元に生成した{@link Product}オブジェクト | null
-	 */
-	private Product searchProduct(String productKey) {
-		// @see https://jersey.java.net/documentation/latest/client.html
-		Client client = ClientBuilder.newClient();
-		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/products/";
-
-		WebTarget target = client.target(searchUrl + productKey);
-
-		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
-		Response res = invocationBuilder.get();
-
-		JSONObject resJson = new JSONObject(res.readEntity(String.class));
-
-		// ページがproduct情報を持つ場合
-		if (resJson.has("product")) {
-			return new Product(resJson.getJSONObject("product"));
-		} else {
-			return null;
-		}
-	}
-
-	/**
-	 * KCに問い合わせた結果を、メタ情報を持ったオブジェクトに詰めて応答する
-	 *
-	 * @param specificHref
-	 *            更新の有無を確認する対象のpageのHref
-	 * @return topic_metadataから得られた応答を抽出してプロパティとしてセットした{@link TopicMeta}
-	 */
-	private TopicMeta getSpecificPageMeta(String specificHref) throws JSONException {
-		// @see https://jersey.java.net/documentation/latest/client.html
-		Client client = ClientBuilder.newClient();
-		final String topicMetaUrl = "https://www.ibm.com/support/knowledgecenter/v1/topic_metadata";
-		WebTarget target = client.target(topicMetaUrl).queryParam("href", specificHref);
-
-		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
-		Response res = invocationBuilder.get();
-
-		JSONObject resJson = new JSONObject(res.readEntity(String.class));
-		return new TopicMeta(resJson);
-
-	}
-
-	/**
 	 * 特定のページのページ名を取得する。公開されているbreadcrumb(パンくずリスト)の応答がhrefとlabelである性質を利用している
 	 *
 	 * @param prodId
@@ -459,24 +500,25 @@ public class KCData {
 		return pageName;
 	}
 
-	@SuppressWarnings("unused")
-	private JSONObject getTOC(String productKey) throws JSONException {
+	/**
+	 * KCに問い合わせた結果を、メタ情報を持ったオブジェクトに詰めて応答する
+	 *
+	 * @param specificHref
+	 *            更新の有無を確認する対象のpageのHref
+	 * @return topic_metadataから得られた応答を抽出してプロパティとしてセットした{@link TopicMeta}
+	 */
+	private TopicMeta getSpecificPageMeta(String specificHref) throws JSONException {
 		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
-		final String tocUrl = "https://www.ibm.com/support/knowledgecenter/v1/toc/";
-		WebTarget target = client.target(tocUrl + productKey);
+		final String topicMetaUrl = "https://www.ibm.com/support/knowledgecenter/v1/topic_metadata";
+		WebTarget target = client.target(topicMetaUrl).queryParam("href", specificHref);
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
 		Response res = invocationBuilder.get();
 
-		/*
-		 * JSONの中身の特にtoc.topicsは、再帰的な構造になっている {"productFamily": {}, "toc": {
-		 * "href":"", "label":"", "topics":[{"href":"", "label":""}, {"href":"",
-		 * "label":""}]}}
-		 */
 		JSONObject resJson = new JSONObject(res.readEntity(String.class));
+		return new TopicMeta(resJson);
 
-		return resJson.getJSONObject("toc");
 	}
 
 	/**
@@ -496,96 +538,44 @@ public class KCData {
 	}
 
 	/**
-	 * 購読解除したいページを削除し、購読情報を結果として返す
-	 *
-	 * @param userId
-	 *            対象のユーザーID
-	 * @param href
-	 *            購読解除するページ
-	 * @return 購読解除の成否と、解除後の購読情報
-	 *
+	 * .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一する（不正な拡張子はisTopicExist()で弾かれる)
+	 * 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除するための処理
+	 * xxx.htm,xxx.htm?sc=_latest,xxx.html?sc=_latestをxxx.htmlに置き換える
+	 * 
+	 * @param originalHref
+	 *            置き換え前のhref
+	 * @return 置き換え後のhref
 	 */
-	public Result deleteSubscribedPage(String userId, String href) {
-		try {
-			// .htmでの解除は行わせず、全て.htmlで解除を行わせるように拡張子を統一（不正な拡張子はisTopicExist()で弾かれる)
-			// 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除する
-			String pageHref = href.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
-					"\\.html");
-
-			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = UserInfoDao.getInstance();
-
-			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
-			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
-				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
-			} else if (!isTopicExist(pageHref)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
-				// 指定されたページを購読していない場合もエラーメッセージを返す
-			} else if (!userInfoDao.isPageExist(userId, pageHref)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Page.");
-			}
-
-			List<UserDocument> userList = userInfoDao.delSubscribedPage(userId, pageHref);
-
-			Result result = new ResultPageList(userId);
-			((ResultPageList) result).setSubscribedPages(userList.get(0).getSubscribedPages());
-
-			return result;
-		} catch (JSONException e) {
-			e.printStackTrace();
-			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
-		}
+	private String normalizeHref(String originalHref) {
+		String normalizedHref = originalHref
+				.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$", "\\.html");
+		return normalizedHref;
 	}
 
 	/**
-	 * 購読解除したいページを削除し、購読情報を結果として返す
+	 * 特定ページが属する製品をKCから取得する
 	 *
-	 * @param userId
-	 *            対象のユーザーID
-	 * @param prodId
-	 *            購読解除する製品ID、このIDに紐づくすべてのページを購読解除する
-	 * @return 購読解除の成否と、解除後の購読情報
-	 *
+	 * @param productKey
+	 *            特定ページ
+	 * @return 得られたJSONを元に生成した{@link Product}オブジェクト | null
 	 */
-	public Result cancelSubscribedProduct(String userId, String prodId) {
-		try {
-			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = UserInfoDao.getInstance();
+	private Product searchProduct(String productKey) {
+		// @see https://jersey.java.net/documentation/latest/client.html
+		Client client = ClientBuilder.newClient();
+		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/products/";
 
-			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
-			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
-			}
+		WebTarget target = client.target(searchUrl + productKey);
 
-			List<UserDocument> userList = userInfoDao.cancelSubscribedProduct(userId, prodId);
+		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
+		Response res = invocationBuilder.get();
 
-			// return用
-			Result result = new ResultProductList(userId);
+		JSONObject resJson = new JSONObject(res.readEntity(String.class));
 
-			/*
-			 * TODO 現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
-			 * 直接購読している製品一覧を取得しても良いかもしれない(特に購読件数が増えたときに通信量の低減と速度向上に繋がる)
-			 */
-			for (UserDocument userDoc : userList) {
-				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
-
-				subscribedPages.forEach(entry -> {
-					((ResultProductList) result).addSubscribedProduct(entry.getProdId(), entry.getProdName());
-				});
-
-			}
-			return result;
-		} catch (JSONException e) {
-			e.printStackTrace();
-			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
-		} catch (IndexOutOfBoundsException ee) {
-			// 購読しているページの中に指定製品が含まれるかを確認するメソッドを実装したらこの処理は削除する
-			ee.printStackTrace();
-			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Product.");
+		// ページがproduct情報を持つ場合
+		if (resJson.has("product")) {
+			return new Product(resJson.getJSONObject("product"));
+		} else {
+			return null;
 		}
 	}
 
