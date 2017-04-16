@@ -13,6 +13,7 @@ import com.cloudant.client.api.ClientBuilder;
 import com.cloudant.client.api.CloudantClient;
 import com.cloudant.client.api.Database;
 import com.cloudant.client.api.model.Response;
+import com.cloudant.client.org.lightcouch.TooManyRequestsException;
 
 import jp.pushmestudio.kcuc.model.SubscribedPage;
 import jp.pushmestudio.kcuc.model.UserDocument;
@@ -22,6 +23,10 @@ import jp.pushmestudio.kcuc.model.UserDocument;
  * staticなgetInstance)しているため、インスタンス生成には {@link #getInstance()}を使うこと
  * 
  * CRUDの順番に記載しており、Read以外についてはCloudantの応答をそのまま返している(検討の余地あり)
+ * 
+ * TODO ネットワークエラーなどで接続に失敗すると java.net.UnknownHostException,
+ * java.net.ConnectException,
+ * com.cloudant.client.org.lightcouch.CouchDbExceptionなどが起きうるがどこまで対処するか
  */
 public class UserInfoDao {
 
@@ -89,8 +94,22 @@ public class UserInfoDao {
 	 */
 	public Response createUser(String userId) {
 		UserDocument newUser = new UserDocument(userId);
-		Response res = kcucDB.save(newUser);
-
+		Response res;
+		try {
+			// リトライ向けに2回書いているので修正時はどちらも直すこと
+			res = kcucDB.save(newUser);
+		} catch (TooManyRequestsException e) {
+			// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+			e.printStackTrace();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ee) {
+				ee.printStackTrace();
+			}
+			// DBへの更新処理
+			res = kcucDB.save(newUser);
+			// ここをres = this.createUser(userId)にすれば再帰呼び出しで成功するまでリトライし続ける
+		}
 		return res;
 	}
 
@@ -105,8 +124,21 @@ public class UserInfoDao {
 	 */
 	public List<UserDocument> getUserList(String userId) {
 		// userIdのインデックスを使用して、指定されたユーザ名に一致するユーザのデータを取得
-		List<UserDocument> userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}",
-				UserDocument.class);
+		List<UserDocument> userDocs;
+		try {
+			// リトライ向けに2回書いているので修正時はどちらも直すこと
+			userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}", UserDocument.class);
+		} catch (TooManyRequestsException e) {
+			// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+			e.printStackTrace();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ee) {
+				ee.printStackTrace();
+			}
+			userDocs = kcucDB.findByIndex("{\"selector\":{\"userId\":\"" + userId + "\"}}", UserDocument.class);
+			// ここをuserDocs = this.getUserList(userId)にすれば再帰呼び出しで成功するまでリトライし続ける
+		}
 
 		return userDocs;
 	}
@@ -150,9 +182,27 @@ public class UserInfoDao {
 	 */
 	public List<UserDocument> getSubscribedUserList(String pageHref) {
 		// pageHrefのインデックスを使用して、指定されたページキーを購読しているユーザのデータを取得
-		List<UserDocument> userDocs = kcucDB.findByIndex(
-				"{\"selector\":{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}}",
-				UserDocument.class);
+		List<UserDocument> userDocs;
+
+		try {
+			// リトライ向けに2回書いているので修正時はどちらも直すこと
+			userDocs = kcucDB.findByIndex(
+					"{\"selector\":{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}}",
+					UserDocument.class);
+		} catch (TooManyRequestsException e) {
+			// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+			e.printStackTrace();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ee) {
+				ee.printStackTrace();
+			}
+			userDocs = kcucDB.findByIndex(
+					"{\"selector\":{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}}",
+					UserDocument.class);
+			// ここをuserDocs =
+			// this.getSubscribedUserList(pageHref)にすれば再帰呼び出しで成功するまでリトライし続ける
+		}
 
 		return userDocs;
 	}
@@ -179,10 +229,28 @@ public class UserInfoDao {
 	 * @return True or False
 	 */
 	public boolean isPageExist(String userId, String pageHref) {
-		List<UserDocument> userDocs = kcucDB.findByIndex(
-				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
-						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
-				UserDocument.class);
+		List<UserDocument> userDocs;
+		try {
+			// リトライ向けに2回書いているので修正時はどちらも直すこと
+			userDocs = kcucDB.findByIndex(
+					"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
+							+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
+					UserDocument.class);
+		} catch (TooManyRequestsException e) {
+			// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+			e.printStackTrace();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ee) {
+				ee.printStackTrace();
+			}
+			userDocs = kcucDB.findByIndex(
+					"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
+							+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
+					UserDocument.class);
+			// ここをuserDocs =
+			// this.isPageExist(userId, pageHref)にすれば再帰呼び出しで成功するまでリトライし続ける
+		}
 		return userDocs.size() > 0 ? true : false;
 	}
 
@@ -219,7 +287,24 @@ public class UserInfoDao {
 
 				// 指定されたユーザに該当するレコードを更新
 				updateTarget.addSubscribedPages(targetPage);
-				res = kcucDB.update(updateTarget);
+
+				try {
+					// DBへのアップデート処理
+					// リトライ向けに2回書いているので修正時はどちらも直すこと
+					res = kcucDB.update(updateTarget);
+				} catch (TooManyRequestsException e) {
+					// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+					e.printStackTrace();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ee) {
+						ee.printStackTrace();
+					}
+					res = kcucDB.update(updateTarget);
+					// ここをres = setSubscribedPages(userId, pageHref, pageName,
+					// prodId, prodName)にすれば再帰呼び出しで成功するまでリトライし続ける
+				}
+
 				break;
 			}
 		}
@@ -237,10 +322,29 @@ public class UserInfoDao {
 	 */
 	public Response delSubscribedPage(String userId, String pageHref) {
 		// userIdとpageHrefで指定されたユーザのデータを取得
-		List<UserDocument> userDocs = kcucDB.findByIndex(
-				"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
-						+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
-				UserDocument.class);
+		List<UserDocument> userDocs;
+		try {
+			// リトライ向けに2回書いているので修正時はどちらも直すこと
+			userDocs = kcucDB.findByIndex(
+					"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
+							+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
+					UserDocument.class);
+		} catch (TooManyRequestsException e) {
+			// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+			e.printStackTrace();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ee) {
+				ee.printStackTrace();
+			}
+			userDocs = kcucDB.findByIndex(
+					"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
+							+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
+					UserDocument.class);
+			// ここをres = delSubscribedPage(userId,
+			// pageHref)にすれば再帰呼び出しで成功するまでリトライし続ける
+		}
+
 		Response res = new Response();
 		UserDocument updateTarget;
 
@@ -259,7 +363,24 @@ public class UserInfoDao {
 				}
 				// 対象ページの購読解除
 				updateTarget.delSubscribedPage(target);
-				res = kcucDB.update(updateTarget);
+
+				try {
+					// DBへのアップデート処理
+					// リトライ向けに2回書いているので修正時はどちらも直すこと
+					res = kcucDB.update(updateTarget);
+				} catch (TooManyRequestsException e) {
+					// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+					e.printStackTrace();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ee) {
+						ee.printStackTrace();
+					}
+					res = kcucDB.update(updateTarget);
+					// ここをres = delSubscribedPage(userId,
+					// pageHref)にすれば再帰呼び出しで成功するまでリトライし続ける
+				}
+
 				break;
 			}
 		}
@@ -311,9 +432,22 @@ public class UserInfoDao {
 					updateTarget.delSubscribedPage(eachTarget);
 				}
 
-				// Cloudant上のユーザ購読情報(Document)を更新
-				res = kcucDB.update(updateTarget);
-
+				try {
+					// DBへのアップデート処理
+					// リトライ向けに2回書いているので修正時はどちらも直すこと
+					res = kcucDB.update(updateTarget);
+				} catch (TooManyRequestsException e) {
+					// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+					e.printStackTrace();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ee) {
+						ee.printStackTrace();
+					}
+					res = kcucDB.update(updateTarget);
+					// ここをres = cancelSubscribedProduct(userId,
+					// prodId)にすれば再帰呼び出しで成功するまでリトライし続ける
+				}
 				break;
 			}
 		}
@@ -339,7 +473,23 @@ public class UserInfoDao {
 			// ユーザードキュメントから購読製品を取り出してIDが一致するものだけを取り出す
 			if (userDoc.getUserId().equals(userId)) {
 				target = userDoc;
-				res = kcucDB.remove(target);
+
+				try {
+					// DBへのアップデート処理
+					// リトライ向けに2回書いているので修正時はどちらも直すこと
+					res = kcucDB.remove(target);
+				} catch (TooManyRequestsException e) {
+					// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+					e.printStackTrace();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ee) {
+						ee.printStackTrace();
+					}
+					res = kcucDB.remove(target);
+					// ここをres = deleteUser(userId)にすれば再帰呼び出しで成功するまでリトライし続ける
+				}
+
 				break;
 			}
 		}

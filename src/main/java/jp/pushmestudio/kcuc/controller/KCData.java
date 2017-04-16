@@ -285,11 +285,6 @@ public class KCData {
 	 * @see {@link ResultProductList}
 	 */
 	public Result getSubscribedProductList(String userId) {
-		/*
-		 * TODO ネットワークエラーなどで接続に失敗すると java.net.UnknownHostException,
-		 * java.net.ConnectException,
-		 * com.cloudant.client.org.lightcouch.CouchDbExceptionなどが起きうるがどこまで対処するか
-		 */
 		// DBのユーザーからのデータ取得処理
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
