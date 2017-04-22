@@ -14,17 +14,13 @@ public class SubscribedPage {
 	/**
 	 * @param pageHref ページキー
 	 * @param pageName ページラベル
-	 * @param isUpdated 取得したページ情報の方が格納した時点よりも新しいか否かを示すフラグ
-	 * @param updatedTime 作成されたかあるいは更新された時刻のいずれかより新しい方
 	 * @param prodId 製品ID
 	 * @param prodName 製品名
 	 */
-	public SubscribedPage(String pageHref, String pageName, boolean isUpdated, long updatedTime, String prodId,
+	public SubscribedPage(String pageHref, String pageName, String prodId,
 			String prodName) {
 		this.pageHref = pageHref;
 		this.pageName = pageName;
-		this.isUpdated = isUpdated;
-		this.updatedTime = updatedTime;
 		this.prodId = prodId;
 		this.prodName = prodName;
 	}

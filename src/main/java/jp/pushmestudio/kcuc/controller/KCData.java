@@ -79,7 +79,7 @@ public class KCData {
 	 *
 	 * @param pageKey
 	 *            更新確認対象のページのキー
-	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
+	 * @return あるページを購読しているユーザーごとに、1週間以内に更新があったか否かなどを含む形で応答する
 	 *         <code>{"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}</code>
 	 */
@@ -96,7 +96,7 @@ public class KCData {
 
 			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 			final long weekSeconds = (7 * 24 * 60 * 60); // 604,800秒
-			long preservedTime = new Date().getTime() - weekSeconds; // 1週間以内に更新があったかどうかの判定に使う
+			final long oneWeekAgo = new Date().getTime() - weekSeconds; // 1週間以内に更新があったかどうかの判定に使う
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = UserInfoDao.getInstance();
@@ -106,7 +106,7 @@ public class KCData {
 			Result result = new ResultUserList(pageHref);
 
 			for (UserDocument userDoc : userList) {
-				UserInfo eachUser = new UserInfo(userDoc.getUserId(), preservedTime < lastModifiedDate.getTime());
+				UserInfo eachUser = new UserInfo(userDoc.getUserId(), oneWeekAgo < lastModifiedDate.getTime());
 				((ResultUserList) result).addSubscriber(eachUser);
 			}
 
@@ -124,7 +124,7 @@ public class KCData {
 	 *
 	 * @param userId
 	 *            更新確認対象のユーザーID
-	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
+	 * @return あるページを購読しているユーザーごとに1週間以内に更新があったか否かなどを含む形で応答する、以下は例示
 	 *         <code>{"pages":[{"isUpdated":true,"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}],
 	 *         "id":"capsmalt"}</code>
@@ -140,7 +140,7 @@ public class KCData {
 	 *            更新確認対象のユーザーID
 	 * @param prodId
 	 *            更新確認対象の製品ID, Optional
-	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
+	 * @return あるページを購読しているユーザーごとに1週間以内に更新があったか否かなどを含む形で応答する、以下は例示
 	 *         <code>{"pages":[{"isUpdated":true,"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}],
 	 *         "id":"capsmalt"}</code>
@@ -167,12 +167,15 @@ public class KCData {
 			// return用
 			Result result = new ResultPageList(userId);
 
+			// 更新有無判定用
+			final long weekSeconds = (7 * 24 * 60 * 60); // 604,800秒
+			final long oneWeekAgo = new Date().getTime() - weekSeconds; // 1週間以内に更新があったかどうかの判定に使う
+
 			for (UserDocument userDoc : userList) {
 				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
 
 				for (SubscribedPage entry : subscribedPages) {
 					String pageKey = entry.getPageHref();
-					long preservedDate = entry.getUpdatedTime();
 
 					// KCからのデータ取得処理
 					TopicMeta topicMeta = getSpecificPageMeta(pageKey);
@@ -184,7 +187,7 @@ public class KCData {
 
 					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
-					entry.setIsUpdated(preservedDate < lastModifiedDate.getTime());
+					entry.setIsUpdated(oneWeekAgo < lastModifiedDate.getTime());
 					((ResultPageList) result).addSubscribedPage(entry);
 				}
 			}
