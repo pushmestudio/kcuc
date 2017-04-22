@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -96,6 +95,8 @@ public class KCData {
 			}
 
 			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
+			final long weekSeconds = (7 * 24 * 60 * 60); // 604,800秒
+			long preservedTime = new Date().getTime() - weekSeconds; // 1週間以内に更新があったかどうかの判定に使う
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = UserInfoDao.getInstance();
@@ -105,14 +106,7 @@ public class KCData {
 			Result result = new ResultUserList(pageHref);
 
 			for (UserDocument userDoc : userList) {
-				// userDocにはsubscribedPagesがListで複数保持されているため、該当のpageKeyをもつもののみ抽出
-				List<Long> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
-						.filter(s -> s.getPageHref().equals(pageHref)).map(s -> s.getUpdatedTime())
-						.collect(Collectors.toList());
-
-				// ↑の結果はListで返るが、1ユーザが同じページを購読することは仕様上禁止されるはずであるため最初の値を常に使用できる
-				long preservedDate = targetPageUpdatedTime.get(0);
-				UserInfo eachUser = new UserInfo(userDoc.getUserId(), preservedDate < lastModifiedDate.getTime());
+				UserInfo eachUser = new UserInfo(userDoc.getUserId(), preservedTime < lastModifiedDate.getTime());
 				((ResultUserList) result).addSubscriber(eachUser);
 			}
 
