@@ -12,13 +12,16 @@ public class SubscribedPage {
 	private String prodName;
 
 	/**
-	 * @param pageHref ページキー
-	 * @param pageName ページラベル
-	 * @param prodId 製品ID
-	 * @param prodName 製品名
+	 * @param pageHref
+	 *            ページキー
+	 * @param pageName
+	 *            ページラベル
+	 * @param prodId
+	 *            製品ID
+	 * @param prodName
+	 *            製品名
 	 */
-	public SubscribedPage(String pageHref, String pageName, String prodId,
-			String prodName) {
+	public SubscribedPage(String pageHref, String pageName, String prodId, String prodName) {
 		this.pageHref = pageHref;
 		this.pageName = pageName;
 		this.prodId = prodId;
@@ -49,8 +52,12 @@ public class SubscribedPage {
 		return prodName;
 	}
 
-	public boolean setIsUpdated(boolean isUpdated) {
-		return this.isUpdated = isUpdated;
+	public void setIsUpdated(boolean isUpdated) {
+		this.isUpdated = isUpdated;
+	}
+
+	public void setUpdatedTime(long updatedTime) {
+		this.updatedTime = updatedTime;
 	}
 
 	// @see https://github.com/cloudant/java-cloudant
