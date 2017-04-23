@@ -40,6 +40,9 @@ import jp.pushmestudio.kcuc.util.Result;
  * Result型を応答する(=APIインタフェースから呼ばれる)場合は、必ずtry-catch処理を実施すること
  */
 public class KCData {
+	/** 更新判定に使う */
+	final long weekMilliSeconds = (1000 * 60 * 60 * 24 * 7); // 604,800,000ミリ秒
+
 	/**
 	 * 購読解除したいページを削除し、購読情報を結果として返す
 	 *
@@ -95,8 +98,7 @@ public class KCData {
 			}
 
 			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
-			final long weekSeconds = (7 * 24 * 60 * 60); // 604,800秒
-			final long oneWeekAgo = new Date().getTime() - weekSeconds; // 1週間以内に更新があったかどうかの判定に使う
+			final long oneWeekAgo = new Date().getTime() - weekMilliSeconds; // 1週間以内に更新があったかどうかの判定に使う
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = UserInfoDao.getInstance();
@@ -168,8 +170,7 @@ public class KCData {
 			Result result = new ResultPageList(userId);
 
 			// 更新有無判定用
-			final long weekSeconds = (7 * 24 * 60 * 60); // 604,800秒
-			final long oneWeekAgo = new Date().getTime() - weekSeconds; // 1週間以内に更新があったかどうかの判定に使う
+			final long oneWeekAgo = new Date().getTime() - weekMilliSeconds; // 1週間以内に更新があったかどうかの判定に使う
 
 			for (UserDocument userDoc : userList) {
 				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
@@ -187,7 +188,10 @@ public class KCData {
 
 					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
+					// 最終更新日時と更新有無をセット
 					entry.setIsUpdated(oneWeekAgo < lastModifiedDate.getTime());
+					entry.setUpdatedTime(lastModifiedDate.getTime());
+
 					((ResultPageList) result).addSubscribedPage(entry);
 				}
 			}
