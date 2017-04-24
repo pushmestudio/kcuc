@@ -3,7 +3,6 @@ package jp.pushmestudio.kcuc.dao;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -273,9 +272,7 @@ public class UserInfoDao {
 		Response res = new Response();
 
 		// 追加するページの情報を作成
-		Date currentTime = new Date();
-		long timestamp = currentTime.getTime();
-		SubscribedPage targetPage = new SubscribedPage(pageHref, pageName, false, timestamp, prodId, prodName);
+		SubscribedPage targetPage = new SubscribedPage(pageHref, pageName, prodId, prodName);
 
 		UserDocument updateTarget;
 		Iterator<UserDocument> it = userDocs.iterator();
