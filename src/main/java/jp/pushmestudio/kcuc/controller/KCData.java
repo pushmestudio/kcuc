@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -41,6 +40,9 @@ import jp.pushmestudio.kcuc.util.Result;
  * Result型を応答する(=APIインタフェースから呼ばれる)場合は、必ずtry-catch処理を実施すること
  */
 public class KCData {
+	/** 更新判定に使う */
+	final long weekMilliSeconds = (1000 * 60 * 60 * 24 * 7); // 604,800,000ミリ秒
+
 	/**
 	 * 購読解除したいページを削除し、購読情報を結果として返す
 	 *
@@ -80,11 +82,13 @@ public class KCData {
 	 *
 	 * @param pageKey
 	 *            更新確認対象のページのキー
-	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
+	 * @param baseTime
+	 *            更新判断の基準とするタイムスタンプ, Optional
+	 * @return あるページを購読しているユーザーごとに、1週間以内に更新があったか否かなどを含む形で応答する
 	 *         <code>{"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}</code>
 	 */
-	public Result checkUpdateByPage(String pageKey) {
+	public Result checkUpdateByPage(String pageKey, Long baseTime) {
 		String pageHref = this.normalizeHref(pageKey);
 		try {
 			// KCからのデータ取得処理
@@ -96,6 +100,8 @@ public class KCData {
 			}
 
 			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
+			final long oneWeekAgo = new Date().getTime() - weekMilliSeconds; // 1週間以内に更新があったかどうかの判定に使う
+			baseTime = Optional.ofNullable(baseTime).orElse(oneWeekAgo);
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = UserInfoDao.getInstance();
@@ -105,14 +111,7 @@ public class KCData {
 			Result result = new ResultUserList(pageHref);
 
 			for (UserDocument userDoc : userList) {
-				// userDocにはsubscribedPagesがListで複数保持されているため、該当のpageKeyをもつもののみ抽出
-				List<Long> targetPageUpdatedTime = userDoc.getSubscribedPages().stream()
-						.filter(s -> s.getPageHref().equals(pageHref)).map(s -> s.getUpdatedTime())
-						.collect(Collectors.toList());
-
-				// ↑の結果はListで返るが、1ユーザが同じページを購読することは仕様上禁止されるはずであるため最初の値を常に使用できる
-				long preservedDate = targetPageUpdatedTime.get(0);
-				UserInfo eachUser = new UserInfo(userDoc.getUserId(), preservedDate < lastModifiedDate.getTime());
+				UserInfo eachUser = new UserInfo(userDoc.getUserId(), baseTime < lastModifiedDate.getTime());
 				((ResultUserList) result).addSubscriber(eachUser);
 			}
 
@@ -130,13 +129,13 @@ public class KCData {
 	 *
 	 * @param userId
 	 *            更新確認対象のユーザーID
-	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
+	 * @return あるページを購読しているユーザーごとに1週間以内に更新があったか否かなどを含む形で応答する、以下は例示
 	 *         <code>{"pages":[{"isUpdated":true,"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}],
 	 *         "id":"capsmalt"}</code>
 	 */
 	public Result checkUpdateByUser(String userId) {
-		return this.checkUpdateByUser(userId, null);
+		return this.checkUpdateByUser(userId, null, null);
 	}
 
 	/**
@@ -146,12 +145,14 @@ public class KCData {
 	 *            更新確認対象のユーザーID
 	 * @param prodId
 	 *            更新確認対象の製品ID, Optional
-	 * @return あるページを購読しているユーザーごとの最終更新日付けとの差異確認結果、以下は例示
+	 * @param baseTime
+	 *            更新判断の基準とするタイムスタンプ, Optional
+	 * @return あるページを購読しているユーザーごとに1週間以内に更新があったか否かなどを含む形で応答する、以下は例示
 	 *         <code>{"pages":[{"isUpdated":true,"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}],
 	 *         "id":"capsmalt"}</code>
 	 */
-	public Result checkUpdateByUser(String userId, String prodId) {
+	public Result checkUpdateByUser(String userId, String prodId, Long baseTime) {
 		try {
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = UserInfoDao.getInstance();
@@ -173,12 +174,15 @@ public class KCData {
 			// return用
 			Result result = new ResultPageList(userId);
 
+			// 更新有無判定用
+			final long oneWeekAgo = new Date().getTime() - weekMilliSeconds; // 1週間以内に更新があったかどうかの判定に使う
+			baseTime = Optional.ofNullable(baseTime).orElse(oneWeekAgo);
+
 			for (UserDocument userDoc : userList) {
 				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
 
 				for (SubscribedPage entry : subscribedPages) {
 					String pageKey = entry.getPageHref();
-					long preservedDate = entry.getUpdatedTime();
 
 					// KCからのデータ取得処理
 					TopicMeta topicMeta = getSpecificPageMeta(pageKey);
@@ -190,7 +194,10 @@ public class KCData {
 
 					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
-					entry.setIsUpdated(preservedDate < lastModifiedDate.getTime());
+					// 最終更新日時と更新有無をセット
+					entry.setIsUpdated(baseTime < lastModifiedDate.getTime());
+					entry.setUpdatedTime(lastModifiedDate.getTime());
+
 					((ResultPageList) result).addSubscribedPage(entry);
 				}
 			}
