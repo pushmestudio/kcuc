@@ -60,7 +60,7 @@ public class KCDataTest {
 		@Test
 		public void 登録済みのページを指定して1人以上の購読ユーザーを確認できる() {
 			// execute
-			Result checkResult = data.checkUpdateByPage(hrefKey2);
+			Result checkResult = data.checkUpdateByPage(hrefKey2, null);
 
 			// verify
 			List<UserInfo> userList = ((ResultUserList) checkResult).getSubscribers();
@@ -84,7 +84,7 @@ public class KCDataTest {
 		@Test
 		public void ページを購読しているユーザーと製品IDを指定して製品IDが指定したものと同じ購読ページのみが得られることを確認できる() {
 			// execute
-			Result checkResult = data.checkUpdateByUser(userId, prodId);
+			Result checkResult = data.checkUpdateByUser(userId, prodId, null);
 
 			// verify
 			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
@@ -170,7 +170,7 @@ public class KCDataTest {
 		@Test
 		public void 購読したページのページ名がブランクではないことを確認できる() {
 			// execute
-			Result gotResult = data.checkUpdateByUser(userId, prodId);
+			Result gotResult = data.checkUpdateByUser(userId, prodId, null);
 
 			// verify
 			List<SubscribedPage> pageList = ((ResultPageList) gotResult).getSubscribedPages();
