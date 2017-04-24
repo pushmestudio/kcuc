@@ -82,11 +82,13 @@ public class KCData {
 	 *
 	 * @param pageKey
 	 *            更新確認対象のページのキー
+	 * @param baseTime
+	 *            更新判断の基準とするタイムスタンプ, Optional
 	 * @return あるページを購読しているユーザーごとに、1週間以内に更新があったか否かなどを含む形で応答する
 	 *         <code>{"userList":[{"isUpdated":true,"id":"capsmalt"}],"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}</code>
 	 */
-	public Result checkUpdateByPage(String pageKey) {
+	public Result checkUpdateByPage(String pageKey, Long baseTime) {
 		String pageHref = this.normalizeHref(pageKey);
 		try {
 			// KCからのデータ取得処理
@@ -99,6 +101,7 @@ public class KCData {
 
 			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 			final long oneWeekAgo = new Date().getTime() - weekMilliSeconds; // 1週間以内に更新があったかどうかの判定に使う
+			baseTime = Optional.ofNullable(baseTime).orElse(oneWeekAgo);
 
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = UserInfoDao.getInstance();
@@ -108,7 +111,7 @@ public class KCData {
 			Result result = new ResultUserList(pageHref);
 
 			for (UserDocument userDoc : userList) {
-				UserInfo eachUser = new UserInfo(userDoc.getUserId(), oneWeekAgo < lastModifiedDate.getTime());
+				UserInfo eachUser = new UserInfo(userDoc.getUserId(), baseTime < lastModifiedDate.getTime());
 				((ResultUserList) result).addSubscriber(eachUser);
 			}
 
@@ -132,7 +135,7 @@ public class KCData {
 	 *         "id":"capsmalt"}</code>
 	 */
 	public Result checkUpdateByUser(String userId) {
-		return this.checkUpdateByUser(userId, null);
+		return this.checkUpdateByUser(userId, null, null);
 	}
 
 	/**
@@ -142,12 +145,14 @@ public class KCData {
 	 *            更新確認対象のユーザーID
 	 * @param prodId
 	 *            更新確認対象の製品ID, Optional
+	 * @param baseTime
+	 *            更新判断の基準とするタイムスタンプ, Optional
 	 * @return あるページを購読しているユーザーごとに1週間以内に更新があったか否かなどを含む形で応答する、以下は例示
 	 *         <code>{"pages":[{"isUpdated":true,"pageHref":
 	 *         "SSAW57_liberty/com.ibm.websphere.wlp.nd.doc/ae/cwlp_about.html"}],
 	 *         "id":"capsmalt"}</code>
 	 */
-	public Result checkUpdateByUser(String userId, String prodId) {
+	public Result checkUpdateByUser(String userId, String prodId, Long baseTime) {
 		try {
 			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = UserInfoDao.getInstance();
@@ -171,6 +176,7 @@ public class KCData {
 
 			// 更新有無判定用
 			final long oneWeekAgo = new Date().getTime() - weekMilliSeconds; // 1週間以内に更新があったかどうかの判定に使う
+			baseTime = Optional.ofNullable(baseTime).orElse(oneWeekAgo);
 
 			for (UserDocument userDoc : userList) {
 				List<SubscribedPage> subscribedPages = userDoc.getSubscribedPages();
@@ -189,7 +195,7 @@ public class KCData {
 					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
 					// 最終更新日時と更新有無をセット
-					entry.setIsUpdated(oneWeekAgo < lastModifiedDate.getTime());
+					entry.setIsUpdated(baseTime < lastModifiedDate.getTime());
 					entry.setUpdatedTime(lastModifiedDate.getTime());
 
 					((ResultPageList) result).addSubscribedPage(entry);
