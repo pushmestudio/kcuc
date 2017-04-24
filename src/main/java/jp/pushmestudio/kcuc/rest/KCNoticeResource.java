@@ -44,10 +44,10 @@ public class KCNoticeResource {
 	@ApiOperation(value = "ユーザー一覧取得", response = ResultUserList.class, notes = "特定のページを購読しているユーザー一覧を取得・確認")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
-	public Response getUpdatedUsers(
-			@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("href") String href) {
+	public Response getUpdatedUsers(@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("href") String href,
+			@ApiParam(value = "更新判断の基準時間, ここで入力されたタイムスタンプよりも後に更新されていれば更新ありとみなす, デフォルトは1週間前時点", required = false) @QueryParam("time") Long time) {
 
-		Result result = data.checkUpdateByPage(href);
+		Result result = data.checkUpdateByPage(href, time);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -67,9 +67,10 @@ public class KCNoticeResource {
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response getUpdatedPages(@ApiParam(value = "更新確認対象のユーザー名", required = true) @QueryParam("user") String user,
-			@ApiParam(value = "更新確認対象の製品ID", required = false) @QueryParam("product") String product) {
+			@ApiParam(value = "更新確認対象の製品ID", required = false) @QueryParam("product") String product,
+			@ApiParam(value = "更新判断の基準時間, ここで入力されたタイムスタンプよりも後に更新されていれば更新ありとみなす, デフォルトは1週間前時点", required = false) @QueryParam("time") Long time) {
 
-		Result result = data.checkUpdateByUser(user, product);
+		Result result = data.checkUpdateByUser(user, product, time);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
