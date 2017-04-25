@@ -29,7 +29,7 @@ public class KCNoticeUser {
 	/**
 	 * 指定されたIDのユーザーを作成する
 	 *
-	 * @param id
+	 * @param userId
 	 *            作成ユーザーのID
 	 * @return 更新確認結果
 	 */
@@ -47,7 +47,7 @@ public class KCNoticeUser {
 	/**
 	 * 指定されたIDのユーザーを削除する
 	 *
-	 * @param id
+	 * @param userId
 	 *            削除ユーザーのID
 	 * @return 更新確認結果
 	 */
