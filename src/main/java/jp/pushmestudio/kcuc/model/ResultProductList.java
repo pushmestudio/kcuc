@@ -17,6 +17,12 @@ public class ResultProductList implements Result {
 	private List<Product> subscribedProducts;
 	private Set<String> uniqueProductIds;
 
+	/**
+	 * コンストラクタ、製品リストなども初期化している
+	 * 
+	 * @param userId
+	 *            製品リストと紐づくユーザーのID
+	 */
 	public ResultProductList(String userId) {
 		this.userId = userId;
 		this.subscribedProducts = new ArrayList<>();
@@ -32,26 +38,31 @@ public class ResultProductList implements Result {
 	}
 
 	/**
-	 * 重複のあるリストを渡されても重複のない形に補正するように、ユニークチェック後に格納している
-	 * 速度を求めるなら単に代入の形を取ればいい
+	 * 重複のあるリストを渡されても重複のない形に補正するように、ユニークチェック後に格納している 速度を求めるなら単に代入の形を取ればいい
+	 * 
 	 * @param subscribedProducts
+	 *            製品リスト、重複ありでもOK
 	 */
 	public void setSubscribedProducts(List<Product> subscribedProducts) {
-		this.subscribedProducts = new ArrayList<>();;
+		this.subscribedProducts = new ArrayList<>();
+		;
 		this.uniqueProductIds = new HashSet<>();
 
-		for (Product each: subscribedProducts) {
+		for (Product each : subscribedProducts) {
 			if (this.uniqueProductIds.add(each.getHref())) {
 				this.subscribedProducts.add(each);
-			};
+			}
+			;
 		}
 	}
 
 	/**
 	 * ID：名前の形でHashMapに追加する、既にID：名前で登録済みの場合は上書きしない
 	 * 
-	 * @param prodId 購読している製品のID
-	 * @param prodName 購読している製品の名前
+	 * @param prodId
+	 *            購読している製品のID
+	 * @param prodName
+	 *            購読している製品の名前
 	 */
 	public void addSubscribedProduct(String prodId, String prodName) {
 		if (uniqueProductIds.add(prodId)) {

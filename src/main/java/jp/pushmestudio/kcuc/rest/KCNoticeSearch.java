@@ -55,8 +55,10 @@ public class KCNoticeSearch {
 	/**
 	 * ページキーに対応するページ内容を返す
 	 *
-	 * @param href 検索対象ページキー
-	 * @param lang 言語コード(ISO 639-1)
+	 * @param href
+	 *            検索対象ページキー
+	 * @param lang
+	 *            言語コード(ISO 639-1)
 	 *
 	 * @return ページ内容
 	 */
@@ -66,9 +68,8 @@ public class KCNoticeSearch {
 	@ApiOperation(value = "ページ内容検索", notes = "与えられたページキーに対応するHTMLを取得、言語指定時に対応した言語が存在しなかった場合は英語にて応答する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
-	public Response searchContent(
-			@ApiParam(value = "検索対象ページキー", required = true) @QueryParam("href") String href,
-			@ApiParam(value = "表示言語の指定(e.g. ja)") @QueryParam("lang") String lang){
+	public Response searchContent(@ApiParam(value = "検索対象ページキー", required = true) @QueryParam("href") String href,
+			@ApiParam(value = "表示言語の指定(e.g. ja)") @QueryParam("lang") String lang) {
 
 		Result result = data.searchContent(href, lang);
 		return Response.status(result.getCode()).entity(((ResultContent) result).getPageRawHtml()).build();

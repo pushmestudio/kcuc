@@ -141,9 +141,9 @@ public class KCNoticeResource {
 	/**
 	 * ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する
 	 * 
-	 * @param user
+	 * @param userId
 	 *            購読ページを解除するユーザ（いずれはCookieなど）
-	 * @param product
+	 * @param productId
 	 *            購読解除対象の製品のID
 	 * @return 購読解除後の購読ページ一覧
 	 */
