@@ -26,8 +26,6 @@ import jp.pushmestudio.kcuc.util.Result;
 @Path("/check")
 public class KCNoticeResource {
 
-	// TODO 公開していないパスへのアクセスが発生した際などのリターンをエラーハンドリングとして指定する必要あり
-
 	// 実際に取得処理などを行うオブジェクト
 	KCData data = new KCData();
 
@@ -36,6 +34,8 @@ public class KCNoticeResource {
 	 * 
 	 * @param href
 	 *            更新確認対象のページキー
+	 * @param time
+	 *            更新判断の基準時間
 	 * @return 更新確認結果
 	 */
 	@Path("/users")
@@ -58,6 +58,8 @@ public class KCNoticeResource {
 	 *            更新確認対象のユーザー名
 	 * @param product
 	 *            確認対象の製品ID
+	 * @param time
+	 *            更新判断の基準時間
 	 * @return 更新確認結果
 	 */
 	@Path("/pages")

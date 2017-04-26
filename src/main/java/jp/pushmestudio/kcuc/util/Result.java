@@ -14,6 +14,7 @@ public interface Result {
 
 	/**
 	 * 応答時のレスポンスコードの判定に使用する、通常は{@code return Result.CODE_NORMAL;}のように実装すれば良い
-	 **/
+	 * @return レスポンスコードに使う応答コード
+	 */
 	int getCode();
 }
