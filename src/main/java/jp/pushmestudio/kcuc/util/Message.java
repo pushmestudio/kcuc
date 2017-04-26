@@ -80,8 +80,8 @@ public abstract class Message implements Result {
 	protected void setMessage() {
 		StringBuilder message = new StringBuilder();
 		message.append("subject:").append(this.getSubject());
-		message.append(", detail:").append(this.getDetail());
 		message.append(", code:").append(this.getCode());
+		message.append(", detail:").append(this.getDetail());
 		this.message = message.toString();
 	}
 }

@@ -42,8 +42,7 @@ public class KCNoticeResource {
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "ユーザー一覧取得", response = ResultUserList.class, notes = "特定のページを購読しているユーザー一覧を取得・確認")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
-			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response getUpdatedUsers(@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("href") String href,
 			@ApiParam(value = "更新判断の基準時間, ここで入力されたタイムスタンプよりも後に更新されていれば更新ありとみなす, デフォルトは1週間前時点", required = false) @QueryParam("time") Long time) {
 
@@ -66,8 +65,7 @@ public class KCNoticeResource {
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "ページ一覧取得", response = ResultPageList.class, notes = "特定のユーザーの購読しているページ一覧を取得・確認")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
-			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response getUpdatedPages(@ApiParam(value = "更新確認対象のユーザー名", required = true) @QueryParam("user") String user,
 			@ApiParam(value = "更新確認対象の製品ID", required = false) @QueryParam("product") String product,
 			@ApiParam(value = "更新判断の基準時間, ここで入力されたタイムスタンプよりも後に更新されていれば更新ありとみなす, デフォルトは1週間前時点", required = false) @QueryParam("time") Long time) {
@@ -89,8 +87,7 @@ public class KCNoticeResource {
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読ページ追加", response = Message.class, code = Result.CODE_CLOUDANT_UPDATE, notes = "特定のユーザの購読するページを追加・確認")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
-			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response setSubscribe(@ApiParam(value = "更新対象のユーザー名", required = true) @FormParam("user") String user,
 			@ApiParam(value = "購読対象のページキー", required = true) @FormParam("href") String href) {
 
@@ -111,8 +108,7 @@ public class KCNoticeResource {
 	@PUT
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読ページ解除", response = Message.class, code = Result.CODE_CLOUDANT_UPDATE, notes = "特定のユーザの購読するページを解除")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
-			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response unsetSubscribe(@ApiParam(value = "対象のユーザー名", required = true) @FormParam("user") String user,
 			@ApiParam(value = "購読解除対象のページキー", required = true) @FormParam("href") String href) {
 
@@ -131,8 +127,7 @@ public class KCNoticeResource {
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読製品一覧取得", response = ResultProductList.class, notes = "特定のユーザーの購読しているページが属する製品一覧を取得")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
-			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response getSubscribedProducts(
 			@ApiParam(value = "確認対象のユーザー名", required = true) @QueryParam("user") String user) {
 
@@ -153,8 +148,7 @@ public class KCNoticeResource {
 	@PUT
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読ページの製品指定解除", response = Message.class, code = Result.CODE_CLOUDANT_UPDATE, notes = "ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
-			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response unsetSubscribeProduct(
 			@ApiParam(value = "対象のユーザー名", required = true) @FormParam("user") String userId,
 			@ApiParam(value = "購読解除対象の製品ID", required = true) @FormParam("product") String productId) {
