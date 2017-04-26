@@ -27,7 +27,7 @@
     <module name="LineLength">
       <property name="severity" value="info"/>
       <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-      <property name="max" value="120"/>
+      <property name="max" value="160"/>
     </module>
     <module name="AvoidStarImport"/>
     <module name="OneTopLevelClass"/>
@@ -176,12 +176,10 @@
       <message key="name.invalidPattern" value="Method name ''{0}'' must match pattern ''{1}''."/>
     </module>
     <module name="SingleLineJavadoc">
-      <property name="ignoreInlineTags" value="false"/>
     </module>
     <module name="EmptyCatchBlock">
       <property name="exceptionVariableName" value="expected"/>
     </module>
-    <module name="CommentsIndentation"/>
     <module name="ImportOrder">
       <property name="severity" value="ignore"/>
       <property name="separated" value="true"/>
