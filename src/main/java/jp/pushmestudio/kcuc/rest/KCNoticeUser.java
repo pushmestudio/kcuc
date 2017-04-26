@@ -36,7 +36,7 @@ public class KCNoticeUser {
 	@Path("/{id}")
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ユーザー作成", response = Message.class, notes = "与えられたIDを元にユーザーを作成する")
+	@ApiOperation(value = "ユーザー作成", response = Message.class, code = Result.CODE_CLOUDANT_UPDATE, notes = "与えられたIDを元にユーザーを作成する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
 			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response createUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {

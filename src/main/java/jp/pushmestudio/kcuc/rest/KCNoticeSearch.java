@@ -28,9 +28,13 @@ public class KCNoticeSearch {
 
 	/**
 	 * 検索キーワードにマッチするページを検索して返す
-	 *
-	 * @param query
-	 *            検索キーワード
+	 * @param query 検索キーワード
+	 * @param products 取得対象の製品ID
+	 * @param inurl 検索対象とするページのURL
+	 * @param offset 結果取得のオフセット(表示開始位置)
+	 * @param limit 検索結果取得件数
+	 * @param lang サポートしている言語による絞り込み
+	 * @param sort 日付による並び替え data:a or data:d
 	 * @return 更新確認結果
 	 */
 	@Path("/pages")

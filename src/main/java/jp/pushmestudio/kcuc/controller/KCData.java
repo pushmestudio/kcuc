@@ -289,7 +289,7 @@ public class KCData {
 	 * @param userId
 	 *            製品一覧
 	 * @return 購読している製品一覧とユーザーID
-	 * @see {@link ResultProductList}
+	 * @see ResultProductList
 	 */
 	public Result getSubscribedProductList(String userId) {
 		// DBのユーザーからのデータ取得処理
@@ -373,12 +373,11 @@ public class KCData {
 	 *            検索対象ページキー
 	 * @param lang
 	 *            言語コード(ISO 639-1)
-	 * @see https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html
-	 *
 	 * @return ページ内容
+	 * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html">Locale (Java Platform SE 8 )</a>
+	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
 	 */
 	public Result searchContent(String href, String lang) {
-		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/content";
 
@@ -418,10 +417,10 @@ public class KCData {
 	 * @param sort
 	 *            並び替え、現時点では日付昇順・降順のみAPIでサポートしている、date:aかdate:d以外が来たら指定がなかったものとみなす
 	 * @return 検索結果
+	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
 	 */
 	public Result searchPages(String query, String products, String inurl, Integer offset, Integer limit, String lang,
 			String sort) {
-		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/search";
 
@@ -480,9 +479,9 @@ public class KCData {
 	 * @param pageHref
 	 *            ページ名を確認する対象のpageのHref
 	 * @return breadcrumbから抽出したページ名
+	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
 	 */
 	private String getPageName(String prodId, String pageHref) throws JSONException {
-		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String topicMetaUrl = "https://www.ibm.com/support/knowledgecenter/v1/breadcrumb";
 
@@ -508,9 +507,9 @@ public class KCData {
 	 * @param specificHref
 	 *            更新の有無を確認する対象のpageのHref
 	 * @return topic_metadataから得られた応答を抽出してプロパティとしてセットした{@link TopicMeta}
+	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
 	 */
 	private TopicMeta getSpecificPageMeta(String specificHref) throws JSONException {
-		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String topicMetaUrl = "https://www.ibm.com/support/knowledgecenter/v1/topic_metadata";
 		WebTarget target = client.target(topicMetaUrl).queryParam("href", specificHref);
@@ -560,9 +559,9 @@ public class KCData {
 	 * @param productKey
 	 *            特定ページ
 	 * @return 得られたJSONを元に生成した{@link Product}オブジェクト | null
+	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
 	 */
 	private Product searchProduct(String productKey) {
-		// @see https://jersey.java.net/documentation/latest/client.html
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/products/";
 

@@ -260,6 +260,12 @@ public class UserInfoDao {
 	 *            登録するユーザのID
 	 * @param pageHref
 	 *            購読ページ
+	 * @param pageName
+	 *            購読ページ名
+	 * @param prodId
+	 *            購読ページ製品ID
+	 * @param prodName
+	 *            購読ページ製品名
 	 * @return 登録結果
 	 */
 	public Response setSubscribedPages(String userId, String pageHref, String pageName, String prodId,
