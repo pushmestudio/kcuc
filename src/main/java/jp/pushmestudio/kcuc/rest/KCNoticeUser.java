@@ -29,16 +29,15 @@ public class KCNoticeUser {
 	/**
 	 * 指定されたIDのユーザーを作成する
 	 *
-	 * @param id
+	 * @param userId
 	 *            作成ユーザーのID
 	 * @return 更新確認結果
 	 */
 	@Path("/{id}")
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ユーザー作成", response = Message.class, notes = "与えられたIDを元にユーザーを作成する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
-			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "ユーザー作成", response = Message.class, code = Result.CODE_CLOUDANT_UPDATE, notes = "与えられたIDを元にユーザーを作成する")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response createUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {
 
 		return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -47,7 +46,7 @@ public class KCNoticeUser {
 	/**
 	 * 指定されたIDのユーザーを削除する
 	 *
-	 * @param id
+	 * @param userId
 	 *            削除ユーザーのID
 	 * @return 更新確認結果
 	 */
@@ -55,8 +54,7 @@ public class KCNoticeUser {
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "ユーザー削除", response = Message.class, notes = "与えられたIDを元にユーザーを削除する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_CLIENT_ERROR, message = "Client Error"),
-			@ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response deleteUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {
 
 		return Response.status(Response.Status.UNAUTHORIZED).build();

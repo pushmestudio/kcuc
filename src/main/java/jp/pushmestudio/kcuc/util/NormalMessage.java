@@ -9,6 +9,11 @@ public class NormalMessage extends Message {
 		super(messageCode, messageParameter);
 	}
 
+	/*
+	 * (non-Javadoc) 何を渡されてもOKをセットする
+	 * 
+	 * @see jp.pushmestudio.kcuc.util.Message#setSubject(java.lang.String)
+	 */
 	@Override
 	protected void setSubject(String parameter) {
 		super.setSubject("OK");
