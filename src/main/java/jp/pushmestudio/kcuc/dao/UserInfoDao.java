@@ -19,10 +19,8 @@ import jp.pushmestudio.kcuc.model.UserDocument;
 
 /**
  * シングルトンパターンを使用(private staticなインスタンス、privateなコンストラクタ、public
- * staticなgetInstance)しているため、インスタンス生成には {@link #getInstance()}を使うこと
- * 
- * CRUDの順番に記載しており、Read以外についてはCloudantの応答をそのまま返している(検討の余地あり)
- * 
+ * staticなgetInstance)しているため、インスタンス生成には {@link #getInstance()}を使うこと<br>
+ * CRUDの順番に記載しており、Read以外についてはCloudantの応答をそのまま返している(検討の余地あり)<br>
  * TODO ネットワークエラーなどで接続に失敗すると java.net.UnknownHostException,
  * java.net.ConnectException,
  * com.cloudant.client.org.lightcouch.CouchDbExceptionなどが起きうるがどこまで対処するか
@@ -35,7 +33,7 @@ public class UserInfoDao {
 
 	private UserInfoDao(Database kcucDB) {
 		this.kcucDB = kcucDB;
-	};
+	}
 
 	/**
 	 * DB接続回数を抑えるための施策としてシングルトンパターンを使用している
@@ -262,6 +260,12 @@ public class UserInfoDao {
 	 *            登録するユーザのID
 	 * @param pageHref
 	 *            購読ページ
+	 * @param pageName
+	 *            購読ページ名
+	 * @param prodId
+	 *            購読ページ製品ID
+	 * @param prodName
+	 *            購読ページ製品名
 	 * @return 登録結果
 	 */
 	public Response setSubscribedPages(String userId, String pageHref, String pageName, String prodId,
