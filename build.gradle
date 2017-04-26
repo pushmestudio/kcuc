@@ -51,6 +51,10 @@ test {
   exclude '**/*$*'
 }
 
+javadoc {
+  options.charSet = 'UTF-8'
+}
+
 checkstyle {
   configFile = file("${project.rootDir}/checkstyle.xml")
   toolVersion = '6.7'
