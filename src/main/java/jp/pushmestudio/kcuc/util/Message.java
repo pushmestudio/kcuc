@@ -5,8 +5,8 @@ package jp.pushmestudio.kcuc.util;
  */
 public abstract class Message implements Result {
 	private String subject;
-	private String detail;
 	private int code;
+	private String detail;
 	protected String message;
 
 	public Message(int messageCode) {
