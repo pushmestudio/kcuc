@@ -141,8 +141,9 @@ public class UserInfoDao {
 	}
 
 	/**
-	 * 指定したIDのユーザーとその購読ページを返す、結果を絞る方法としてはDBへのクエリで絞る方法と、受け取った結果をAPIサーバー上で絞る方法がある
-	 * 現在は簡潔・簡便な後者の方法を取っているが、クエリによる絞り込みにすることも検討の余地がある
+	 * 指定したIDのユーザーとその購読ページを返す、結果を絞る方法としてはDBへのクエリで絞る方法と、受け取った結果をAPIサーバー上で絞る方法がある<br>
+	 * 現在は簡潔・簡便な後者の方法を取っているが、クエリによる絞り込みにすることも検討の余地がある<br>
+	 * なお、このメソッドにより取得した結果を使ってupdateすると、update時に使用したデータで上書きするCloudantの仕様上、他の購読情報は消えるので注意
 	 * 
 	 * @param userId
 	 *            探す対象となるユーザーのID
@@ -398,8 +399,8 @@ public class UserInfoDao {
 	 * @return 解除結果
 	 */
 	public Response cancelSubscribedProduct(String userId, String prodId) throws IndexOutOfBoundsException {
-		// userIdとpageHrefで指定されたユーザのデータを取得
-		List<UserDocument> userDocs = this.getUserList(userId, prodId);
+		// userIdで指定されたユーザのデータを取得
+		List<UserDocument> userDocs = this.getUserList(userId);
 
 		Response res = new Response();
 		UserDocument updateTarget;
