@@ -2,6 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse-wtp'
 apply plugin: 'war'
 apply plugin: 'checkstyle'
+apply from: 'https://raw.github.com/akhikhl/gretty/master/pluginScripts/gretty.plugin'
 
 // version = '1.0' // versionをつけると、生成されるwarの末尾にversionが付く
 def defaultEncoding = 'UTF-8'
@@ -65,12 +66,12 @@ war {
   archiveName 'kcuc.war'
 }
 
-// pom.xml書き出し、ここできちんと書き出させるためにはdependenciesをまともに書く必要あり
-task writePom {
-  doLast {
-    pom().writeTo('pom.xml')
-  }
+// ./gradlew appRun でtomcatを実行する, 詳しくは http://akhikhl.github.io/gretty-doc/Getting-started.html
+gretty {
+  servletContainer = 'tomcat8'
+  contextPath = '/'
 }
+
 
 // 生成されたwarを配置する
 task deploy(type: Exec) {

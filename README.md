@@ -12,7 +12,7 @@
 
 デプロイされているものは[こちら](https://kcuc.mybluemix.net)から利用可能。
 
-ローカル環境においては、Dockerを使用して環境構築する想定。使用するDockerイメージは[CentOS 7 + Java 8 + Tomcat 8](https://github.com/kirillF/centos-tomcat)としている。
+ローカル環境においては、Gretty(Gradle経由で呼び出すサーバーコンテナ)もしくはDockerを使用して環境構築する想定。Dockerを使用する場合、Dockerイメージは[CentOS 7 + Java 8 + Tomcat 8](https://github.com/kirillF/centos-tomcat)としている。
 
 # Quick Start
 
@@ -36,10 +36,15 @@
 
 3. 生成されたWarのデプロイ
 
+    Dockerケース：
+ 
     `build/libs`以下に生成されたWarをデプロイする。なお、現行ではBluemix上にデプロイしており、標準的なビルドパックを使用している都合上、コンテキストルートは`/`とすることを前提にしている。そのため、Tomcatにデプロイする場合には`ROOT.war`にファイル名を変更してからデプロイする。
 
     事前想定のDockerなどを使用している場合(`/opt/tomcat/webapps/`ディレクトリがある場合)には、`./gradlew deploy`(or `./gradlew build deploy`)実行により、`ROOT.war`にリネーム + デプロイ可能。
 
+    Grettyケース：
+
+    `./gradlew appRun`を実行するとコンテキストルートを変更してデプロイ可能。
 
 # 開発環境セットアップ
 
@@ -126,7 +131,7 @@ Checkstyleによって、未使用の変数名等や`if`や変数の後のスペ
 
     `build/reports/tests/test/index.html`にテストのレポートが出力されるので、ブラウザで参照の上、修正をする。諸般の事情により一時的にテストなしでのビルドが必要な場合には、`./gradlew build -x test`によってテストを省略してビルドすることができる。
 
-### ローカルでデプロイしたアプリが見れない
+### ローカルでデプロイしたアプリが見れない(Docker)
 
 * ローカル環境のパーミッション設定がされていない
 
