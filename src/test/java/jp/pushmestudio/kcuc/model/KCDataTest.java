@@ -247,6 +247,8 @@ public class KCDataTest {
 		static String prodId = "SSTPQH_1.0.0";
 		static String hrefKey1 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_planning_install_location.html";
 		static String hrefKey2 = "SSTPQH_1.0.0/com.ibm.cloudant.local.install.doc/topics/clinstall_tuning_automatic_compactor.html";
+		static String prodIdOther = "SSYRPW_9.0.1"; // 消されてはいけない製品
+		static String hrefKeyOther = "SSYRPW_9.0.1/UsingVerseMobile.html"; // 消されてはいけないページ
 		static Result preResultPages;
 		static List<SubscribedPage> prePageList;
 		static Result preResultProducts;
@@ -263,6 +265,8 @@ public class KCDataTest {
 				data.registerSubscribedPage(userId, hrefKey1);
 				Thread.sleep(500);
 				data.registerSubscribedPage(userId, hrefKey2);
+				Thread.sleep(500);
+				data.registerSubscribedPage(userId, hrefKeyOther);
 				Thread.sleep(500);
 
 				preResultPages = data.checkUpdateByUser(userId);
