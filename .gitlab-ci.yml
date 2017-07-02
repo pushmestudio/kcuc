@@ -1,9 +1,25 @@
-image: openjdk:8
+image: registry.gitlab.com/pushmestudio/kcuc-ee
 
-stages:
-- build
+variables:
+  TARGET_IP: ""
+  TARGET_DIR: ""
+  KEY_FILE: ""
+  WAR_PROJECT: ""
+  WAR_NAME: ""
 
-build_job:
+before_script:
+- chmod +x ./gradlew
+
+build:
   stage: build
   script:
-  - ./gradlew build
+    - ./gradlew -g /cache/.gradle clean build
+  allow_failure: false
+
+deploy:
+  stage: deploy
+  only:
+  - production
+  script:
+  - ./gradlew -g /cache/.gradle war
+  - scp -i ${KEY_FILE} ../${WAR_PROJECT}/build/libs/${WAR_NAME}.war ${TARGET_IP}:${TARGET_DIR}
