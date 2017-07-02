@@ -7,12 +7,12 @@
 
 * Tomcat: Runtime Servlet Container(Tomcatを使用しない場合はservlet-apiなど、一部のライブラリを`build.gradle`に追加する必要がある)
 * Cloudant: NoSQL DB
-* JAX-RS: REST API Framework
+* JAX-RS(Jersey Framework): REST API Framework
 * Swagger: API Document
 
 デプロイされているものは[こちら](https://kcuc.mybluemix.net)から利用可能。
 
-ローカル環境においては、Gretty(Gradle経由で呼び出すサーバーコンテナ)もしくはDockerを使用して環境構築する想定。Dockerを使用する場合、Dockerイメージは[CentOS 7 + Java 8 + Tomcat 8](https://github.com/kirillF/centos-tomcat)としている。
+ローカル環境においてはDockerを使用して環境構築する想定。Dockerを使用する場合、Dockerイメージは[CentOS 7 + Java 8 + Tomcat 8](https://github.com/kirillF/centos-tomcat)としている。
 
 # Quick Start
 
@@ -36,15 +36,9 @@
 
 3. 生成されたWarのデプロイ
 
-    Dockerケース：
- 
     `build/libs`以下に生成されたWarをデプロイする。なお、現行ではBluemix上にデプロイしており、標準的なビルドパックを使用している都合上、コンテキストルートは`/`とすることを前提にしている。そのため、Tomcatにデプロイする場合には`ROOT.war`にファイル名を変更してからデプロイする。
 
     事前想定のDockerなどを使用している場合(`/opt/tomcat/webapps/`ディレクトリがある場合)には、`./gradlew deploy`(or `./gradlew build deploy`)実行により、`ROOT.war`にリネーム + デプロイ可能。
-
-    Grettyケース：
-
-    `./gradlew appRun`を実行するとコンテキストルートを変更してデプロイ可能。
 
 # 開発環境セットアップ
 
@@ -75,33 +69,6 @@ Eclipse起動前に、プロジェクトトップディレクトリにて`./grad
 
 
 ここまでのセットアップが済んだら、EclipseがJS系のモジュールを理解できないために発生するエラー表示を抑制するための手続きおよびソースコード標準化のための`checkstyle`のセットアップを実施する。
-
-## Checkstyleの導入
-ある程度標準的なコードの作りにするために静的チェックツールを使う。Googleが公開しているCheckStyleをベースに、Eclipse上で使用しやすいように、また、ルールが厳しくなりすぎないようにカスタマイズしたものを使用している。
-
-### 1. EclipseにCheckStyleを導入する
-
-`Help` > `Eclipse Marketplace`を表示後、`Checkstyle`で検索する。その後表示される、`Checkstyle Plug-in`をインストール。(All in oneを利用している場合はインストールされているのでこのステップをパスして次に進む)
-
-### 2. CheckStyleの導入準備をする
-
-インストール後、プロジェクトを右クリックし、`Properties`を表示。メニュー内上方にある`Checkstyle`を選択する。
-
-`Local Check Configuration`を選択し、`New`で表示される設定画面を次のようにする。
-
-* Type: `Project Relative Configuration`
-* Name: `kcuc.checkstyle`
-* Location: `/kcuc/checkstyle.xml`(or Browseからプロジェクトディレクトリ直下にあるcheckstyle.xmlを選択する)
-* Description: (空白のまま)
-* Advanced options: (チェックしない)
-
-続いて、`Main`を選択肢し、`Simple - use the following check configuraiton for all files`から`kcuc.checkstyle - (Local)`を選択する。
-
-### 3. CheckStyleを適用する
-
-上記設定後、プロジェクトを右クリックし、`Checkstyle` > `Activate Checkstyle`を実施し、設定・適用完了。
-
-Checkstyleによって、未使用の変数名等や`if`や変数の後のスペースがついているかのチェックなどが実施される。少なくともマージリクエストを出す時点においては`Warning`(黄色)以上の指摘事項がない状態にすること。(checkstyleのスタイルに抵触してしまう、プロジェクト上の困難な設定等々がある際にはチームに相談すること)
 
 ## EclipseのValidationの停止
 (特にエラーが出ていない場合はスキップしても良い) Eclipse上にて、プロジェクトルートディレクトリを選択した状態で右クリックし`Properties`を表示。メニュー内下半にある`Validation`を選択し、次の2つをチェックする。
