@@ -7,6 +7,9 @@ bin/
 RemoteSystemsTempFiles/
 Servers/
 .settings/
+.checkstyle
+## master setting
+!config/checkstyle/.checkstyle
 
 # Gradle related
 build/
