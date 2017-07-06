@@ -17,7 +17,7 @@ tasks.withType(GroovyCompile).each {
 }
 
 repositories {
-  mavenCentral()
+  jcenter()
   flatDir dirs: "${webAppDir}/WEB-INF/lib"
 }
 
@@ -30,7 +30,8 @@ dependencies {
   // HttpServletなどを使用する場合には必要
   // providedCompile 'javax.servlet:javax.servlet-api:3.1'
 
-  compile 'org.glassfish.jersey.core:jersey-server:2.23'
+  // Grassfishサーバーの場合はprovidedCompileでOK
+  // https://jersey.github.io/documentation/latest/modules-and-dependencies.html
   compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.23'
 
   // swagger
@@ -39,9 +40,6 @@ dependencies {
   // cloudant
   compile 'com.cloudant:cloudant-client:2.7.0'
 
-  // glassfish containerを使う場合はjersey-container-servletを消して下記を有効化する
-  // compile 'org.glassfish.jersey.containers:jersey-container-jdk-http:2.23'
-  // testCompile 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jdk-http:2.23'
   testCompile 'junit:junit:4.12'
 }
 
@@ -54,6 +52,7 @@ javadoc {
   options.charSet = defaultEncoding
 }
 
+// テストディレクトリはcheck対象としない
 checkstyle {
   checkstyleTest.source = {}
 }
@@ -66,7 +65,7 @@ war {
 task deploy(type: Exec) {
   description 'Deploy generated war file to ${deployTargetDir} directory as ROOT.war'
   workingDir "${projectDir}/build/libs/"
-  commandLine 'cp', '-v', 'kcuc.war', "${deployTargetDir}/ROOT.war"
+  commandLine 'cp', '-v', war.archiveName, "${deployTargetDir}/ROOT.war"
 }
 
 /**
