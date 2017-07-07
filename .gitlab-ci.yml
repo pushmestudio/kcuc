@@ -1,25 +1,42 @@
-image: registry.gitlab.com/pushmestudio/kcuc-ee
-
 variables:
   TARGET_IP: ""
   TARGET_DIR: ""
+  IMAGE_NAME: "registry.gitlab.com/pushmestudio/kcuc-ee"
   KEY_FILE: ""
   WAR_PROJECT: ""
-  WAR_NAME: ""
+  WAR_NAME: "kcuc/war"
+
+# it needs to deploy phase
+services:
+  - docker:dind
 
 before_script:
-- chmod +x ./gradlew
+  - chmod +x ./gradlew
 
-build:
+build_job:
+  image: "${IMAGE_NAME}:latest"
   stage: build
   script:
-    - ./gradlew -g /cache/.gradle clean build
+    - ./gradlew -g /cache/.gradle clean assemble
   allow_failure: false
+  # reserve war file for deploy
+  artifacts:
+    paths:
+      - "build/libs/${WAR_NAME}"
 
-deploy:
-  stage: deploy
-  only:
-  - production
+test_job:
+  image: "${IMAGE_NAME}:latest"
+  stage: test
   script:
-  - ./gradlew -g /cache/.gradle war
-  - scp -i ${KEY_FILE} ../${WAR_PROJECT}/build/libs/${WAR_NAME}.war ${TARGET_IP}:${TARGET_DIR}
+    - ./gradlew -g /cache/.gradle check
+
+deploy_job:
+  image: docker:latest
+  stage: deploy
+  # prerequire the build/libs/kcuc.war
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+    - docker build -t "${IMAGE_NAME}:alpha-v1" .
+    - docker push "${IMAGE_NAME}:alpha-v1"
+  only:
+    - master
