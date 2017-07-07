@@ -4,7 +4,7 @@ variables:
   IMAGE_NAME: "registry.gitlab.com/pushmestudio/kcuc-ee"
   KEY_FILE: ""
   WAR_PROJECT: ""
-  WAR_NAME: "kcuc/war"
+  WAR_NAME: "kcuc.war"
 
 # it needs to deploy phase
 services:
