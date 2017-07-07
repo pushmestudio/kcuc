@@ -26,7 +26,7 @@ build_job:
 
 test_job:
   image: "${IMAGE_NAME}:latest"
-  stage: build
+  stage: test
   script:
     - ./gradlew -g /cache/.gradle check
 
