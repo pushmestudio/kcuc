@@ -87,8 +87,11 @@ RUN set -e \
 		exit 1; \
 	fi
 
+# Remove
+RUN rm -rf webapps/*
+
 # Add original kcuc app
 ADD build/libs/kcuc.war webapps/ROOT.war
 
 EXPOSE 8080
-CMD ["catalina.sh", "start"]
+CMD ["catalina.sh", "run"]
