@@ -39,5 +39,5 @@ deploy_job:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
     - docker build -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
     - docker push "${IMAGE_NAME}:latest"
-  #only:
-  #  - master
+  only:
+    - master
