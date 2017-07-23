@@ -93,5 +93,13 @@ RUN rm -rf webapps/*
 # Add original kcuc app
 ADD build/libs/kcuc.war webapps/ROOT.war
 
+# Set the cloudant env variables
+ARG CLOUDANT_ACCOUNT
+ARG CLOUDANT_USER
+ARG CLOUDANT_PW
+ENV CLODUANT_ACCOUNT "${CLOUDANT_ACCOUNT}"
+ENV CLODUANT_USER "${CLOUDANT_USER}"
+ENV CLODUANT_PW "${CLOUDANT_PW}"
+
 EXPOSE 8080
 CMD ["catalina.sh", "run"]
