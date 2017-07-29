@@ -1,7 +1,6 @@
-# 基本的にOpenJDK with alpineのイメージのDockerfileを改変して使用しているので
-# 動かなくなった場合(e.g. OpenJDKのリンク切れ)には次を参照する
+# Based on OpenJDK with alpine image
+# If something goes wrong(e.g. openjdk version is expired), you should check the following link:
 # https://github.com/docker-library/openjdk/blob/master/8-jdk/Dockerfile
-# この設定ファイルはビルドが必要な環境に用いる
 # {@code docker build -t registry.gitlab.com/pushmestudio/kcuc:devel .}
 
 #

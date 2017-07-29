@@ -1,13 +1,12 @@
-# 基本的にTomcat with alpineのイメージのDockerfileを改変して使用しているので
-# 動かなくなった場合(e.g. Tomcatのリンク切れ)には次を参照する
+# Based on Tocmat with alpine image
+# If something goes wrong(e.g. tomcat version is expired), you should check the following link:
 # https://github.com/docker-library/tomcat/blob/master/8.5/jre8-alpine/Dockerfile
-# この設定ファイルはビルドが不要で且つTomcatが必要な環境に用いる
-# {@code docker build -t registry.gitlab.com/pushmestudio/kcuc .}
-# ビルド時間短縮のため、事前にWarを加える直前まで作成し、後からWarを加えてリリース用のコンテナに仕上げる
+# {@code docker build -t registry.gitlab.com/pushmestudio/kcuc:latest .}
+# For making faster build, prepare the tomcat base and add a war file for release
 FROM registry.gitlab.com/pushmestudio/kcuc:base
 MAINTAINER tkhm PushMe Studio
 
-# Remove
+# Remove all files under webapps
 RUN rm -rf webapps/*
 
 # Add original kcuc app
