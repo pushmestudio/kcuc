@@ -1,3 +1,8 @@
+# 基本的にTomcat with alpineのイメージのDockerfileを改変して使用しているので
+# 動かなくなった場合(e.g. Tomcatのリンク切れ)には次を参照する
+# https://github.com/docker-library/tomcat/blob/master/8.5/jre8-alpine/Dockerfile
+# この設定ファイルはビルドが不要で且つTomcatが必要な環境に用いる
+# {@code docker build -t registry.gitlab.com/pushmestudio/kcuc .}
 FROM openjdk:8-jre-alpine
 
 ENV CATALINA_HOME /usr/local/tomcat
