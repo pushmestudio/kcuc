@@ -17,19 +17,14 @@ build_job:
   image: "${IMAGE_NAME}:devel"
   stage: build
   script:
-    - ./gradlew -g /cache/.gradle clean assemble
+    # build and test job can be separated, but we don't need it so far, and all in one job is much faster
+    - ./gradlew -g /cache/.gradle clean build
   allow_failure: false
   # reserve war file for deploy
   artifacts:
     paths:
       - "build/libs/${WAR_NAME}"
-    expire_in: 1 week
-
-test_job:
-  image: "${IMAGE_NAME}:devel"
-  stage: test
-  script:
-    - ./gradlew -g /cache/.gradle check
+    expire_in: 3 days
 
 deploy_job:
   image: docker:latest
