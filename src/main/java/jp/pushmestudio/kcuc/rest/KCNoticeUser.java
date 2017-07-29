@@ -14,6 +14,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
+import jp.pushmestudio.kcuc.model.ResultContent;
 import jp.pushmestudio.kcuc.util.Message;
 import jp.pushmestudio.kcuc.util.Result;
 
@@ -40,7 +41,8 @@ public class KCNoticeUser {
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response createUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {
 
-		return Response.status(Response.Status.UNAUTHORIZED).build();
+		Result result = data.createUser(userId);
+		return Response.status(result.getCode()).entity(result).build();
 	}
 
 	/**
@@ -57,6 +59,7 @@ public class KCNoticeUser {
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
 	public Response deleteUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {
 
-		return Response.status(Response.Status.UNAUTHORIZED).build();
+		Result result = data.deleteUser(userId);
+		return Response.status(result.getCode()).entity(result).build();
 	}
 }
