@@ -1,7 +1,7 @@
 variables:
   TARGET_IP: ""
   TARGET_DIR: ""
-  IMAGE_NAME: "registry.gitlab.com/pushmestudio/kcuc-ee"
+  IMAGE_NAME: "registry.gitlab.com/pushmestudio/kcuc"
   KEY_FILE: ""
   WAR_PROJECT: ""
   WAR_NAME: "kcuc.war"
@@ -37,7 +37,7 @@ deploy_job:
   # prerequire the build/libs/kcuc.war
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-    - docker build -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
+    - docker build -f container/release/Dockerfile -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
     - docker push "${IMAGE_NAME}:latest"
   only:
     - master
