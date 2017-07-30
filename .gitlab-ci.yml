@@ -5,6 +5,7 @@ variables:
   KEY_FILE: ""
   WAR_PROJECT: ""
   WAR_NAME: "kcuc.war"
+  KUBECONFIG: "deployment-config"
 
 # it needs to deploy phase
 services:
@@ -26,13 +27,22 @@ build_job:
       - "build/libs/${WAR_NAME}"
     expire_in: 3 days
 
-deploy_job:
+push_job:
   image: docker:latest
-  stage: deploy
+  stage: push
   # prerequire the build/libs/kcuc.war
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
     - docker build -f container/release/Dockerfile -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
     - docker push "${IMAGE_NAME}:latest"
+  only:
+    - master
+
+deploy_job:
+  image: lwolf/kubectl_deployer:latest
+  stage: deploy
+  script:
+    - kubectl config use-context production-admin
+    - kubectl apply -f kubernetes-deploy.yaml --server https://35.190.237.112 --username admin --password ${KUBERNETES_CLUSTER_PASSWORD} --insecure-skip-tls-verify=true
   only:
     - master
