@@ -1,0 +1,18 @@
+apiVersion: apps/v1beta1 # when use Deployment, it is needed
+kind: Deployment
+metadata:
+  name: kcuc-deployment-ci
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: kcuc
+    spec:
+      containers:
+        - name: kcuc
+          image: registry.gitlab.com/pushmestudio/kcuc:latest
+          ports:
+            - containerPort: 8080
+      imagePullSecrets:
+        - name: regsecret
