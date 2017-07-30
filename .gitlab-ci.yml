@@ -29,7 +29,7 @@ build_job:
 
 push_job:
   image: docker:latest
-  stage: push
+  stage: build
   # prerequire the build/libs/kcuc.war
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
