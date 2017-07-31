@@ -27,21 +27,21 @@ build_job:
       - "build/libs/${WAR_NAME}"
     expire_in: 3 days
 
-# push_job:
-#   image: docker:latest
-#   stage: build
-#   # prerequire the build/libs/kcuc.war
-#   script:
-#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-#     - docker build -f container/release/Dockerfile -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
-#     - docker push "${IMAGE_NAME}:latest"
-#   only:
-#     - master
+push_job:
+  image: docker:latest
+  stage: build
+  # prerequire the build/libs/kcuc.war
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+    - docker build -f container/release/Dockerfile -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
+    - docker push "${IMAGE_NAME}:latest"
+  only:
+    - master
 
 deploy_job:
   image: lwolf/kubectl_deployer:latest
   stage: deploy
   script:
     - kubectl apply -f deploy/release-deployments.yml --server https://35.190.237.112 --username admin --password ${KUBERNETES_CLUSTER_PASSWORD} --insecure-skip-tls-verify=true
-  # only:
-  #   - master
+  only:
+    - master
