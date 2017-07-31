@@ -42,6 +42,6 @@ deploy_job:
   image: lwolf/kubectl_deployer:latest
   stage: deploy
   script:
-    - kubectl apply -f kubernetes-deploy.yaml --server https://35.190.237.112 --username admin --password ${KUBERNETES_CLUSTER_PASSWORD} --insecure-skip-tls-verify=true
+    - kubectl apply -f deploy/release-deployments.yml --server https://35.190.237.112 --username admin --password ${KUBERNETES_CLUSTER_PASSWORD} --insecure-skip-tls-verify=true
   # only:
   #   - master
