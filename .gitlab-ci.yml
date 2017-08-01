@@ -44,5 +44,5 @@ deploy_job:
   when: manual
   environment:
     name: production
-#  only:
-#    - master
+  only:
+    - master
