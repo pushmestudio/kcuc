@@ -5,6 +5,12 @@ variables:
   KUBE_DEPLOYMENT: "deploy/release-deployments.yml"
   KUBECONFIG: "" # it needs to set
 
+stages:
+- build
+- test
+- push
+- deploy
+
 # it needs to deploy phase
 services:
   - docker:dind
@@ -27,7 +33,7 @@ build_job:
 
 push_job:
   image: docker:latest
-  stage: build
+  stage: push
   # prerequire the build/libs/kcuc.war
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
