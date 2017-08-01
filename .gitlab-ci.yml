@@ -1,10 +1,15 @@
 variables:
-  TARGET_IP: ""
-  TARGET_DIR: ""
   IMAGE_NAME: "registry.gitlab.com/pushmestudio/kcuc"
-  KEY_FILE: ""
-  WAR_PROJECT: ""
   WAR_NAME: "kcuc.war"
+  RELEASE_CONTAINER: "container/release/Dockerfile"
+  KUBE_DEPLOYMENT: "deploy/release-deployments.yml"
+  KUBECONFIG: "" # it needs to set
+
+stages:
+- build
+- test
+- push
+- deploy
 
 # it needs to deploy phase
 services:
@@ -26,13 +31,24 @@ build_job:
       - "build/libs/${WAR_NAME}"
     expire_in: 3 days
 
-deploy_job:
+push_job:
   image: docker:latest
-  stage: deploy
+  stage: push
   # prerequire the build/libs/kcuc.war
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-    - docker build -f container/release/Dockerfile -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
+    - docker build -f "${RELEASE_CONTAINER}" -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
     - docker push "${IMAGE_NAME}:latest"
+  only:
+    - master
+
+deploy_job:
+  image: lwolf/kubectl_deployer:latest
+  stage: deploy
+  script:
+    - kubectl apply -f "${KUBE_DEPLOYMENT}" --server="${KUBE_URL}" --username admin --password="${KUBE_TOKEN}" --insecure-skip-tls-verify
+  when: manual
+  environment:
+    name: production
   only:
     - master
