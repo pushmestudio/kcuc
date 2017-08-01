@@ -1,11 +1,9 @@
 variables:
-  TARGET_IP: ""
-  TARGET_DIR: ""
   IMAGE_NAME: "registry.gitlab.com/pushmestudio/kcuc"
-  KEY_FILE: ""
-  WAR_PROJECT: ""
   WAR_NAME: "kcuc.war"
-  KUBECONFIG: ""
+  RELEASE_CONTAINER: "container/release/Dockerfile"
+  KUBE_DEPLOYMENT: "deploy/release-deployments.yml"
+  KUBECONFIG: "" # it needs to set
 
 # it needs to deploy phase
 services:
@@ -33,7 +31,7 @@ push_job:
   # prerequire the build/libs/kcuc.war
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-    - docker build -f container/release/Dockerfile -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
+    - docker build -f "${RELEASE_CONTAINER}" -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
     - docker push "${IMAGE_NAME}:latest"
   only:
     - master
@@ -42,6 +40,9 @@ deploy_job:
   image: lwolf/kubectl_deployer:latest
   stage: deploy
   script:
-    - kubectl apply -f deploy/release-deployments.yml --server https://35.190.237.112 --username admin --password ${KUBERNETES_CLUSTER_PASSWORD} --insecure-skip-tls-verify=true
-  only:
-    - master
+    - kubectl apply -f "${KUBE_DEPLOYMENT}" --server="${KUBE_URL}" --username admin --password="${KUBE_TOKEN}" --insecure-skip-tls-verify
+  when: manual
+  environment:
+    name: production
+#  only:
+#    - master
