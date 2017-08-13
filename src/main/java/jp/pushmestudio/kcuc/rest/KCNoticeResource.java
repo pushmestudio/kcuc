@@ -55,7 +55,7 @@ public class KCNoticeResource {
 	 *
 	 * @param userId
 	 *            更新確認対象のユーザーID
-	 * @param prodID
+	 * @param prodId
 	 *            確認対象の製品ID
 	 * @param time
 	 *            更新判断の基準時間
