@@ -5,6 +5,7 @@
 
 使用しているライブラリやミドルウェアの主要なものは次のとおり。
 
+* Docker
 * Tomcat: Runtime Servlet Container(Tomcatを使用しない場合はservlet-apiなど、一部のライブラリを`build.gradle`に追加する必要がある)
 * Cloudant: NoSQL DB
 * JAX-RS(Jersey Framework): REST API Framework
@@ -13,6 +14,27 @@
 デプロイされているものは[こちら](https://kcuc.mybluemix.net)から利用可能。
 
 ローカル環境においてはDockerを使用して環境構築する想定。Dockerを使用する場合、Dockerイメージは[CentOS 7 + Java 8 + Tomcat 8](https://github.com/kirillF/centos-tomcat)としている。
+
+次のコマンドでログインしKCUCのDockerイメージをPullする。(ログインにはGitLabのアカウントを使用する)
+
+```
+docker login registry.gitlab.com
+docker pull registry.gitlab.com/pushmestudio/kcuc:latest
+```
+
+その後、次のコマンドで実際にコンテナを動かす。(上は記載すべき内容、下はそれを具体的に入れた例)
+
+```sh
+#docker run -v ${ローカルのwar配置のパス}:/usr/local/tomcat/webapps\
+# -v ${ローカルのlog出力先のパス:/usr/local/tomcat/logs} \
+# -p ${ローカルのポート}:8080 -i -t --name ${ローカルで管理する任意のコンテナの名前} registry.gitlab.com/pushmestudio/kcuc
+
+docker run -v /opt/tomcat/webapps:/usr/local/tomcat/webapps \
+ -v /opt/tomcat/logs:/usr/local/tomcat/logs \
+ -p 8080:8080 -i -t --name kcuc-container registry.gitlab.com/pushmestudio/kcuc
+```
+
+なお、特定のOSにおいてはPermissionの設定を適切に実施しないとWARが見れないことやDockerのコマンドに失敗することがあるので確認の上実行すること。また、1度上記の形でコンテナを動かした後は`docker start ${ローカルで管理する任意のコンテナの名前}`で開始でき、WARの入れ替えも単にWARファイルを置き換えるだけで済む。(ホットスワップ、再起動不要)
 
 # Quick Start
 
