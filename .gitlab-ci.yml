@@ -46,7 +46,7 @@ deploy_job:
   image: lwolf/kubectl_deployer:latest
   stage: deploy
   script:
-    - kubectl apply -f "${KUBE_DEPLOYMENT}" --server="${KUBE_URL}" --username admin --password="${KUBE_TOKEN}" --insecure-skip-tls-verify
+    - kubectl replace --force -f "${KUBE_DEPLOYMENT}" --server="${KUBE_URL}" --username admin --password="${KUBE_TOKEN}" --insecure-skip-tls-verify
   when: manual
   environment:
     name: production
