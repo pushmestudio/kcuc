@@ -66,7 +66,7 @@ public class TopicMeta {
 	}
 
 	/** 
-	 * プロダクトIDを返す、{@link Product}自体ではないので注意
+	 * プロダクトIDを返す、{@link TopicProduct}自体ではないので注意
 	 * @return 製品ID
 	 */
 	public String getProduct() {

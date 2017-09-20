@@ -21,7 +21,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
-import jp.pushmestudio.kcuc.model.Product;
+import jp.pushmestudio.kcuc.model.TopicProduct;
 import jp.pushmestudio.kcuc.model.ResultContent;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultProductList;
@@ -369,7 +369,7 @@ public class KCData {
 	 * 引数のページキーに対応する内容を返す、誤った言語コードの場合にはKCが自動的に英語で返すようになっているが、
 	 * もし誤っている場合は日本語にしたい、などの要件が加わった場合はLocaleクラスを使った判定を加える必要がある
 	 *
-	 * @param href
+	 * @param pageHref
 	 *            検索対象ページキー
 	 * @param lang
 	 *            言語コード(ISO 639-1)
@@ -377,18 +377,18 @@ public class KCData {
 	 * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html">Locale (Java Platform SE 8 )</a>
 	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
 	 */
-	public Result searchContent(String href, String lang) {
+	public Result searchContent(String pageHref, String lang) {
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/content";
 
-		String pagehref = this.normalizeHref(href);
+		String normalizedHref = this.normalizeHref(pageHref);
 
 		WebTarget target;
 		// 引数の言語コードを確認し、nullなら言語コード指定なしのパス指定とする
 		if (Objects.isNull(lang)) {
-			target = client.target(searchUrl).path(pagehref);
+			target = client.target(searchUrl).path(normalizedHref);
 		} else {
-			target = client.target(searchUrl).path(lang).path(pagehref);
+			target = client.target(searchUrl).path(lang).path(normalizedHref);
 		}
 
 		Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON);
@@ -558,10 +558,10 @@ public class KCData {
 	 *
 	 * @param productKey
 	 *            特定ページ
-	 * @return 得られたJSONを元に生成した{@link Product}オブジェクト | null
+	 * @return 得られたJSONを元に生成した{@link TopicProduct}オブジェクト | null
 	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
 	 */
-	private Product searchProduct(String productKey) {
+	private TopicProduct searchProduct(String productKey) {
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/products/";
 
@@ -574,7 +574,7 @@ public class KCData {
 
 		// ページがproduct情報を持つ場合
 		if (resJson.has("product")) {
-			return new Product(resJson.getJSONObject("product"));
+			return new TopicProduct(resJson.getJSONObject("product"));
 		} else {
 			return null;
 		}
