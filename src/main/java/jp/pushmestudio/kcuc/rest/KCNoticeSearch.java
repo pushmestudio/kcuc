@@ -70,10 +70,10 @@ public class KCNoticeSearch {
 	@Produces({ MediaType.TEXT_HTML })
 	@ApiOperation(value = "ページ内容検索", notes = "与えられたページキーに対応するHTMLを取得、言語指定時に対応した言語が存在しなかった場合は英語にて応答する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
-	public Response searchContent(@ApiParam(value = "検索対象ページキー", required = true) @QueryParam("href") String href,
+	public Response searchContent(@ApiParam(value = "検索対象ページキー", required = true) @QueryParam("pageHref") String pageHref,
 			@ApiParam(value = "表示言語の指定(e.g. ja)") @QueryParam("lang") String lang) {
 
-		Result result = data.searchContent(href, lang);
+		Result result = data.searchContent(pageHref, lang);
 		return Response.status(result.getCode()).entity(((ResultContent) result).getPageRawHtml()).build();
 	}
 }

@@ -8,13 +8,14 @@ import org.json.JSONObject;
 
 /**
  * 検索結果として得られる各ページの内容
+ * 元々のKCの応答はpageHrefではなくhrefだが、全体の整合を取る観点からpageHrefにしている
  */
 public class Topic {
 	private long date;
-	private String href;
+	private String pageHref;
 	private String label;
 	private String summary;
-	private List<Product> products;
+	private List<TopicProduct> products;
 
 	public Topic() {
 		this.products = new ArrayList<>();
@@ -27,7 +28,7 @@ public class Topic {
 	 */
 	public Topic(JSONObject topicJson) {
 		this.date = topicJson.getLong("date");
-		this.href = topicJson.getString("href");
+		this.pageHref = topicJson.getString("href");
 		this.label = topicJson.getString("label");
 		this.summary = topicJson.getString("summary");
 
@@ -35,7 +36,7 @@ public class Topic {
 		this.products = new ArrayList<>();
 
 		// JSONの中にあるproductsを読み、1件ずつProductオブジェクトとして初期化し、リストに追加している
-		productsJson.forEach(product -> products.add(new Product((JSONObject) product)));
+		productsJson.forEach(product -> products.add(new TopicProduct((JSONObject) product)));
 	}
 
 	public long getDate() {
@@ -46,12 +47,12 @@ public class Topic {
 		this.date = date;
 	}
 
-	public String getHref() {
-		return href;
+	public String getPageHref() {
+		return pageHref;
 	}
 
-	public void setHref(String href) {
-		this.href = href;
+	public void setPageHref(String href) {
+		this.pageHref = href;
 	}
 
 	public String getLabel() {
@@ -70,11 +71,11 @@ public class Topic {
 		this.summary = summary;
 	}
 
-	public List<Product> getProducts() {
+	public List<TopicProduct> getProducts() {
 		return products;
 	}
 
-	public void setProducts(List<Product> products) {
+	public void setProducts(List<TopicProduct> products) {
 		this.products = products;
 	}
 }
