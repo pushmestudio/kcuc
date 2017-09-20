@@ -49,7 +49,7 @@ public class ResultProductList implements Result {
 		this.uniqueProductIds = new HashSet<>();
 
 		for (Product each : subscribedProducts) {
-			if (this.uniqueProductIds.add(each.getHref())) {
+			if (this.uniqueProductIds.add(each.getProdId())) {
 				this.subscribedProducts.add(each);
 			}
 			;
