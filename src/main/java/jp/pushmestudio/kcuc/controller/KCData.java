@@ -21,7 +21,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
-import jp.pushmestudio.kcuc.model.Product;
+import jp.pushmestudio.kcuc.model.TopicProduct;
 import jp.pushmestudio.kcuc.model.ResultContent;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultProductList;
@@ -558,10 +558,10 @@ public class KCData {
 	 *
 	 * @param productKey
 	 *            特定ページ
-	 * @return 得られたJSONを元に生成した{@link Product}オブジェクト | null
+	 * @return 得られたJSONを元に生成した{@link TopicProduct}オブジェクト | null
 	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
 	 */
-	private Product searchProduct(String productKey) {
+	private TopicProduct searchProduct(String productKey) {
 		Client client = ClientBuilder.newClient();
 		final String searchUrl = "https://www.ibm.com/support/knowledgecenter/v1/products/";
 
@@ -574,7 +574,7 @@ public class KCData {
 
 		// ページがproduct情報を持つ場合
 		if (resJson.has("product")) {
-			return new Product(resJson.getJSONObject("product"));
+			return new TopicProduct(resJson.getJSONObject("product"));
 		} else {
 			return null;
 		}
