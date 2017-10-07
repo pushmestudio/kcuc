@@ -28,13 +28,21 @@ public class KCNoticeSearch {
 
 	/**
 	 * 検索キーワードにマッチするページを検索して返す
-	 * @param query 検索キーワード
-	 * @param products 取得対象の製品ID
-	 * @param inurl 検索対象とするページのURL
-	 * @param offset 結果取得のオフセット(表示開始位置)
-	 * @param limit 検索結果取得件数
-	 * @param lang サポートしている言語による絞り込み
-	 * @param sort 日付による並び替え data:a or data:d
+	 * 
+	 * @param query
+	 *            検索キーワード
+	 * @param products
+	 *            取得対象の製品ID
+	 * @param inurl
+	 *            検索対象とするページのURL
+	 * @param offset
+	 *            結果取得のオフセット(表示開始位置)
+	 * @param limit
+	 *            検索結果取得件数
+	 * @param lang
+	 *            サポートしている言語による絞り込み
+	 * @param sort
+	 *            日付による並び替え data:a or data:d
 	 * @return 更新確認結果
 	 */
 	@Path("/pages")
@@ -58,7 +66,7 @@ public class KCNoticeSearch {
 	/**
 	 * ページキーに対応するページ内容を返す
 	 *
-	 * @param href
+	 * @param pageHref
 	 *            検索対象ページキー
 	 * @param lang
 	 *            言語コード(ISO 639-1)
@@ -70,7 +78,8 @@ public class KCNoticeSearch {
 	@Produces({ MediaType.TEXT_HTML })
 	@ApiOperation(value = "ページ内容検索", notes = "与えられたページキーに対応するHTMLを取得、言語指定時に対応した言語が存在しなかった場合は英語にて応答する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
-	public Response searchContent(@ApiParam(value = "検索対象ページキー", required = true) @QueryParam("pageHref") String pageHref,
+	public Response searchContent(
+			@ApiParam(value = "検索対象ページキー", required = true) @QueryParam("pageHref") String pageHref,
 			@ApiParam(value = "表示言語の指定(e.g. ja)") @QueryParam("lang") String lang) {
 
 		Result result = data.searchContent(pageHref, lang);
