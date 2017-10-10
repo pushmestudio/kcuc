@@ -20,7 +20,7 @@ import jp.pushmestudio.kcuc.util.Result;
 /**
  * 検索系
  */
-@Api(value = "kcuc")
+@Api(value = "Search")
 @Path("/search")
 public class KCNoticeSearch {
 	// 実際に取得処理などを行うオブジェクト
