@@ -35,7 +35,7 @@ public class ResultSearchList implements Result {
 
 	@Override
 	public int getCode() {
-		return Result.CODE_NORMAL;
+		return Result.CODE_OK;
 	}
 
 	public int getOffset() {

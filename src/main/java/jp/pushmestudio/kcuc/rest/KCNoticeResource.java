@@ -42,8 +42,9 @@ public class KCNoticeResource {
 	@Path("")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ユーザー一覧取得", response = ResultUserList.class, notes = "特定のページを購読しているユーザー一覧を取得・確認")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "ユーザー一覧取得", notes = "特定のページを購読しているユーザー一覧を取得・確認")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = ResultUserList.class, message = "OK"),
+			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response getUpdatedUsers(
 			@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("pageHref") String pageHref,
 			@ApiParam(value = "更新判断の基準時間, ここで入力されたタイムスタンプよりも後に更新されていれば更新ありとみなす, デフォルトは1週間前時点", required = false) @QueryParam("time") Long time) {
@@ -62,8 +63,10 @@ public class KCNoticeResource {
 	@Path("")
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ユーザー作成", response = Message.class, code = Result.CODE_CLOUDANT_UPDATE, notes = "与えられたIDを元にユーザーを作成する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "ユーザー作成", notes = "与えられたIDを元にユーザーを作成する")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = Message.class, message = "OK"),
+			@ApiResponse(code = Result.CODE_BAD_REQUEST, response = Message.class, message = "パラメーターが不正です"),
+			@ApiResponse(code = Result.CODE_CONFLICT, response = Message.class, message = "既に存在しています") })
 	public Response createUser(@ApiParam(value = "ユーザーID", required = true) @FormParam("userId") String userId) {
 
 		Result result = data.createUser(userId);
@@ -80,8 +83,9 @@ public class KCNoticeResource {
 	@Path("/{id}")
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ユーザー削除", response = Message.class, notes = "与えられたIDを元にユーザーを削除する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "ユーザー削除", notes = "与えられたIDを元にユーザーを削除する")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_NO_CONTENT, message = "購読解除が完了しました"),
+			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response deleteUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {
 
 		Result result = data.deleteUser(userId);
@@ -102,8 +106,9 @@ public class KCNoticeResource {
 	@Path("/{id}/pages")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ページ一覧取得", response = ResultPageList.class, notes = "特定のユーザーの購読しているページ一覧を取得・確認")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "ページ一覧取得", notes = "特定のユーザーの購読しているページ一覧を取得・確認")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = ResultPageList.class, message = "OK"),
+			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response getUpdatedPages(@ApiParam(value = "更新確認対象のユーザー名", required = true) @PathParam("id") String userId,
 			@ApiParam(value = "更新確認対象の製品ID", required = false) @QueryParam("prodId") String prodId,
 			@ApiParam(value = "更新判断の基準時間, ここで入力されたタイムスタンプよりも後に更新されていれば更新ありとみなす, デフォルトは1週間前時点", required = false) @QueryParam("time") Long time) {
@@ -124,8 +129,11 @@ public class KCNoticeResource {
 	@Path("/{id}/pages")
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読ページ追加", response = Message.class, code = Result.CODE_CLOUDANT_UPDATE, notes = "特定のユーザの購読するページを追加・確認")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "購読ページ追加", notes = "特定のユーザの購読するページを追加・確認")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = Message.class, message = "OK"),
+			@ApiResponse(code = Result.CODE_BAD_REQUEST, response = Message.class, message = "パラメーターが不正です"),
+			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません"),
+			@ApiResponse(code = Result.CODE_CONFLICT, response = Message.class, message = "既に存在しています") })
 	public Response setSubscribe(@ApiParam(value = "更新対象のユーザー名", required = true) @PathParam("userId") String userId,
 			@ApiParam(value = "購読対象のページキー", required = true) @FormParam("pageHref") String pageHref) {
 
@@ -145,8 +153,9 @@ public class KCNoticeResource {
 	@Path("/{id}/pages/{pageHref}")
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読ページ解除", response = Message.class, code = Result.CODE_CLOUDANT_UPDATE, notes = "特定のユーザの購読するページを解除")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "購読ページ解除", notes = "特定のユーザの購読するページを解除")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_NO_CONTENT, message = "購読解除が完了しました"),
+			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response unsetSubscribe(@ApiParam(value = "対象のユーザー名", required = true) @PathParam("id") String userId,
 			@ApiParam(value = "購読解除対象のページキー", required = true) @PathParam("pageHref") String pageHref) {
 
@@ -164,8 +173,9 @@ public class KCNoticeResource {
 	@Path("/{id}/products")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読製品一覧取得", response = ResultProductList.class, notes = "特定のユーザーの購読しているページが属する製品一覧を取得")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "購読製品一覧取得", notes = "特定のユーザーの購読しているページが属する製品一覧を取得")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = ResultProductList.class, message = "OK"),
+			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response getSubscribedProducts(
 			@ApiParam(value = "確認対象のユーザー名", required = true) @PathParam("id") String userId) {
 
@@ -185,8 +195,9 @@ public class KCNoticeResource {
 	@Path("/{id}/products/{prodId}")
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読ページの製品指定解除", response = Message.class, code = Result.CODE_CLOUDANT_UPDATE, notes = "ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "購読ページの製品指定解除", notes = "ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_NO_CONTENT, message = "購読解除が完了しました"),
+			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response unsetSubscribeProduct(@ApiParam(value = "対象のユーザー名", required = true) @PathParam("id") String userId,
 			@ApiParam(value = "購読解除対象の製品ID", required = true) @PathParam("prodId") String prodId) {
 
