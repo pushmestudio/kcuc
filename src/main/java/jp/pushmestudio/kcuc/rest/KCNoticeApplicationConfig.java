@@ -17,7 +17,7 @@ public class KCNoticeApplicationConfig extends Application {
 		BeanConfig beanConfig = new BeanConfig();
 		beanConfig.setTitle("KCUC");
 		beanConfig.setDescription("Knowledge Center Update Checker");
-		beanConfig.setVersion("0.2.0");
+		beanConfig.setVersion("0.3.0");
 		beanConfig.setSchemes(new String[] {"http", "https"});
 		// beanConfig.setHost("172.17.0.2:8080"); // Hostの設定値は省略すると稼働しているホストになる想定のため設定呼び出しをコメントアウト
 		beanConfig.setBasePath("/rest-v1"); // applicationのルートパスを指定

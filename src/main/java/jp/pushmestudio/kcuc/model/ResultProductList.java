@@ -72,6 +72,6 @@ public class ResultProductList implements Result {
 
 	@Override
 	public int getCode() {
-		return Result.CODE_NORMAL;
+		return Result.CODE_OK;
 	}
 }

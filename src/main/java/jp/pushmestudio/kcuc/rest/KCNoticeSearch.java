@@ -15,6 +15,7 @@ import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
 import jp.pushmestudio.kcuc.model.ResultContent;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
+import jp.pushmestudio.kcuc.util.Message;
 import jp.pushmestudio.kcuc.util.Result;
 
 /**
@@ -48,8 +49,9 @@ public class KCNoticeSearch {
 	@Path("/pages")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "ページ検索", response = ResultSearchList.class, notes = "与えられたキーワードを元にページを購読する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "ページ検索", notes = "与えられたキーワードを元にページを購読する")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = ResultSearchList.class, message = "OK"),
+			@ApiResponse(code = Result.CODE_BAD_REQUEST, response = Message.class, message = "リクエストパラメーターが不正です") })
 	public Response searchPages(
 			@ApiParam(value = "検索キーワード, スペース区切りでOR検索", required = true) @QueryParam("query") String query,
 			@ApiParam(value = "取得対象の製品ID, カンマ区切りで複数指定可能") @QueryParam("products") String products,
@@ -76,10 +78,11 @@ public class KCNoticeSearch {
 	@Path("/content")
 	@GET
 	@Produces({ MediaType.TEXT_HTML })
-	@ApiOperation(value = "ページ内容検索", notes = "与えられたページキーに対応するHTMLを取得、言語指定時に対応した言語が存在しなかった場合は英語にて応答する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	@ApiOperation(value = "ページ内容取得", notes = "与えられたページキーに対応するHTMLを取得、言語指定時に対応した言語が存在しなかった場合は英語にて応答する")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, message = "OK"),
+			@ApiResponse(code = Result.CODE_BAD_REQUEST, response = Message.class, message = "リクエストパラメーターが不正です") })
 	public Response searchContent(
-			@ApiParam(value = "検索対象ページキー", required = true) @QueryParam("pageHref") String pageHref,
+			@ApiParam(value = "取得対象ページキー", required = true) @QueryParam("pageHref") String pageHref,
 			@ApiParam(value = "表示言語の指定(e.g. ja)") @QueryParam("lang") String lang) {
 
 		Result result = data.searchContent(pageHref, lang);

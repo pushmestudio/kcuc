@@ -23,7 +23,7 @@ public class KCMessageFactory {
 	 */
 	public static Message createMessage(int messageCode, String messageParameter) {
 		// TODO どのようなときにどのような応答メッセージとするかは検討の余地あり
-		if (messageCode == Result.CODE_SERVER_ERROR) {
+		if (messageCode == Result.CODE_INTERNAL_SERVER_ERROR) {
 			return new ErrorMessage(messageCode, messageParameter);
 		} else {
 			return new NormalMessage(messageCode, messageParameter);
