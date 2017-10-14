@@ -11,10 +11,12 @@ public class UserDocument {
 	private String _rev;
 	private String userId;
 	private List<SubscribedPage> subscribedPages;
+	private List<DeletedPage> deletedPages;
 
 	public UserDocument(String userId) {
 		this.userId = userId;
 		this.subscribedPages = new ArrayList<>();
+		this.deletedPages = new ArrayList<>();
 	}
 
 	public String getId() {
@@ -45,10 +47,20 @@ public class UserDocument {
 		subscribedPages = new ArrayList<>(pages);
 	}
 
+	public List<DeletedPage> getDeletedPages() {
+		return deletedPages;
+	}
+
+	public void addDeletedPages(DeletedPage targetPage) {
+		deletedPages.add(targetPage);
+	}
+	
+	
 	// @see https://github.com/cloudant/java-cloudant
 	// toStringをoverrideする実装の際に参考にしたもの
 	public String toString() {
 		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserId: " + userId + ",\nsubscribedPages: " + subscribedPages
-				+ "\n}";
+				+ ",\ndeletedPages: " + deletedPages
+				+"\n}";
 	}
 }
