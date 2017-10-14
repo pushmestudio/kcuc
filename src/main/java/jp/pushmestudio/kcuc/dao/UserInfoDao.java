@@ -14,6 +14,7 @@ import com.cloudant.client.api.Database;
 import com.cloudant.client.api.model.Response;
 import com.cloudant.client.org.lightcouch.TooManyRequestsException;
 
+import jp.pushmestudio.kcuc.model.DeletedPage;
 import jp.pushmestudio.kcuc.model.SubscribedPage;
 import jp.pushmestudio.kcuc.model.UserDocument;
 
@@ -515,5 +516,41 @@ public class UserInfoDao {
 			e.printStackTrace();
 		}
 		return props;
+	}
+	
+	/***
+	 * 購読していたページが本家KCから削除された場合に，削除済リストに登録する
+	 * @param userId
+	 * @param deletedPage
+	 * @return null
+	 */
+	public Response addDeletedPage(String userId, DeletedPage deletedPage) {
+			List<UserDocument> userDocs = this.getUserList(userId);
+			UserDocument updateTarget;
+			Iterator<UserDocument> it = userDocs.iterator();
+			while (it.hasNext()) {
+				UserDocument userDoc = it.next();
+				if (userDoc.getUserId().equals(userId)) {
+					updateTarget = userDoc;
+					updateTarget.addDeletedPages(deletedPage);
+
+					try {
+						// DBへのアップデート処理
+						// リトライ向けに2回書いているので修正時はどちらも直すこと
+						kcucDB.update(updateTarget);
+					} catch (TooManyRequestsException e) {
+						// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+						e.printStackTrace();
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException ee) {
+							ee.printStackTrace();
+						}
+						kcucDB.update(updateTarget);
+					}
+					break;
+				}
+			}
+		return null;
 	}
 }

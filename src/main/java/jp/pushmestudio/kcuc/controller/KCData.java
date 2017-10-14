@@ -22,6 +22,7 @@ import org.json.JSONObject;
 
 import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.TopicProduct;
+import jp.pushmestudio.kcuc.model.DeletedPage;
 import jp.pushmestudio.kcuc.model.ResultContent;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultProductList;
@@ -188,8 +189,13 @@ public class KCData {
 					TopicMeta topicMeta = getSpecificPageMeta(pageKey);
 
 					// ページの更新情報が取得できないときは0を返す
+					// DBに登録されているページがなくなっていることを指しているので．Page Deleted.とした
 					if (!topicMeta.isExist()) {
-						return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
+						// 以前購読していたが本家KC上での削除済となったページ情報をDBに保持
+						DeletedPage deletedPage = new DeletedPage(entry.getPageHref(), entry.getPageName(), entry.getProdId(),entry.getProdName());
+						userInfoDao.addDeletedPage(userId,deletedPage); // 本家KC上で削除済のページをDBに削除済ページとして登録する
+						userInfoDao.delSubscribedPage(userId, pageKey); // 本家KC上で削除済のページをDBの購読済ページ削除する
+						return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Deleted in KC.");
 					}
 
 					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
@@ -213,7 +219,7 @@ public class KCData {
 
 	/**
 	 * 指定したIDのユーザーを作成する
-	 * 
+	 *
 	 * @param userId
 	 *            作成対象のユーザーのID
 	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
@@ -267,7 +273,7 @@ public class KCData {
 
 	/**
 	 * 指定したIDのユーザーを削除する
-	 * 
+	 *
 	 * @param userId
 	 *            削除対象のユーザーのID
 	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
@@ -542,7 +548,7 @@ public class KCData {
 	 * .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一する（不正な拡張子はisTopicExist()で弾かれる)
 	 * 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除するための処理
 	 * xxx.htm,xxx.htm?sc=_latest,xxx.html?sc=_latestをxxx.htmlに置き換える
-	 * 
+	 *
 	 * @param originalHref
 	 *            置き換え前のhref
 	 * @return 置き換え後のhref
