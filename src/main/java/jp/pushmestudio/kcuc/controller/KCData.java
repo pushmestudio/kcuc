@@ -194,7 +194,7 @@ public class KCData {
 						// 以前購読していたが本家KC上での削除済となったページ情報をDBに保持
 						DeletedPage deletedPage = new DeletedPage(entry.getPageHref(), entry.getPageName(), entry.getProdId(),entry.getProdName());
 						userInfoDao.addDeletedPage(userId,deletedPage); // 本家KC上で削除済のページをDBに削除済ページとして登録する
-						userInfoDao.delSubscribedPage(userId, pageKey); // 本家KC上で削除済のページをDBの購読済ページ削除する
+						userInfoDao.delSubscribedPage(userId, deletedPage.getPageHref()); // 本家KC上で削除済のページをDBの購読済ページ削除する
 						return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Deleted in KC.");
 					}
 
