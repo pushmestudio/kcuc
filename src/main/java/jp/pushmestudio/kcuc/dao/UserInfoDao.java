@@ -532,8 +532,10 @@ public class UserInfoDao {
 				UserDocument userDoc = it.next();
 				if (userDoc.getUserId().equals(userId)) {
 					updateTarget = userDoc;
+					System.out.println(deletedPage.getPageHref());
 					updateTarget.addDeletedPages(deletedPage);
-
+					//SubscribedPage t = new SubscribedPage(deletedPage.getPageHref(), deletedPage.getPageName(), deletedPage.getProdId(), deletedPage.getProdName()); 
+					//updateTarget.addSubscribedPages(t);
 					try {
 						// DBへのアップデート処理
 						// リトライ向けに2回書いているので修正時はどちらも直すこと
