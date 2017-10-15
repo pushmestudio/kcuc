@@ -16,6 +16,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
+import jp.pushmestudio.kcuc.model.ResultDeletedPageList;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultProductList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
@@ -156,5 +157,25 @@ public class KCNoticeResource {
 		Result result = data.cancelSubscribedProduct(userId, prodId);
 		return Response.status(result.getCode()).entity(result).build();
 	}
-
+	
+	/**
+	 * 特定のユーザーが元々購読していたが本家KCから削除されたページの一覧の取得・確認
+	 *
+	 * @param userId
+	 *            更新確認対象のユーザーID
+	 * @param prodId
+	 *            確認対象の製品ID
+	 * @return 削除済ページの確認結果
+	 */
+	@Path("/pages/delete")
+	@GET
+	@Produces({ MediaType.APPLICATION_JSON })
+	@ApiOperation(value = "ページ一覧取得", response = ResultDeletedPageList.class, notes = "特定のユーザーが元々購読していたが本家KCから削除されたページ一覧を取得・確認")
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_SERVER_ERROR, message = "Internal Server Error") })
+	public Response getDeletedPages(@ApiParam(value = "削除済ページ確認対象のユーザー名", required = true) @QueryParam("userId") String userId,
+			@ApiParam(value = "削除済ページ確認対象の製品ID", required = false) @QueryParam("prodId") String prodId
+			) {
+		Result result = data.checkDeletedPagesByUser(userId, prodId);
+		return Response.status(result.getCode()).entity(result).build();
+	}
 }

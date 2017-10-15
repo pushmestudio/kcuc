@@ -55,6 +55,9 @@ public class UserDocument {
 		deletedPages.add(targetPage);
 	}
 	
+	public void delDeletedPage(int target) {
+		deletedPages.remove(target);
+	}
 	
 	// @see https://github.com/cloudant/java-cloudant
 	// toStringをoverrideする実装の際に参考にしたもの

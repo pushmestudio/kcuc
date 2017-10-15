@@ -24,6 +24,7 @@ import jp.pushmestudio.kcuc.dao.UserInfoDao;
 import jp.pushmestudio.kcuc.model.TopicProduct;
 import jp.pushmestudio.kcuc.model.DeletedPage;
 import jp.pushmestudio.kcuc.model.ResultContent;
+import jp.pushmestudio.kcuc.model.ResultDeletedPageList;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultProductList;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
@@ -585,5 +586,96 @@ public class KCData {
 			return null;
 		}
 	}
+	
+	public Result checkDeletedPagesByUser(String userId) {
+		return this.checkDeletedPagesByUser(userId, null);
+	}
+	// 一度KC上から削除されたページが復活している可能性を考慮して，チェック機能を追加しておく
+	public Result checkDeletedPagesByUser(String userId, String prodId) {
+		try {
+			// DBのユーザーからのデータ取得処理
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
+			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
+			if (!userInfoDao.isUserExist(userId)) {
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
+			}
+
+			// IDはユニークなはずなので、Listにする必要はない
+			List<UserDocument> userList;
+			if (Objects.isNull(prodId)) {
+				userList = userInfoDao.getUserList(userId);
+			} else {
+				// 製品ID指定による限定
+				userList = userInfoDao.getUserList(userId, prodId);
+			}
+
+			// return用
+			Result result = new ResultDeletedPageList(userId);
+
+			for (UserDocument userDoc : userList) {
+				List<DeletedPage> deletedPages = userDoc.getDeletedPages();
+
+				for (DeletedPage entry : deletedPages) {
+					String pageKey = entry.getPageHref();
+
+					// KCからのデータ取得処理
+					TopicMeta topicMeta = getSpecificPageMeta(pageKey);
+
+					// deletedPages内のページがKC上に復活した場合は，購読ページに追加する
+					if (topicMeta.isExist()) {
+						userInfoDao.setSubscribedPages(userId, entry.getPageHref(), entry.getPageName(), entry.getProdId(),entry.getProdName());
+						deleteDeletedPage(userId, entry.getPageHref());
+						return KCMessageFactory.createMessage(Result.CODE_UNKNOWN, "Added - " + entry.getPageHref() + ". Because Deleted Page Recoverd in KC. Try again to call this API.");
+					}
+
+					((ResultDeletedPageList) result).addDeletedPages(entry);
+				}
+			}
+
+			return result;
+		} catch (JSONException e) {
+			e.printStackTrace();
+
+			// エラーメッセージを作成
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+		}
+	}
+	
+	/**
+	 * DBのdeletedPagesから削除したいページを削除し、購読情報を結果として返す
+	 *
+	 * @param userId
+	 *            対象のユーザーID
+	 * @param href
+	 *            deletedPagesから削除するページ
+	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
+	 *
+	 */
+	public Result deleteDeletedPage(String userId, String href) {
+		try {
+			String pageHref = this.normalizeHref(href);
+
+			// DBのユーザーからのデータ取得処理
+			UserInfoDao userInfoDao = UserInfoDao.getInstance();
+
+			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
+			if (!userInfoDao.isUserExist(userId)) {
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
+				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
+			} else if (!isTopicExist(pageHref)) {
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
+				// 指定されたページを購読していない場合もエラーメッセージを返す
+			} else if (!userInfoDao.isPageExist(userId, pageHref)) {
+				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Page.");
+			}
+
+			com.cloudant.client.api.model.Response res = userInfoDao.delDeletedPage(userId, pageHref);
+			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			// エラーメッセージを作成
+			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+		}
+	}
 }

@@ -555,4 +555,78 @@ public class UserInfoDao {
 			}
 		return null;
 	}
+	
+	/**
+	 * ユーザの削除済ページをDBのdeletedPagesから削除する
+	 * 
+	 * @param userId
+	 *            対象ユーザのID
+	 * @param pageHref
+	 *            deletedPagesから削除するページ
+	 * @return 削除結果
+	 */
+	public Response delDeletedPage(String userId, String pageHref) {
+		// userIdとpageHrefで指定されたユーザのデータを取得
+		List<UserDocument> userDocs;
+		try {
+			// リトライ向けに2回書いているので修正時はどちらも直すこと
+			userDocs = kcucDB.findByIndex(
+					"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
+							+ "\"},{\"deletedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
+					UserDocument.class);
+		} catch (TooManyRequestsException e) {
+			// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+			e.printStackTrace();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ee) {
+				ee.printStackTrace();
+			}
+			userDocs = kcucDB.findByIndex(
+					"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
+							+ "\"},{\"deletedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
+					UserDocument.class);
+		}
+
+		Response res = new Response();
+		UserDocument updateTarget;
+
+		Iterator<UserDocument> it = userDocs.iterator();
+		// kcucDB.findにてマッチするターゲットを見つけていたものをIteratorに置き換え
+		while (it.hasNext()) {
+			UserDocument userDoc = it.next();
+			if (userDoc.getUserId().equals(userId)) {
+				updateTarget = userDoc;
+				int target = 0;
+				for (DeletedPage targetHref : updateTarget.getDeletedPages()) {
+					if (targetHref.getPageHref().equals(pageHref)) {
+						break;
+					}
+					target++;
+				}
+				// 対象ページの削除済ページをDBのdeletedPagesから
+				updateTarget.delDeletedPage(target);
+
+				try {
+					// DBへのアップデート処理
+					// リトライ向けに2回書いているので修正時はどちらも直すこと
+					res = kcucDB.update(updateTarget);
+				} catch (TooManyRequestsException e) {
+					// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+					e.printStackTrace();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ee) {
+						ee.printStackTrace();
+					}
+					res = kcucDB.update(updateTarget);
+					// ここをres = delSubscribedPage(userId,
+					// pageHref)にすれば再帰呼び出しで成功するまでリトライし続ける
+				}
+
+				break;
+			}
+		}
+		return res;
+	}
 }
