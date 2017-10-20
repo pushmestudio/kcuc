@@ -15,7 +15,6 @@ import io.swagger.annotations.ApiResponses;
 import jp.pushmestudio.kcuc.controller.KCData;
 import jp.pushmestudio.kcuc.model.ResultContent;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
-import jp.pushmestudio.kcuc.util.Message;
 import jp.pushmestudio.kcuc.util.Result;
 
 /**
@@ -28,7 +27,7 @@ public class KCNoticeSearch {
 	KCData data = new KCData();
 
 	/**
-	 * 検索キーワードにマッチするページを検索して返す
+	 * 検索キーワードにマッチするページを検索して返す、不正なパラメーターはKC側で無視される
 	 * 
 	 * @param query
 	 *            検索キーワード
@@ -50,8 +49,7 @@ public class KCNoticeSearch {
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "ページ検索", notes = "与えられたキーワードを元にページを購読する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = ResultSearchList.class, message = "OK"),
-			@ApiResponse(code = Result.CODE_BAD_REQUEST, response = Message.class, message = "リクエストパラメーターが不正です") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = ResultSearchList.class, message = "OK") })
 	public Response searchPages(
 			@ApiParam(value = "検索キーワード, スペース区切りでOR検索", required = true) @QueryParam("query") String query,
 			@ApiParam(value = "取得対象の製品ID, カンマ区切りで複数指定可能") @QueryParam("products") String products,
@@ -79,8 +77,7 @@ public class KCNoticeSearch {
 	@GET
 	@Produces({ MediaType.TEXT_HTML })
 	@ApiOperation(value = "ページ内容取得", notes = "与えられたページキーに対応するHTMLを取得、言語指定時に対応した言語が存在しなかった場合は英語にて応答する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, message = "OK"),
-			@ApiResponse(code = Result.CODE_BAD_REQUEST, response = Message.class, message = "リクエストパラメーターが不正です") })
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, message = "OK") })
 	public Response searchContent(
 			@ApiParam(value = "取得対象ページキー", required = true) @QueryParam("pageHref") String pageHref,
 			@ApiParam(value = "表示言語の指定(e.g. ja)") @QueryParam("lang") String lang) {

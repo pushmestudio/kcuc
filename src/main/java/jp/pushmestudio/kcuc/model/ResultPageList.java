@@ -9,7 +9,7 @@ import jp.pushmestudio.kcuc.util.Result;
  * 応答用のユーザーの購読しているページリスト
  * Result系のクラスはSwaggerの応答にも用いられるため、数字・文字列・配列・リスト以外をメンバー変数に使用しないこと
  */
-public class ResultPageList implements Result {
+public class ResultPageList extends Result {
 	private String userId;
 	private List<SubscribedPage> subscribedPages;
 
@@ -32,10 +32,5 @@ public class ResultPageList implements Result {
 
 	public void addSubscribedPage(SubscribedPage targetPage) {
 		subscribedPages.add(targetPage);
-	}
-
-	@Override
-	public int getCode() {
-		return Result.CODE_OK;
 	}
 }
