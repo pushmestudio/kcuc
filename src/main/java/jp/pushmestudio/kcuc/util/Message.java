@@ -1,16 +1,15 @@
 package jp.pushmestudio.kcuc.util;
 
 /**
- * 生成メッセージの元となる抽象クラス
+ * 生成メッセージの元となるクラス
  */
-public abstract class Message implements Result {
+public class Message extends Result {
 	private String subject;
-	private int code;
 	private String detail;
 	protected String message;
 
 	public Message(int messageCode) {
-		this(messageCode, null);
+		this(messageCode, null, null);
 	}
 
 	/**
@@ -19,11 +18,10 @@ public abstract class Message implements Result {
 	 * @param messageParameter
 	 *            メッセージ生成に利用されるパラメーター
 	 */
-	public Message(int messageCode, String messageParameter) {
+	public Message(int messageCode, String messageSubject, String messageParameter) {
 		this.setCode(messageCode);
 		this.setSubject(messageParameter);
 		this.setDetail(messageParameter);
-		this.setMessage();
 	}
 
 	/* setter/getter */
@@ -55,33 +53,7 @@ public abstract class Message implements Result {
 		this.detail = detail;
 	}
 
-	public int getCode() {
-		return code;
-	}
-
-	/**
-	 * 受け取った値のセットを変更したい場合などには、継承先でoverrideする。
-	 * 
-	 * @param code
-	 *            メッセージのcode number
-	 */
-	protected void setCode(int code) {
-		this.code = code;
-	}
-
 	public String getMessage() {
 		return this.message;
-	}
-
-	/**
-	 * subject, detail, code以外のものをメッセージに含みたい場合には 継承先でこのメソッドをoverrideする。 subject,
-	 * detail, codeについてのみ変更したい場合には、 継承先で{@link #setSubject}などをoverrideする。
-	 */
-	protected void setMessage() {
-		StringBuilder message = new StringBuilder();
-		message.append("subject:").append(this.getSubject());
-		message.append(", code:").append(this.getCode());
-		message.append(", detail:").append(this.getDetail());
-		this.message = message.toString();
 	}
 }

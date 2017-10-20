@@ -59,11 +59,12 @@ public class KCData {
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "User Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 			}
 
 			com.cloudant.client.api.model.Response res = userInfoDao.cancelSubscribedProduct(userId, prodId);
-			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+			// そのままCloudantの応答コードを返すことはせず、KCとしての応答コードを返す
+			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason(), userId + " is deleted");
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
@@ -72,7 +73,7 @@ public class KCData {
 			// 購読しているページの中に指定製品が含まれるかを確認するメソッドを実装したらこの処理は削除する
 			ee.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Not Yet Subscribed This Product.");
+			return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Not Yet Subscribed This Product.");
 		}
 	}
 
@@ -96,7 +97,7 @@ public class KCData {
 
 			// ページキーが取得できない場合はエラーメッセージを返す
 			if (!topicMeta.isExist()) {
-				return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Page Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 			}
 
 			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
@@ -114,7 +115,7 @@ public class KCData {
 				UserInfo eachUser = new UserInfo(userDoc.getUserId(), baseTime < lastModifiedDate.getTime());
 				((ResultUserList) result).addSubscriber(eachUser);
 			}
-
+			result.setCode(Result.CODE_OK);
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -159,7 +160,7 @@ public class KCData {
 
 			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "User Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 			}
 
 			// IDはユニークなはずなので、Listにする必要はない
@@ -189,7 +190,7 @@ public class KCData {
 
 					// ページの更新情報が取得できないときは0を返す
 					if (!topicMeta.isExist()) {
-						return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Page Not Found.");
+						return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 					}
 
 					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
@@ -202,6 +203,7 @@ public class KCData {
 				}
 			}
 
+			result.setCode(Result.CODE_OK);
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -224,7 +226,8 @@ public class KCData {
 
 		com.cloudant.client.api.model.Response res = userInfoDao.createUser(userId);
 
-		Result result = KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+		// Cloudantの応答コードをそのまま使わずKCとしての応答コードを返す
+		Result result = KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		return result;
 	}
 
@@ -247,17 +250,18 @@ public class KCData {
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "User Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
 			} else if (!isTopicExist(pageHref)) {
-				return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Page Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 				// 指定されたページを購読していない場合もエラーメッセージを返す
 			} else if (!userInfoDao.isPageExist(userId, pageHref)) {
-				return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Not Yet Subscribed This Page.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Not Yet Subscribed This Page.");
 			}
 
 			com.cloudant.client.api.model.Response res = userInfoDao.delSubscribedPage(userId, pageHref);
-			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+			// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
+			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
@@ -277,9 +281,8 @@ public class KCData {
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
-
-		Result result = KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
-		return result;
+		// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
+		return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 	}
 
 	/**

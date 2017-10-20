@@ -1,6 +1,6 @@
 package jp.pushmestudio.kcuc.util;
 
-public interface Result {
+public abstract class Result {
 	/** 正常系の応答で使う */
 	public static final int CODE_OK = 200;
 	/** Putなどの更新系応答時などに使う **/
@@ -19,9 +19,21 @@ public interface Result {
 	/** メンテ時など応答不能時に使う */
 	public static final int CODE_SERVICE_UNAVAILABLE = 503;
 
+	int code;
+
 	/**
-	 * 応答時のレスポンスコードの判定に使用する、通常は{@code return Result.CODE_NORMAL;}のように実装すれば良い
+	 * 応答時のレスポンスコードの判定に使用する、通常は{@code return Result.CODE_OK;}のように実装すれば良い
+	 * 
 	 * @return レスポンスコードに使う応答コード
 	 */
-	int getCode();
+	public int getCode() {
+		return this.code;
+	}
+
+	/**
+	 * 応答時のレスポンスコードをセットする、正常時以外には様々な応答コードが想定されるためsetCodeでcodeをセットし応答する
+	 */
+	public void setCode(int newCode) {
+		this.code = newCode;
+	}
 }
