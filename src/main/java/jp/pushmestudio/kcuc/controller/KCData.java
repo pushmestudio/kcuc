@@ -188,7 +188,6 @@ public class KCData {
 					// KCからのデータ取得処理
 					TopicMeta topicMeta = getSpecificPageMeta(pageKey);
 
-					// ページの更新情報が取得できないときは0を返す
 					if (!topicMeta.isExist()) {
 						return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 					}
@@ -227,6 +226,7 @@ public class KCData {
 		com.cloudant.client.api.model.Response res = userInfoDao.createUser(userId);
 
 		// Cloudantの応答コードをそのまま使わずKCとしての応答コードを返す
+		// TODO 既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
 		Result result = KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		return result;
 	}
@@ -282,6 +282,7 @@ public class KCData {
 
 		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
 		// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
+		// TODO 既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
 		return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 	}
 
@@ -300,7 +301,7 @@ public class KCData {
 
 		// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 		if (!userInfoDao.isUserExist(userId)) {
-			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "User Not Found");
+			return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found");
 		}
 
 		// IDはユニークなはずなので、Listにする必要はない
@@ -345,13 +346,14 @@ public class KCData {
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "User Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 			} else if (!topicMeta.isExist()) {
 				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
-				return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Page Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 			} else if (userInfoDao.isPageExist(userId, pageHref)) {
 				// 指定されたページを既に購読している場合もエラーメッセージを返す
-				return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "You Already Subscribe This Page.");
+				return KCMessageFactory.createMessage(Result.CODE_CONFLICT,
+						"You Already Subscribe This Page.");
 			}
 
 			String prodId = topicMeta.getProduct();
@@ -377,8 +379,12 @@ public class KCData {
 	 * @param lang
 	 *            言語コード(ISO 639-1)
 	 * @return ページ内容
-	 * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html">Locale (Java Platform SE 8 )</a>
-	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
+	 * @see <a href=
+	 *      "https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html">Locale
+	 *      (Java Platform SE 8 )</a>
+	 * @see <a href=
+	 *      "https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client
+	 *      API</a>
 	 */
 	public Result searchContent(String pageHref, String lang) {
 		Client client = ClientBuilder.newClient();
@@ -420,7 +426,9 @@ public class KCData {
 	 * @param sort
 	 *            並び替え、現時点では日付昇順・降順のみAPIでサポートしている、date:aかdate:d以外が来たら指定がなかったものとみなす
 	 * @return 検索結果
-	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
+	 * @see <a href=
+	 *      "https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client
+	 *      API</a>
 	 */
 	public Result searchPages(String query, String products, String inurl, Integer offset, Integer limit, String lang,
 			String sort) {
@@ -431,8 +439,8 @@ public class KCData {
 
 		/*
 		 * パラメーターが存在するなら追加する、という処理、
-		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、
-		 * という処理を実装する, queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
+		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、 という処理を実装する,
+		 * queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
 		 */
 		Map<String, String> queryMap = new HashMap<>();
 
@@ -482,7 +490,9 @@ public class KCData {
 	 * @param pageHref
 	 *            ページ名を確認する対象のpageのHref
 	 * @return breadcrumbから抽出したページ名
-	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
+	 * @see <a href=
+	 *      "https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client
+	 *      API</a>
 	 */
 	private String getPageName(String prodId, String pageHref) throws JSONException {
 		Client client = ClientBuilder.newClient();
@@ -510,7 +520,9 @@ public class KCData {
 	 * @param specificHref
 	 *            更新の有無を確認する対象のpageのHref
 	 * @return topic_metadataから得られた応答を抽出してプロパティとしてセットした{@link TopicMeta}
-	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
+	 * @see <a href=
+	 *      "https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client
+	 *      API</a>
 	 */
 	private TopicMeta getSpecificPageMeta(String specificHref) throws JSONException {
 		Client client = ClientBuilder.newClient();
@@ -562,7 +574,9 @@ public class KCData {
 	 * @param productKey
 	 *            特定ページ
 	 * @return 得られたJSONを元に生成した{@link TopicProduct}オブジェクト | null
-	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
+	 * @see <a href=
+	 *      "https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client
+	 *      API</a>
 	 */
 	private TopicProduct searchProduct(String productKey) {
 		Client client = ClientBuilder.newClient();
