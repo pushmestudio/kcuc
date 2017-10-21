@@ -84,7 +84,7 @@ public class KCNoticeResource {
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "ユーザー削除", notes = "与えられたIDを元にユーザーを削除する")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = Message.class, message = "購読解除が完了しました"),
+	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = Message.class, message = "ユーザー削除が完了しました"),
 			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response deleteUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {
 

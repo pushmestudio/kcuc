@@ -6,7 +6,6 @@ package jp.pushmestudio.kcuc.util;
 public class Message extends Result {
 	private String subject;
 	private String detail;
-	protected String message;
 
 	public Message(int messageCode) {
 		this(messageCode, null, null);
@@ -51,9 +50,5 @@ public class Message extends Result {
 	 */
 	protected void setDetail(String detail) {
 		this.detail = detail;
-	}
-
-	public String getMessage() {
-		return this.message;
 	}
 }
