@@ -61,11 +61,12 @@ war {
   archiveName 'kcuc.war'
 }
 
-// 生成されたwarを配置する
+// 生成されたwarを配置する、WARの名称変更が不要となったためただのコピーをしているだけのもはや不要なタスク
+/* @deprecated */
 task deploy(type: Exec) {
-  description 'Deploy generated war file to ${deployTargetDir} directory as ROOT.war'
+  description 'Deploy generated war file to ${deployTargetDir} directory'
   workingDir "${projectDir}/build/libs/"
-  commandLine 'cp', '-v', war.archiveName, "${deployTargetDir}/ROOT.war"
+  commandLine 'cp', '-v', war.archiveName, "${deployTargetDir}/"
 }
 
 /**
