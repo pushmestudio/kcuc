@@ -44,12 +44,11 @@ public class UserDocument {
 	public void replaceSubscribedPages(List<SubscribedPage> pages) {
 		subscribedPages = new ArrayList<>(pages);
 	}
-	
+
 	// @see https://github.com/cloudant/java-cloudant
 	// toStringをoverrideする実装の際に参考にしたもの
 	public String toString() {
 		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserId: " + userId + ",\nsubscribedPages: " + subscribedPages
-				+ ",\ndeletedPages: "
 				+"\n}";
 	}
 }
