@@ -52,7 +52,6 @@ public class ResultProductList extends Result {
 			if (this.uniqueProductIds.add(each.getProdId())) {
 				this.subscribedProducts.add(each);
 			}
-			;
 		}
 	}
 
