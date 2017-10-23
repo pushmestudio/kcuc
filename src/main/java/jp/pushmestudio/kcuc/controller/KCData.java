@@ -1,5 +1,7 @@
 package jp.pushmestudio.kcuc.controller;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -64,7 +66,7 @@ public class KCData {
 
 			com.cloudant.client.api.model.Response res = userInfoDao.cancelSubscribedProduct(userId, prodId);
 			// そのままCloudantの応答コードを返すことはせず、KCとしての応答コードを返す
-			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason(), userId + " is deleted");
+			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason(), prodId + " is deleted");
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
@@ -223,10 +225,16 @@ public class KCData {
 		// DBのユーザーからのデータ取得処理
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
+		if (userId.isEmpty()) {
+			return KCMessageFactory.createMessage(Result.CODE_BAD_REQUEST, "Provided user id is not valid.");
+		}
 		com.cloudant.client.api.model.Response res = userInfoDao.createUser(userId);
 
 		// Cloudantの応答コードをそのまま使わずKCとしての応答コードを返す
-		// TODO 既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		// TODO
+		// 既にユーザーが存在しない時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		// TODO
+		// 既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
 		Result result = KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		return result;
 	}
@@ -282,7 +290,10 @@ public class KCData {
 
 		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
 		// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
-		// TODO 既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		// TODO
+		// 既にユーザーが存在しない時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		// TODO
+		// 既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
 		return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 	}
 
@@ -352,8 +363,7 @@ public class KCData {
 				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 			} else if (userInfoDao.isPageExist(userId, pageHref)) {
 				// 指定されたページを既に購読している場合もエラーメッセージを返す
-				return KCMessageFactory.createMessage(Result.CODE_CONFLICT,
-						"You Already Subscribe This Page.");
+				return KCMessageFactory.createMessage(Result.CODE_CONFLICT, "You've Already Subscribed This Page.");
 			}
 
 			String prodId = topicMeta.getProduct();
@@ -362,7 +372,7 @@ public class KCData {
 
 			com.cloudant.client.api.model.Response res = userInfoDao.setSubscribedPages(userId, pageHref, pageName,
 					prodId, prodName);
-			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
@@ -439,8 +449,8 @@ public class KCData {
 
 		/*
 		 * パラメーターが存在するなら追加する、という処理、
-		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、 という処理を実装する,
-		 * queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
+		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、
+		 * という処理を実装する, queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
 		 */
 		Map<String, String> queryMap = new HashMap<>();
 
@@ -557,14 +567,23 @@ public class KCData {
 	 * .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一する（不正な拡張子はisTopicExist()で弾かれる)
 	 * 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除するための処理
 	 * xxx.htm,xxx.htm?sc=_latest,xxx.html?sc=_latestをxxx.htmlに置き換える
+	 * また、上記正規化処理前に、SSL3JX%2Fverse%2Fwelcometoibmverse.htmlのようにエンコードされたURLのデコードを実施している
 	 * 
 	 * @param originalHref
 	 *            置き換え前のhref
 	 * @return 置き換え後のhref
 	 */
 	private String normalizeHref(String originalHref) {
-		String normalizedHref = originalHref
-				.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$", "\\.html");
+		String decodedHref;
+		String normalizedHref;
+		try {
+			decodedHref = URLDecoder.decode(originalHref, "UTF-8");
+			normalizedHref = decodedHref.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
+					"\\.html");
+		} catch (UnsupportedEncodingException e) {
+			return originalHref;
+		}
+
 		return normalizedHref;
 	}
 

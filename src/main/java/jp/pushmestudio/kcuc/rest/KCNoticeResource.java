@@ -80,13 +80,13 @@ public class KCNoticeResource {
 	 *            削除ユーザーのID
 	 * @return 更新確認結果
 	 */
-	@Path("/{id}")
+	@Path("/{userId}")
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "ユーザー削除", notes = "与えられたIDを元にユーザーを削除する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = Message.class, message = "ユーザー削除が完了しました"),
 			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
-	public Response deleteUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("id") String userId) {
+	public Response deleteUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("userId") String userId) {
 
 		Result result = data.deleteUser(userId);
 		return Response.status(result.getCode()).entity(result).build();
@@ -103,13 +103,13 @@ public class KCNoticeResource {
 	 *            更新判断の基準時間
 	 * @return 更新確認結果
 	 */
-	@Path("/{id}/pages")
+	@Path("/{userId}/pages")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "ページ一覧取得", notes = "特定のユーザーの購読しているページ一覧を取得・確認")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = ResultPageList.class, message = "OK"),
 			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
-	public Response getUpdatedPages(@ApiParam(value = "更新確認対象のユーザー名", required = true) @PathParam("id") String userId,
+	public Response getUpdatedPages(@ApiParam(value = "更新確認対象のユーザー名", required = true) @PathParam("userId") String userId,
 			@ApiParam(value = "更新確認対象の製品ID", required = false) @QueryParam("prodId") String prodId,
 			@ApiParam(value = "更新判断の基準時間, ここで入力されたタイムスタンプよりも後に更新されていれば更新ありとみなす, デフォルトは1週間前時点", required = false) @QueryParam("time") Long time) {
 
@@ -126,7 +126,7 @@ public class KCNoticeResource {
 	 *            購読登録対象のページキー
 	 * @return 登録確認結果
 	 */
-	@Path("/{id}/pages")
+	@Path("/{userId}/pages")
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読ページ追加", notes = "特定のユーザの購読するページを追加・確認")
@@ -150,13 +150,13 @@ public class KCNoticeResource {
 	 *            購読解除対象のページキー
 	 * @return 購読解除後の購読ページ一覧
 	 */
-	@Path("/{id}/pages/{pageHref}")
+	@Path("/{userId}/pages/{pageHref}")
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読ページ解除", notes = "特定のユーザの購読するページを解除")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = Message.class, message = "購読解除が完了しました"),
 			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
-	public Response unsetSubscribe(@ApiParam(value = "対象のユーザー名", required = true) @PathParam("id") String userId,
+	public Response unsetSubscribe(@ApiParam(value = "対象のユーザー名", required = true) @PathParam("userId") String userId,
 			@ApiParam(value = "購読解除対象のページキー", required = true) @PathParam("pageHref") String pageHref) {
 
 		Result result = data.deleteSubscribedPage(userId, pageHref);
@@ -170,14 +170,14 @@ public class KCNoticeResource {
 	 *            更新確認対象のユーザーID
 	 * @return 更新確認結果
 	 */
-	@Path("/{id}/products")
+	@Path("/{userId}/products")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読製品一覧取得", notes = "特定のユーザーの購読しているページが属する製品一覧を取得")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = ResultProductList.class, message = "OK"),
 			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response getSubscribedProducts(
-			@ApiParam(value = "確認対象のユーザー名", required = true) @PathParam("id") String userId) {
+			@ApiParam(value = "確認対象のユーザー名", required = true) @PathParam("userId") String userId) {
 
 		Result result = data.getSubscribedProductList(userId);
 		return Response.status(result.getCode()).entity(result).build();
@@ -192,13 +192,13 @@ public class KCNoticeResource {
 	 *            購読解除対象の製品のID
 	 * @return 購読解除後の購読ページ一覧
 	 */
-	@Path("/{id}/products/{prodId}")
+	@Path("/{userId}/products/{prodId}")
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読ページの製品指定解除", notes = "ユーザーが購読するページのうち、特定製品に紐づくページをすべて購読解除する")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = Message.class, message = "購読解除が完了しました"),
 			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
-	public Response unsetSubscribeProduct(@ApiParam(value = "対象のユーザー名", required = true) @PathParam("id") String userId,
+	public Response unsetSubscribeProduct(@ApiParam(value = "対象のユーザー名", required = true) @PathParam("userId") String userId,
 			@ApiParam(value = "購読解除対象の製品ID", required = true) @PathParam("prodId") String prodId) {
 
 		Result result = data.cancelSubscribedProduct(userId, prodId);
