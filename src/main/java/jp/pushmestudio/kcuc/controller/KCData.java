@@ -62,6 +62,8 @@ public class KCData {
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
 				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
+			} else if (!userInfoDao.isProductExist(userId, prodId)) {
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Product Not Found.");
 			}
 
 			com.cloudant.client.api.model.Response res = userInfoDao.cancelSubscribedProduct(userId, prodId);
@@ -228,6 +230,11 @@ public class KCData {
 		if (userId.isEmpty()) {
 			return KCMessageFactory.createMessage(Result.CODE_BAD_REQUEST, "Provided user id is not valid.");
 		}
+
+		if (userInfoDao.isUserExist(userId)) {
+			return KCMessageFactory.createMessage(Result.CODE_CONFLICT, "Provided user id is already existed.");
+		}
+
 		com.cloudant.client.api.model.Response res = userInfoDao.createUser(userId);
 
 		// Cloudantの応答コードをそのまま使わずKCとしての応答コードを返す
@@ -288,6 +295,14 @@ public class KCData {
 		// DBのユーザーからのデータ取得処理
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
+		if (userId.isEmpty()) {
+			return KCMessageFactory.createMessage(Result.CODE_BAD_REQUEST, "Provided user id is not valid.");
+		}
+
+		if (userInfoDao.isUserExist(userId)) {
+			return KCMessageFactory.createMessage(Result.CODE_CONFLICT, "Provided user id is already existed.");
+		}
+
 		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
 		// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
 		// TODO
@@ -331,6 +346,7 @@ public class KCData {
 			subscribedPages.forEach(entry -> {
 				((ResultProductList) result).addSubscribedProduct(entry.getProdId(), entry.getProdName());
 			});
+			result.setCode(Result.CODE_OK);
 		}
 
 		return result;
@@ -449,8 +465,8 @@ public class KCData {
 
 		/*
 		 * パラメーターが存在するなら追加する、という処理、
-		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、
-		 * という処理を実装する, queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
+		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、 という処理を実装する,
+		 * queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
 		 */
 		Map<String, String> queryMap = new HashMap<>();
 
