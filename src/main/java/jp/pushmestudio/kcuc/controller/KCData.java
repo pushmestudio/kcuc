@@ -502,6 +502,7 @@ public class KCData {
 			// JSONの中にあるtopicsを読み、1件ずつTopicオブジェクトとして初期化し、リストに追加している
 			resJson.getJSONArray("topics").forEach(topic -> resTopics.add(new Topic((JSONObject) topic)));
 			Result result = new ResultSearchList(resOffset, resNext, resPrev, resCount, resTotal, resTopics);
+			result.setCode(Result.CODE_OK);
 			return ((ResultSearchList) result);
 		} else {
 			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Can't get search result");
