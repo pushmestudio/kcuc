@@ -156,5 +156,4 @@ public class KCNoticeResource {
 		Result result = data.cancelSubscribedProduct(userId, prodId);
 		return Response.status(result.getCode()).entity(result).build();
 	}
-
 }
