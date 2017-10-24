@@ -6,7 +6,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 @ApplicationPath("/rest-v1")
-public class KCNoticeApplication extends Application {
+public class KcucApplication extends Application {
 	// 従来的にresponseを返したいならここで既定したものを使うとよい
 	static final Response RESP_OK = Response.ok().build();
 	static final Response RESP_ACCEPTED = Response.status(Status.ACCEPTED).build();

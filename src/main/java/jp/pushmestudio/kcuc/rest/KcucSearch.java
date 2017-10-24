@@ -12,7 +12,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import jp.pushmestudio.kcuc.controller.KCData;
+import jp.pushmestudio.kcuc.controller.AppHandler;
 import jp.pushmestudio.kcuc.model.ResultContent;
 import jp.pushmestudio.kcuc.model.ResultSearchList;
 import jp.pushmestudio.kcuc.util.Result;
@@ -22,9 +22,9 @@ import jp.pushmestudio.kcuc.util.Result;
  */
 @Api(value = "Search")
 @Path("/search")
-public class KCNoticeSearch {
+public class KcucSearch {
 	// 実際に取得処理などを行うオブジェクト
-	KCData data = new KCData();
+	AppHandler appHandler = new AppHandler();
 
 	/**
 	 * 検索キーワードにマッチするページを検索して返す、不正なパラメーターはKC側で無視される
@@ -59,7 +59,7 @@ public class KCNoticeSearch {
 			@ApiParam(value = "サポートしている言語による絞り込み (e.g. ja)") @QueryParam("lang") String lang,
 			@ApiParam(value = "日付による並び替え, 無指定時は検索キーワードへの関連度順, date:a or date:d にて指定") @QueryParam("sort") String sort) {
 
-		Result result = data.searchPages(query, products, inurl, offset, limit, lang, sort);
+		Result result = appHandler.searchPages(query, products, inurl, offset, limit, lang, sort);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -82,7 +82,7 @@ public class KCNoticeSearch {
 			@ApiParam(value = "取得対象ページキー", required = true) @QueryParam("pageHref") String pageHref,
 			@ApiParam(value = "表示言語の指定(e.g. ja)") @QueryParam("lang") String lang) {
 
-		Result result = data.searchContent(pageHref, lang);
+		Result result = appHandler.searchContent(pageHref, lang);
 		return Response.status(result.getCode()).entity(((ResultContent) result).getPageRawHtml()).build();
 	}
 }
