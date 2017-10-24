@@ -299,8 +299,8 @@ public class KCData {
 			return KCMessageFactory.createMessage(Result.CODE_BAD_REQUEST, "Provided user id is not valid.");
 		}
 
-		if (userInfoDao.isUserExist(userId)) {
-			return KCMessageFactory.createMessage(Result.CODE_CONFLICT, "Provided user id is already existed.");
+		if (!userInfoDao.isUserExist(userId)) {
+			return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 		}
 
 		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
