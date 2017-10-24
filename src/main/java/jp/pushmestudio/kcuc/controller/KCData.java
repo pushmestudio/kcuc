@@ -189,7 +189,9 @@ public class KCData {
 
 					// ページの更新情報が取得できないときは0を返す
 					if (!topicMeta.isExist()) {
-						return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
+						// 本家KCからページ削除されている場合の処理 (※20171022時点では，特別例外処理はせず，エラーも返さないことにした)
+						// ==> 削除済ページの追加や取得，レスポンスなどに関する実装は，いったんRemoveしたので必要に応じて右記のコミットを参照(Commit: 272f65d07a9ef5e21f9c842c6543c8a1793d6294)
+						//return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Deleted in KC.");
 					}
 
 					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
@@ -213,7 +215,7 @@ public class KCData {
 
 	/**
 	 * 指定したIDのユーザーを作成する
-	 * 
+	 *
 	 * @param userId
 	 *            作成対象のユーザーのID
 	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
@@ -267,7 +269,7 @@ public class KCData {
 
 	/**
 	 * 指定したIDのユーザーを削除する
-	 * 
+	 *
 	 * @param userId
 	 *            削除対象のユーザーのID
 	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
@@ -542,7 +544,7 @@ public class KCData {
 	 * .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一する（不正な拡張子はisTopicExist()で弾かれる)
 	 * 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除するための処理
 	 * xxx.htm,xxx.htm?sc=_latest,xxx.html?sc=_latestをxxx.htmlに置き換える
-	 * 
+	 *
 	 * @param originalHref
 	 *            置き換え前のhref
 	 * @return 置き換え後のhref
@@ -579,5 +581,4 @@ public class KCData {
 			return null;
 		}
 	}
-
 }
