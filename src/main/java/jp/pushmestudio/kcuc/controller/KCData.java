@@ -192,9 +192,13 @@ public class KCData {
 					// KCからのデータ取得処理
 					TopicMeta topicMeta = getSpecificPageMeta(pageKey);
 
-					if (!topicMeta.isExist()) {
-						return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
-					}
+					// if (!topicMeta.isExist()) {
+					// 本家KCからページ削除されている場合の処理 (※20171022時点では，特別例外処理はせず，エラーも返さないことにした)
+					// ==> 削除済ページの追加や取得，レスポンスなどに関する実装は，いったんRemoveしたので必要に応じて右記のコミットを参照(Commit:
+					// 272f65d07a9ef5e21f9c842c6543c8a1793d6294)
+					// return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Deleted
+					// in KC.");
+					// }
 
 					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
@@ -218,7 +222,7 @@ public class KCData {
 
 	/**
 	 * 指定したIDのユーザーを作成する
-	 * 
+	 *
 	 * @param userId
 	 *            作成対象のユーザーのID
 	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
@@ -238,10 +242,8 @@ public class KCData {
 		com.cloudant.client.api.model.Response res = userInfoDao.createUser(userId);
 
 		// Cloudantの応答コードをそのまま使わずKCとしての応答コードを返す
-		// TODO
-		// 既にユーザーが存在しない時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
-		// TODO
-		// 既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		// TODO:既にユーザーが存在しない時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		// TODO:既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
 		Result result = KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		return result;
 	}
@@ -286,7 +288,7 @@ public class KCData {
 
 	/**
 	 * 指定したIDのユーザーを削除する
-	 * 
+	 *
 	 * @param userId
 	 *            削除対象のユーザーのID
 	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
@@ -305,10 +307,8 @@ public class KCData {
 
 		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
 		// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
-		// TODO
-		// 既にユーザーが存在しない時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
-		// TODO
-		// 既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		// TODO:既にユーザーが存在しない時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		// TODO:既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
 		return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 	}
 
@@ -337,7 +337,7 @@ public class KCData {
 		Result result = new ResultProductList(userId);
 
 		/*
-		 * TODO 現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
+		 * TODO:現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
 		 * 直接購読している製品一覧を取得しても良いかもしれない(特に購読件数が増えたときに通信量の低減と速度向上に繋がる)
 		 */
 		for (UserDocument userDoc : userList) {
@@ -631,5 +631,4 @@ public class KCData {
 			return null;
 		}
 	}
-
 }
