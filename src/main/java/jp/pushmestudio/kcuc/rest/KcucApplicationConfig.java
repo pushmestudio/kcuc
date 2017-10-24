@@ -8,12 +8,12 @@ import javax.ws.rs.core.Application;
 import io.swagger.jaxrs.config.BeanConfig;
 
 @ApplicationPath("/api")
-public class KCNoticeApplicationConfig extends Application {
+public class KcucApplicationConfig extends Application {
 	
 	/**
-	 * to be added
+	 * KCUC Swagger Config Setting
 	 */
-	public KCNoticeApplicationConfig() {
+	public KcucApplicationConfig() {
 		BeanConfig beanConfig = new BeanConfig();
 		beanConfig.setTitle("KCUC");
 		beanConfig.setDescription("Knowledge Center Update Checker");
@@ -40,6 +40,6 @@ public class KCNoticeApplicationConfig extends Application {
 	}
 	
 	private void addRestResourceClasses(Set<Class<?>> resources) {
-		resources.add(KCNoticeResource.class);
+		resources.add(KcucResource.class);
 	}
 }
