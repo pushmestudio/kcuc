@@ -34,14 +34,14 @@ import jp.pushmestudio.kcuc.model.Topic;
 import jp.pushmestudio.kcuc.model.TopicMeta;
 import jp.pushmestudio.kcuc.model.UserDocument;
 import jp.pushmestudio.kcuc.model.UserInfo;
-import jp.pushmestudio.kcuc.util.KCMessageFactory;
+import jp.pushmestudio.kcuc.util.MessageFactory;
 import jp.pushmestudio.kcuc.util.Result;
 
 /**
  * ページ応答と各種処理とをつなぐ コンテキストを共有するわけではないので、シングルトンにした方が良いかもしれない
  * Result型を応答する(=APIインタフェースから呼ばれる)場合は、必ずtry-catch処理を実施すること
  */
-public class KCData {
+public class AppHandler {
 	/** 更新判定に使う */
 	final long weekMilliSeconds = (1000 * 60 * 60 * 24 * 7); // 604,800,000ミリ秒
 
@@ -61,23 +61,23 @@ public class KCData {
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
+				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 			} else if (!userInfoDao.isProductExist(userId, prodId)) {
-				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Product Not Found.");
+				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "Product Not Found.");
 			}
 
 			com.cloudant.client.api.model.Response res = userInfoDao.cancelSubscribedProduct(userId, prodId);
 			// そのままCloudantの応答コードを返すことはせず、KCとしての応答コードを返す
-			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason(), prodId + " is deleted");
+			return MessageFactory.createMessage(Result.CODE_OK, res.getReason(), prodId + " is deleted");
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
+			return MessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
 		} catch (IndexOutOfBoundsException ee) {
 			// 購読しているページの中に指定製品が含まれるかを確認するメソッドを実装したらこの処理は削除する
 			ee.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Not Yet Subscribed This Product.");
+			return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "Not Yet Subscribed This Product.");
 		}
 	}
 
@@ -101,7 +101,7 @@ public class KCData {
 
 			// ページキーが取得できない場合はエラーメッセージを返す
 			if (!topicMeta.isExist()) {
-				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
+				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 			}
 
 			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
@@ -125,7 +125,7 @@ public class KCData {
 			e.printStackTrace();
 
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
+			return MessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
 
@@ -164,7 +164,7 @@ public class KCData {
 
 			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
+				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 			}
 
 			// IDはユニークなはずなので、Listにする必要はない
@@ -216,7 +216,7 @@ public class KCData {
 			e.printStackTrace();
 
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
+			return MessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
 
@@ -232,11 +232,11 @@ public class KCData {
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 		if (userId.isEmpty()) {
-			return KCMessageFactory.createMessage(Result.CODE_BAD_REQUEST, "Provided user id is not valid.");
+			return MessageFactory.createMessage(Result.CODE_BAD_REQUEST, "Provided user id is not valid.");
 		}
 
 		if (userInfoDao.isUserExist(userId)) {
-			return KCMessageFactory.createMessage(Result.CODE_CONFLICT, "Provided user id is already existed.");
+			return MessageFactory.createMessage(Result.CODE_CONFLICT, "Provided user id is already existed.");
 		}
 
 		com.cloudant.client.api.model.Response res = userInfoDao.createUser(userId);
@@ -244,7 +244,7 @@ public class KCData {
 		// Cloudantの応答コードをそのまま使わずKCとしての応答コードを返す
 		// TODO:既にユーザーが存在しない時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
 		// TODO:既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
-		Result result = KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
+		Result result = MessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		return result;
 	}
 
@@ -267,22 +267,22 @@ public class KCData {
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
+				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
 			} else if (!isTopicExist(pageHref)) {
-				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
+				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 				// 指定されたページを購読していない場合もエラーメッセージを返す
 			} else if (!userInfoDao.isPageExist(userId, pageHref)) {
-				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Not Yet Subscribed This Page.");
+				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "Not Yet Subscribed This Page.");
 			}
 
 			com.cloudant.client.api.model.Response res = userInfoDao.delSubscribedPage(userId, pageHref);
 			// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
-			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
+			return MessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
+			return MessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
 
@@ -298,18 +298,18 @@ public class KCData {
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
 		if (userId.isEmpty()) {
-			return KCMessageFactory.createMessage(Result.CODE_BAD_REQUEST, "Provided user id is not valid.");
+			return MessageFactory.createMessage(Result.CODE_BAD_REQUEST, "Provided user id is not valid.");
 		}
 
 		if (!userInfoDao.isUserExist(userId)) {
-			return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
+			return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 		}
 
 		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
 		// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
 		// TODO:既にユーザーが存在しない時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
 		// TODO:既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
-		return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
+		return MessageFactory.createMessage(Result.CODE_OK, res.getReason());
 	}
 
 	/**
@@ -327,7 +327,7 @@ public class KCData {
 
 		// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 		if (!userInfoDao.isUserExist(userId)) {
-			return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found");
+			return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found");
 		}
 
 		// IDはユニークなはずなので、Listにする必要はない
@@ -373,13 +373,13 @@ public class KCData {
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
+				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 			} else if (!topicMeta.isExist()) {
 				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
-				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
+				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 			} else if (userInfoDao.isPageExist(userId, pageHref)) {
 				// 指定されたページを既に購読している場合もエラーメッセージを返す
-				return KCMessageFactory.createMessage(Result.CODE_CONFLICT, "You've Already Subscribed This Page.");
+				return MessageFactory.createMessage(Result.CODE_CONFLICT, "You've Already Subscribed This Page.");
 			}
 
 			String prodId = topicMeta.getProduct();
@@ -388,11 +388,11 @@ public class KCData {
 
 			com.cloudant.client.api.model.Response res = userInfoDao.setSubscribedPages(userId, pageHref, pageName,
 					prodId, prodName);
-			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
+			return MessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Communication Error");
+			return MessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Communication Error");
 		}
 	}
 
@@ -505,7 +505,7 @@ public class KCData {
 			result.setCode(Result.CODE_OK);
 			return ((ResultSearchList) result);
 		} else {
-			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Can't get search result");
+			return MessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Can't get search result");
 		}
 	}
 

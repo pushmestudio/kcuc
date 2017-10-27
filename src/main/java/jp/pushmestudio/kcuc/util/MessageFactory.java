@@ -4,7 +4,7 @@ package jp.pushmestudio.kcuc.util;
  * Factoryパターンを適用して、Messageから具体的なメッセージ内容を取得するためのファクトリークラス
  * クラス名をMessageFactoryにしようと検討したが、JavaEEのSOAP関連で同名クラスがあるため名称変更した
  */
-public class KCMessageFactory {
+public class MessageFactory {
 	/**
 	 * @param messageCode
 	 *            作成対象のメッセージコード

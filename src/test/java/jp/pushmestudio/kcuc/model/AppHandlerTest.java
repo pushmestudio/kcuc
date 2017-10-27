@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import jp.pushmestudio.kcuc.controller.KCData;
+import jp.pushmestudio.kcuc.controller.AppHandler;
 import jp.pushmestudio.kcuc.util.Result;
 
 /**
@@ -19,8 +19,8 @@ import jp.pushmestudio.kcuc.util.Result;
  * tearDown時は今回のテスト及び次のテストへの影響を考慮する関係からtearDownに入る前と後にそれぞれ0.5秒、スリープを入れている
  */
 @RunWith(Enclosed.class)
-public class KCDataTest {
-	static KCData data = new KCData();
+public class AppHandlerTest {
+	static AppHandler appHandler = new AppHandler();
 
 	public static class 購読済ページの存在を確認するケース {
 		static String userId = "testuser";
@@ -33,11 +33,11 @@ public class KCDataTest {
 		public static void setUp() {
 			try {
 				// テストデータとして登録する、APIへの負荷を懸念しスリープ処理を入れている
-				data.createUser(userId);
+				appHandler.createUser(userId);
 				Thread.sleep(500);
-				data.registerSubscribedPage(userId, hrefKey1);
+				appHandler.registerSubscribedPage(userId, hrefKey1);
 				Thread.sleep(500);
-				data.registerSubscribedPage(userId, hrefKey2);
+				appHandler.registerSubscribedPage(userId, hrefKey2);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -50,7 +50,7 @@ public class KCDataTest {
 			// テストデータとして登録したユーザーを削除する、APIへの負荷を懸念しスリープ処理を入れている
 			try {
 				Thread.sleep(500);
-				data.deleteUser(userId);
+				appHandler.deleteUser(userId);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -60,7 +60,7 @@ public class KCDataTest {
 		@Test
 		public void 登録済みのページを指定して1人以上の購読ユーザーを確認できる() {
 			// execute
-			Result checkResult = data.checkUpdateByPage(hrefKey2, null);
+			Result checkResult = appHandler.checkUpdateByPage(hrefKey2, null);
 
 			// verify
 			List<UserInfo> userList = ((ResultUserList) checkResult).getSubscribers();
@@ -72,7 +72,7 @@ public class KCDataTest {
 		@Test
 		public void ページを購読しているユーザーを指定して2件以上購読ページを確認できる() {
 			// execute
-			Result checkResult = data.checkUpdateByUser(userId);
+			Result checkResult = appHandler.checkUpdateByUser(userId);
 
 			// verify
 			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
@@ -84,7 +84,7 @@ public class KCDataTest {
 		@Test
 		public void ページを購読しているユーザーと製品IDを指定して製品IDが指定したものと同じ購読ページのみが得られることを確認できる() {
 			// execute
-			Result checkResult = data.checkUpdateByUser(userId, prodId, null);
+			Result checkResult = appHandler.checkUpdateByUser(userId, prodId, null);
 
 			// verify
 			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
@@ -111,20 +111,20 @@ public class KCDataTest {
 		public static void setUp() {
 			try {
 				// テスト用ユーザー作成
-				data.createUser(userId);
+				appHandler.createUser(userId);
 				Thread.sleep(500);
 
-				preResultPages = data.checkUpdateByUser(userId);
+				preResultPages = appHandler.checkUpdateByUser(userId);
 				prePageList = ((ResultPageList) preResultPages).getSubscribedPages();
 
-				preResultProducts = data.getSubscribedProductList(userId);
+				preResultProducts = appHandler.getSubscribedProductList(userId);
 				preProductList = ((ResultProductList) preResultProducts).getSubscribedProducts();
 				Thread.sleep(500);
 
 				// execute
-				data.registerSubscribedPage(userId, hrefKey1);
+				appHandler.registerSubscribedPage(userId, hrefKey1);
 				Thread.sleep(500);
-				data.registerSubscribedPage(userId, hrefKey2);
+				appHandler.registerSubscribedPage(userId, hrefKey2);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -137,7 +137,7 @@ public class KCDataTest {
 			try {
 				// 事後に登録がない状態にする、APIへの負荷を懸念しスリープ処理を入れている
 				Thread.sleep(500);
-				data.deleteUser(userId);
+				appHandler.deleteUser(userId);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -147,7 +147,7 @@ public class KCDataTest {
 		@Test
 		public void 追加した2件の購読ページが購読済リストに登録される() {
 			// verify
-			Result gotResult = data.checkUpdateByUser(userId);
+			Result gotResult = appHandler.checkUpdateByUser(userId);
 			List<SubscribedPage> pageList = ((ResultPageList) gotResult).getSubscribedPages();
 			int actual = pageList.size();
 
@@ -158,7 +158,7 @@ public class KCDataTest {
 		@Test
 		public void 同製品の異なる2ページを登録して購読製品として1件が取得される() {
 			// execute
-			Result gotResult = data.getSubscribedProductList(userId);
+			Result gotResult = appHandler.getSubscribedProductList(userId);
 			List<Product> productList = ((ResultProductList) gotResult).getSubscribedProducts();
 
 			// verify
@@ -170,7 +170,7 @@ public class KCDataTest {
 		@Test
 		public void 購読したページのページ名がブランクではないことを確認できる() {
 			// execute
-			Result gotResult = data.checkUpdateByUser(userId, prodId, null);
+			Result gotResult = appHandler.checkUpdateByUser(userId, prodId, null);
 
 			// verify
 			List<SubscribedPage> pageList = ((ResultPageList) gotResult).getSubscribedPages();
@@ -198,18 +198,18 @@ public class KCDataTest {
 		public static void setUp() {
 			try {
 				// テストデータとして登録する、APIへの負荷を懸念しスリープ処理を入れている
-				data.createUser(userId);
+				appHandler.createUser(userId);
 				Thread.sleep(500);
-				data.registerSubscribedPage(userId, hrefKey);
+				appHandler.registerSubscribedPage(userId, hrefKey);
 				Thread.sleep(500);
 
 				// テスト前の事前状態を保存しておく
-				preResult = data.checkUpdateByUser(userId);
+				preResult = appHandler.checkUpdateByUser(userId);
 				prePageList = ((ResultPageList) preResult).getSubscribedPages();
 				Thread.sleep(500);
 
 				// execute
-				data.deleteSubscribedPage(userId, hrefKey);
+				appHandler.deleteSubscribedPage(userId, hrefKey);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -223,7 +223,7 @@ public class KCDataTest {
 			// テストデータとして登録したものを削除する、APIへの負荷を懸念しスリープ処理を入れている
 			try {
 				Thread.sleep(500);
-				data.deleteUser(userId);
+				appHandler.deleteUser(userId);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -233,7 +233,7 @@ public class KCDataTest {
 		@Test
 		public void 購読解除した1件のページが購読済リストから取り除かれる() {
 			// verify
-			Result gotResult = data.checkUpdateByUser(userId);
+			Result gotResult = appHandler.checkUpdateByUser(userId);
 			List<SubscribedPage> pageList = ((ResultPageList) gotResult).getSubscribedPages();
 			int actual = pageList.size();
 
@@ -260,24 +260,24 @@ public class KCDataTest {
 		public static void setUp() {
 			try {
 				// 事前に登録された状態にする、APIへの負荷を懸念しスリープ処理を入れている
-				data.createUser(userId);
+				appHandler.createUser(userId);
 				Thread.sleep(500);
-				data.registerSubscribedPage(userId, hrefKey1);
+				appHandler.registerSubscribedPage(userId, hrefKey1);
 				Thread.sleep(500);
-				data.registerSubscribedPage(userId, hrefKey2);
+				appHandler.registerSubscribedPage(userId, hrefKey2);
 				Thread.sleep(500);
-				data.registerSubscribedPage(userId, hrefKeyOther);
+				appHandler.registerSubscribedPage(userId, hrefKeyOther);
 				Thread.sleep(500);
 
-				preResultPages = data.checkUpdateByUser(userId);
+				preResultPages = appHandler.checkUpdateByUser(userId);
 				prePageList = ((ResultPageList) preResultPages).getSubscribedPages();
 
-				preResultProducts = data.getSubscribedProductList(userId);
+				preResultProducts = appHandler.getSubscribedProductList(userId);
 				preProductList = ((ResultProductList) preResultProducts).getSubscribedProducts();
 				Thread.sleep(500);
 
 				// execute
-				data.cancelSubscribedProduct(userId, prodId);
+				appHandler.cancelSubscribedProduct(userId, prodId);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -287,7 +287,7 @@ public class KCDataTest {
 		@Test
 		public void 購読解除している2件のページが購読済リストから取り除かれる() {
 			// verify
-			Result checkResult = data.checkUpdateByUser(userId);
+			Result checkResult = appHandler.checkUpdateByUser(userId);
 			List<SubscribedPage> pageList = ((ResultPageList) checkResult).getSubscribedPages();
 			int actual = pageList.size();
 
@@ -298,7 +298,7 @@ public class KCDataTest {
 		@Test
 		public void 購読解除している製品が製品リストから取り除かれる() {
 			// verify
-			Result checkResult = data.getSubscribedProductList(userId);
+			Result checkResult = appHandler.getSubscribedProductList(userId);
 			List<Product> productList = ((ResultProductList) checkResult).getSubscribedProducts();
 			int actual = productList.size();
 
@@ -312,7 +312,7 @@ public class KCDataTest {
 			// テストデータとして登録したものを削除する、APIへの負荷を懸念しスリープ処理を入れている
 			try {
 				Thread.sleep(500);
-				data.deleteUser(userId);
+				appHandler.deleteUser(userId);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -333,8 +333,8 @@ public class KCDataTest {
 		@BeforeClass
 		public static void setUp() {
 			// execute
-			searchResult = data.searchPages(searchQuery, "", "", offset, limit, "", "");
-			searchContent = data.searchContent(searchContentHref, null);
+			searchResult = appHandler.searchPages(searchQuery, "", "", offset, limit, "", "");
+			searchContent = appHandler.searchContent(searchContentHref, null);
 		}
 
 		@Test

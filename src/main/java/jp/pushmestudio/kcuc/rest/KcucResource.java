@@ -16,7 +16,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import jp.pushmestudio.kcuc.controller.KCData;
+import jp.pushmestudio.kcuc.controller.AppHandler;
 import jp.pushmestudio.kcuc.model.ResultPageList;
 import jp.pushmestudio.kcuc.model.ResultProductList;
 import jp.pushmestudio.kcuc.model.ResultUserList;
@@ -25,10 +25,10 @@ import jp.pushmestudio.kcuc.util.Result;
 
 @Api(value = "User and user content management")
 @Path("/users")
-public class KCNoticeResource {
+public class KcucResource {
 
 	// 実際に取得処理などを行うオブジェクト
-	KCData data = new KCData();
+	AppHandler appHandler = new AppHandler();
 
 	/**
 	 * 特定のページを購読しているユーザー一覧を取得・確認
@@ -48,7 +48,7 @@ public class KCNoticeResource {
 			@ApiParam(value = "更新確認対象のページキー", required = true) @QueryParam("pageHref") String pageHref,
 			@ApiParam(value = "更新判断の基準時間, ここで入力されたタイムスタンプよりも後に更新されていれば更新ありとみなす, デフォルトは1週間前時点", required = false) @QueryParam("time") Long time) {
 
-		Result result = data.checkUpdateByPage(pageHref, time);
+		Result result = appHandler.checkUpdateByPage(pageHref, time);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -67,7 +67,7 @@ public class KCNoticeResource {
 			@ApiResponse(code = Result.CODE_CONFLICT, response = Message.class, message = "既に存在しています") })
 	public Response createUser(@ApiParam(value = "ユーザーID", required = true) @FormParam("userId") String userId) {
 
-		Result result = data.createUser(userId);
+		Result result = appHandler.createUser(userId);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -87,7 +87,7 @@ public class KCNoticeResource {
 			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response deleteUser(@ApiParam(value = "ユーザーID", required = true) @PathParam("userId") String userId) {
 
-		Result result = data.deleteUser(userId);
+		Result result = appHandler.deleteUser(userId);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -112,7 +112,7 @@ public class KCNoticeResource {
 			@ApiParam(value = "更新確認対象の製品ID", required = false) @QueryParam("prodId") String prodId,
 			@ApiParam(value = "更新判断の基準時間, ここで入力されたタイムスタンプよりも後に更新されていれば更新ありとみなす, デフォルトは1週間前時点", required = false) @QueryParam("time") Long time) {
 
-		Result result = data.checkUpdateByUser(userId, prodId, time);
+		Result result = appHandler.checkUpdateByUser(userId, prodId, time);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -136,7 +136,7 @@ public class KCNoticeResource {
 	public Response setSubscribe(@ApiParam(value = "更新対象のユーザー名", required = true) @PathParam("userId") String userId,
 			@ApiParam(value = "購読対象のページキー", required = true) @FormParam("pageHref") String pageHref) {
 
-		Result result = data.registerSubscribedPage(userId, pageHref);
+		Result result = appHandler.registerSubscribedPage(userId, pageHref);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -158,7 +158,7 @@ public class KCNoticeResource {
 	public Response unsetSubscribe(@ApiParam(value = "対象のユーザー名", required = true) @PathParam("userId") String userId,
 			@ApiParam(value = "エンコード済みの購読解除対象のページキー", required = true) @PathParam("encodedHref") String encodedHref) {
 
-		Result result = data.deleteSubscribedPage(userId, encodedHref);
+		Result result = appHandler.deleteSubscribedPage(userId, encodedHref);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -178,7 +178,7 @@ public class KCNoticeResource {
 	public Response getSubscribedProducts(
 			@ApiParam(value = "確認対象のユーザー名", required = true) @PathParam("userId") String userId) {
 
-		Result result = data.getSubscribedProductList(userId);
+		Result result = appHandler.getSubscribedProductList(userId);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -200,7 +200,7 @@ public class KCNoticeResource {
 	public Response unsetSubscribeProduct(@ApiParam(value = "対象のユーザー名", required = true) @PathParam("userId") String userId,
 			@ApiParam(value = "購読解除対象の製品ID", required = true) @PathParam("prodId") String prodId) {
 
-		Result result = data.cancelSubscribedProduct(userId, prodId);
+		Result result = appHandler.cancelSubscribedProduct(userId, prodId);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 }
