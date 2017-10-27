@@ -8,7 +8,7 @@ import jp.pushmestudio.kcuc.util.Result;
  * 応答用の検索結果一覧、検索結果をそのまま使用しているので、このクラスによってラップする意義があるかは検討の余地がある
  * Result系のクラスはSwaggerの応答にも用いられるため、数字・文字列・配列・リスト以外をメンバー変数に使用しない
  */
-public class ResultSearchList implements Result {
+public class ResultSearchList extends Result {
 	private int offset;
 	private int next;
 	private int prev;
@@ -31,11 +31,6 @@ public class ResultSearchList implements Result {
 		this.count = count;
 		this.total = total;
 		this.topics = topics;
-	}
-
-	@Override
-	public int getCode() {
-		return Result.CODE_NORMAL;
 	}
 
 	public int getOffset() {

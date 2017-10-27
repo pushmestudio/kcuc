@@ -49,6 +49,6 @@ public class UserDocument {
 	// toStringをoverrideする実装の際に参考にしたもの
 	public String toString() {
 		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserId: " + userId + ",\nsubscribedPages: " + subscribedPages
-				+"\n}";
+				+ "\n}";
 	}
 }

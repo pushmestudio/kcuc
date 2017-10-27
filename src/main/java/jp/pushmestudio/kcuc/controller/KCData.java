@@ -1,5 +1,7 @@
 package jp.pushmestudio.kcuc.controller;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,20 +61,23 @@ public class KCData {
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
+			} else if (!userInfoDao.isProductExist(userId, prodId)) {
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Product Not Found.");
 			}
 
 			com.cloudant.client.api.model.Response res = userInfoDao.cancelSubscribedProduct(userId, prodId);
-			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+			// そのままCloudantの応答コードを返すことはせず、KCとしての応答コードを返す
+			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason(), prodId + " is deleted");
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
 		} catch (IndexOutOfBoundsException ee) {
 			// 購読しているページの中に指定製品が含まれるかを確認するメソッドを実装したらこの処理は削除する
 			ee.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Product.");
+			return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Not Yet Subscribed This Product.");
 		}
 	}
 
@@ -96,7 +101,7 @@ public class KCData {
 
 			// ページキーが取得できない場合はエラーメッセージを返す
 			if (!topicMeta.isExist()) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 			}
 
 			Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
@@ -114,13 +119,13 @@ public class KCData {
 				UserInfo eachUser = new UserInfo(userDoc.getUserId(), baseTime < lastModifiedDate.getTime());
 				((ResultUserList) result).addSubscriber(eachUser);
 			}
-
+			result.setCode(Result.CODE_OK);
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
 
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
 
@@ -159,7 +164,7 @@ public class KCData {
 
 			// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 			}
 
 			// IDはユニークなはずなので、Listにする必要はない
@@ -187,12 +192,13 @@ public class KCData {
 					// KCからのデータ取得処理
 					TopicMeta topicMeta = getSpecificPageMeta(pageKey);
 
-					// ページの更新情報が取得できないときは0を返す
-					if (!topicMeta.isExist()) {
-						// 本家KCからページ削除されている場合の処理 (※20171022時点では，特別例外処理はせず，エラーも返さないことにした)
-						// ==> 削除済ページの追加や取得，レスポンスなどに関する実装は，いったんRemoveしたので必要に応じて右記のコミットを参照(Commit: 272f65d07a9ef5e21f9c842c6543c8a1793d6294)
-						//return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Deleted in KC.");
-					}
+					// if (!topicMeta.isExist()) {
+					// 本家KCからページ削除されている場合の処理 (※20171022時点では，特別例外処理はせず，エラーも返さないことにした)
+					// ==> 削除済ページの追加や取得，レスポンスなどに関する実装は，いったんRemoveしたので必要に応じて右記のコミットを参照(Commit:
+					// 272f65d07a9ef5e21f9c842c6543c8a1793d6294)
+					// return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Deleted
+					// in KC.");
+					// }
 
 					Date lastModifiedDate = new Date(topicMeta.getDateLastUpdated());
 
@@ -204,12 +210,13 @@ public class KCData {
 				}
 			}
 
+			result.setCode(Result.CODE_OK);
 			return result;
 		} catch (JSONException e) {
 			e.printStackTrace();
 
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
 
@@ -224,9 +231,20 @@ public class KCData {
 		// DBのユーザーからのデータ取得処理
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
+		if (userId.isEmpty()) {
+			return KCMessageFactory.createMessage(Result.CODE_BAD_REQUEST, "Provided user id is not valid.");
+		}
+
+		if (userInfoDao.isUserExist(userId)) {
+			return KCMessageFactory.createMessage(Result.CODE_CONFLICT, "Provided user id is already existed.");
+		}
+
 		com.cloudant.client.api.model.Response res = userInfoDao.createUser(userId);
 
-		Result result = KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+		// Cloudantの応答コードをそのまま使わずKCとしての応答コードを返す
+		// TODO:既にユーザーが存在しない時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		// TODO:既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		Result result = KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		return result;
 	}
 
@@ -249,21 +267,22 @@ public class KCData {
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
 			} else if (!isTopicExist(pageHref)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 				// 指定されたページを購読していない場合もエラーメッセージを返す
 			} else if (!userInfoDao.isPageExist(userId, pageHref)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Not Yet Subscribed This Page.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Not Yet Subscribed This Page.");
 			}
 
 			com.cloudant.client.api.model.Response res = userInfoDao.delSubscribedPage(userId, pageHref);
-			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+			// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
+			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Internal Server Error.");
+			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
 		}
 	}
 
@@ -278,10 +297,19 @@ public class KCData {
 		// DBのユーザーからのデータ取得処理
 		UserInfoDao userInfoDao = UserInfoDao.getInstance();
 
-		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
+		if (userId.isEmpty()) {
+			return KCMessageFactory.createMessage(Result.CODE_BAD_REQUEST, "Provided user id is not valid.");
+		}
 
-		Result result = KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
-		return result;
+		if (!userInfoDao.isUserExist(userId)) {
+			return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
+		}
+
+		com.cloudant.client.api.model.Response res = userInfoDao.deleteUser(userId);
+		// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
+		// TODO:既にユーザーが存在しない時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		// TODO:既にユーザーが存在していた時の応答として、Cloudantは特別応答コードを変えてこない(常に201)ため、既に存在する時の場合分けが難しい
+		return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 	}
 
 	/**
@@ -299,7 +327,7 @@ public class KCData {
 
 		// 指定されたユーザが見つからなかった場合、エラーメッセージを返す
 		if (!userInfoDao.isUserExist(userId)) {
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found");
+			return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found");
 		}
 
 		// IDはユニークなはずなので、Listにする必要はない
@@ -309,7 +337,7 @@ public class KCData {
 		Result result = new ResultProductList(userId);
 
 		/*
-		 * TODO 現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
+		 * TODO:現在は購読しているページ一覧を取得しその中から購読している製品一覧を抽出しているが、DBに投げるクエリを調整して、
 		 * 直接購読している製品一覧を取得しても良いかもしれない(特に購読件数が増えたときに通信量の低減と速度向上に繋がる)
 		 */
 		for (UserDocument userDoc : userList) {
@@ -318,6 +346,7 @@ public class KCData {
 			subscribedPages.forEach(entry -> {
 				((ResultProductList) result).addSubscribedProduct(entry.getProdId(), entry.getProdName());
 			});
+			result.setCode(Result.CODE_OK);
 		}
 
 		return result;
@@ -344,13 +373,13 @@ public class KCData {
 
 			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
 			if (!userInfoDao.isUserExist(userId)) {
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "User Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
 			} else if (!topicMeta.isExist()) {
 				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Not Found.");
+				return KCMessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
 			} else if (userInfoDao.isPageExist(userId, pageHref)) {
 				// 指定されたページを既に購読している場合もエラーメッセージを返す
-				return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "You Already Subscribe This Page.");
+				return KCMessageFactory.createMessage(Result.CODE_CONFLICT, "You've Already Subscribed This Page.");
 			}
 
 			String prodId = topicMeta.getProduct();
@@ -359,11 +388,11 @@ public class KCData {
 
 			com.cloudant.client.api.model.Response res = userInfoDao.setSubscribedPages(userId, pageHref, pageName,
 					prodId, prodName);
-			return KCMessageFactory.createMessage(res.getStatusCode(), res.getReason());
+			return KCMessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Communication Error");
+			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Communication Error");
 		}
 	}
 
@@ -376,8 +405,12 @@ public class KCData {
 	 * @param lang
 	 *            言語コード(ISO 639-1)
 	 * @return ページ内容
-	 * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html">Locale (Java Platform SE 8 )</a>
-	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
+	 * @see <a href=
+	 *      "https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html">Locale
+	 *      (Java Platform SE 8 )</a>
+	 * @see <a href=
+	 *      "https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client
+	 *      API</a>
 	 */
 	public Result searchContent(String pageHref, String lang) {
 		Client client = ClientBuilder.newClient();
@@ -419,7 +452,9 @@ public class KCData {
 	 * @param sort
 	 *            並び替え、現時点では日付昇順・降順のみAPIでサポートしている、date:aかdate:d以外が来たら指定がなかったものとみなす
 	 * @return 検索結果
-	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
+	 * @see <a href=
+	 *      "https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client
+	 *      API</a>
 	 */
 	public Result searchPages(String query, String products, String inurl, Integer offset, Integer limit, String lang,
 			String sort) {
@@ -430,8 +465,8 @@ public class KCData {
 
 		/*
 		 * パラメーターが存在するなら追加する、という処理、
-		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、
-		 * という処理を実装する, queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
+		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、 という処理を実装する,
+		 * queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
 		 */
 		Map<String, String> queryMap = new HashMap<>();
 
@@ -467,9 +502,10 @@ public class KCData {
 			// JSONの中にあるtopicsを読み、1件ずつTopicオブジェクトとして初期化し、リストに追加している
 			resJson.getJSONArray("topics").forEach(topic -> resTopics.add(new Topic((JSONObject) topic)));
 			Result result = new ResultSearchList(resOffset, resNext, resPrev, resCount, resTotal, resTopics);
+			result.setCode(Result.CODE_OK);
 			return ((ResultSearchList) result);
 		} else {
-			return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Can't get search result");
+			return KCMessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Can't get search result");
 		}
 	}
 
@@ -481,7 +517,9 @@ public class KCData {
 	 * @param pageHref
 	 *            ページ名を確認する対象のpageのHref
 	 * @return breadcrumbから抽出したページ名
-	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
+	 * @see <a href=
+	 *      "https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client
+	 *      API</a>
 	 */
 	private String getPageName(String prodId, String pageHref) throws JSONException {
 		Client client = ClientBuilder.newClient();
@@ -509,7 +547,9 @@ public class KCData {
 	 * @param specificHref
 	 *            更新の有無を確認する対象のpageのHref
 	 * @return topic_metadataから得られた応答を抽出してプロパティとしてセットした{@link TopicMeta}
-	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
+	 * @see <a href=
+	 *      "https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client
+	 *      API</a>
 	 */
 	private TopicMeta getSpecificPageMeta(String specificHref) throws JSONException {
 		Client client = ClientBuilder.newClient();
@@ -544,14 +584,23 @@ public class KCData {
 	 * .htmでの登録は行わせず、全て.htmlで登録を行わせるように拡張子を統一する（不正な拡張子はisTopicExist()で弾かれる)
 	 * 検索の結果をそのまま使うとsc=_latestがついてしまい、ページ名取得の際の障害になるので排除するための処理
 	 * xxx.htm,xxx.htm?sc=_latest,xxx.html?sc=_latestをxxx.htmlに置き換える
-	 *
+	 * また、上記正規化処理前に、SSL3JX%2Fverse%2Fwelcometoibmverse.htmlのようにエンコードされたURLのデコードを実施している
+	 * 
 	 * @param originalHref
 	 *            置き換え前のhref
 	 * @return 置き換え後のhref
 	 */
 	private String normalizeHref(String originalHref) {
-		String normalizedHref = originalHref
-				.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$", "\\.html");
+		String decodedHref;
+		String normalizedHref;
+		try {
+			decodedHref = URLDecoder.decode(originalHref, "UTF-8");
+			normalizedHref = decodedHref.replaceFirst("\\.htm$" + "|\\.htm\\?sc=_latest$" + "|\\.html\\?sc=_latest$",
+					"\\.html");
+		} catch (UnsupportedEncodingException e) {
+			return originalHref;
+		}
+
 		return normalizedHref;
 	}
 
@@ -561,7 +610,9 @@ public class KCData {
 	 * @param productKey
 	 *            特定ページ
 	 * @return 得られたJSONを元に生成した{@link TopicProduct}オブジェクト | null
-	 * @see <a href="https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client API</a>
+	 * @see <a href=
+	 *      "https://jersey.java.net/documentation/latest/client.html">Chapter 5. Client
+	 *      API</a>
 	 */
 	private TopicProduct searchProduct(String productKey) {
 		Client client = ClientBuilder.newClient();
