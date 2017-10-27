@@ -81,6 +81,7 @@ public class SubscribedPage {
 
 	// @see https://github.com/cloudant/java-cloudant
 	// toStringをoverrideする実装の際に参考にしたもの
+	@Override
 	public String toString() {
 		return "{pageHref: " + pageHref + ",\npageName: " + pageName + ",\nisUpdated: " + isUpdated + ",\nupdatedTime: "
 				+ updatedTime + ",\nprodId: " + prodId + ",\nprodName: " + prodName + ",\nencodedHref: " + encodedHref
