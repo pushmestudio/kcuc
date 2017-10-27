@@ -252,6 +252,41 @@ public class UserInfoDao {
 		return userDocs.size() > 0 ? true : false;
 	}
 
+	/**
+	 * 指定されたユーザの購読製品が既にDBに存在するか確認する
+	 * 
+	 * @param userId
+	 *            確認するユーザ名
+	 * @param prodId
+	 *            確認する購読製品ID
+	 * @return True or False
+	 */
+	public boolean isProductExist(String userId, String prodId) {
+		List<UserDocument> userDocs;
+		try {
+			// リトライ向けに2回書いているので修正時はどちらも直すこと
+			userDocs = kcucDB.findByIndex(
+					"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
+							+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"prodId\":\"" + prodId + "\"}}}]}}",
+					UserDocument.class);
+		} catch (TooManyRequestsException e) {
+			// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
+			e.printStackTrace();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ee) {
+				ee.printStackTrace();
+			}
+			userDocs = kcucDB.findByIndex(
+					"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
+							+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"prodId\":\"" + prodId + "\"}}}]}}",
+					UserDocument.class);
+			// ここをuserDocs =
+			// this.isProductExist(userId, prodId)にすれば再帰呼び出しで成功するまでリトライし続ける
+		}
+		return userDocs.size() > 0 ? true : false;
+	}
+
 	// UPDATE - CRUD
 
 	/**

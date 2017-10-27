@@ -58,9 +58,7 @@ docker run -v /opt/tomcat/webapps:/usr/local/tomcat/webapps \
 
 3. 生成されたWarのデプロイ
 
-    `build/libs`以下に生成されたWarをデプロイする。なお、現行ではBluemix上にデプロイしており、標準的なビルドパックを使用している都合上、コンテキストルートは`/`とすることを前提にしている。そのため、Tomcatにデプロイする場合には`ROOT.war`にファイル名を変更してからデプロイする。
-
-    事前想定のDockerなどを使用している場合(`/opt/tomcat/webapps/`ディレクトリがある場合)には、`./gradlew deploy`(or `./gradlew build deploy`)実行により、`ROOT.war`にリネーム + デプロイ可能。
+    `build/libs`以下に生成されたWarをデプロイする。事前想定のDockerなどを使用している場合(`/opt/tomcat/webapps/`ディレクトリがある場合)には、`./gradlew deploy`(or `./gradlew build deploy`)実行により、デプロイ可能。
 
 # 開発環境セットアップ
 
@@ -124,7 +122,7 @@ Eclipse起動前に、プロジェクトトップディレクトリにて`./grad
 
 * ローカル環境のパーミッション設定がされていない
 
-    パーミッションが適切に設定されていないとデプロイしたWarがTomcatのディレクトリ上に展開されない場合がある。`/opt/tomcat/webapps`以下に`ROOT`ディレクトリが生成され、`WEB-INF/classes`にクラスファイルが含まれているかなどを確認し、そのようになっていなければ、ディレクトリの読み書きが実行ユーザー・Dockerいずれからでも可能になるよう設定にする。
+    パーミッションが適切に設定されていないとデプロイしたWarがTomcatのディレクトリ上に展開されない場合がある。`/opt/tomcat/webapps`以下に`kcuc`ディレクトリが生成され、`WEB-INF/classes`にクラスファイルが含まれているかなどを確認し、そのようになっていなければ、ディレクトリの読み書きが実行ユーザー・Dockerいずれからでも可能になるよう設定にする。
 
     Macユーザーの場合は、Dockerにおいて共有ディレクトリとして`/opt/tomcat`を指定する必要がある。
 
