@@ -1,5 +1,6 @@
 package jp.pushmestudio.kcuc.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,9 +12,9 @@ public class UserDocument {
 	private String userId;
 	private List<SubscribedPage> subscribedPages;
 
-	// コンストラクタ(未使用)
 	public UserDocument(String userId) {
 		this.userId = userId;
+		this.subscribedPages = new ArrayList<>();
 	}
 
 	public String getId() {
@@ -35,11 +36,16 @@ public class UserDocument {
 	public void addSubscribedPages(SubscribedPage targetPage) {
 		subscribedPages.add(targetPage);
 	}
-	
-	public SubscribedPage removeSubscribedPages(int target) {
-		return subscribedPages.remove(target);
+	public void delSubscribedPage(int target) {
+		subscribedPages.remove(target);
 	}
 
+	public void replaceSubscribedPages(List<SubscribedPage> pages) {
+		subscribedPages = new ArrayList<>(pages);
+	}
+
+	// @see https://github.com/cloudant/java-cloudant
+	// toStringをoverrideする実装の際に参考にしたもの
 	public String toString() {
 		return "{id: " + _id + ",\nrev: " + _rev + ",\nuserId: " + userId + ",\nsubscribedPages: " + subscribedPages
 				+ "\n}";
