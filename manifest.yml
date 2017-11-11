@@ -1,0 +1,4 @@
+applications:
+  buildpack: java-buildpack
+env:
+  JBP_CONFIG_TOMCAT: "{tomcat: { context_path: /kcuc }}"

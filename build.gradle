@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'eclipse-wtp'
 apply plugin: 'war'
-apply plugin: 'maven'
+apply plugin: 'checkstyle'
 
 // version = '1.0' // versionをつけると、生成されるwarの末尾にversionが付く
 def defaultEncoding = 'UTF-8'
@@ -17,7 +17,7 @@ tasks.withType(GroovyCompile).each {
 }
 
 repositories {
-  mavenCentral()
+  jcenter()
   flatDir dirs: "${webAppDir}/WEB-INF/lib"
 }
 
@@ -30,7 +30,8 @@ dependencies {
   // HttpServletなどを使用する場合には必要
   // providedCompile 'javax.servlet:javax.servlet-api:3.1'
 
-  compile 'org.glassfish.jersey.core:jersey-server:2.23'
+  // Grassfishサーバーの場合はprovidedCompileでOK
+  // https://jersey.github.io/documentation/latest/modules-and-dependencies.html
   compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.23'
 
   // swagger
@@ -39,26 +40,46 @@ dependencies {
   // cloudant
   compile 'com.cloudant:cloudant-client:2.7.0'
 
-  // glassfish containerを使う場合はjersey-container-servletを消して下記を有効化する
-  // compile 'org.glassfish.jersey.containers:jersey-container-jdk-http:2.23'
-
-  testCompile 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jdk-http:2.23'
   testCompile 'junit:junit:4.12'
+}
+
+// enclosed testが2回実行されることを防ぐ
+test {
+  exclude '**/*$*'
+}
+
+javadoc {
+  options.charSet = defaultEncoding
+}
+
+// テストディレクトリはcheck対象としない
+checkstyle {
+  checkstyleTest.source = {}
 }
 
 war {
   archiveName 'kcuc.war'
 }
 
-// pom.xml書き出し、ここできちんと書き出させるためにはdependenciesをまともに書く必要あり
-task writePom {
-  doLast {
-    pom().writeTo('pom.xml')
-  }
+// 生成されたwarを配置する、WARの名称変更が不要となったためただのコピーをしているだけのもはや不要なタスク
+/* @deprecated */
+task deploy(type: Exec) {
+  description 'Deploy generated war file to ${deployTargetDir} directory'
+  workingDir "${projectDir}/build/libs/"
+  commandLine 'cp', '-v', war.archiveName, "${deployTargetDir}/"
 }
 
-// 生成されたwarを配置する
-task deploy(type: Exec) {
-  workingDir "${projectDir}/build/libs/"
-  commandLine 'cp', '-v', 'kcuc.war', "${deployTargetDir}/ROOT.war"
+/**
+ * CheckstyleのEclipse環境における設定ファイルである.checkstyleを一括配布するためのタスク
+ * subprojectsすべてに対してmasterが持っている.checkstyleを配布する
+ */
+task distCheckstyle(type:Copy) {
+  description 'Distribute .checkstyle file to all subprojects for Eclipse'
+
+  copy {
+    from "${checkstyle.configDir}/.checkstyle"
+    into "${project.rootDir}"
+  }
 }
+// Eclipseの初期化タスクを呼んだ場合に必ず.checkstyleの配布も行われるようにする
+distCheckstyle.mustRunAfter(":master:eclipseProject")

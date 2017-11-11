@@ -1,9 +1,54 @@
-image: openjdk:8
+variables:
+  IMAGE_NAME: "registry.gitlab.com/pushmestudio/kcuc"
+  WAR_NAME: "kcuc.war"
+  RELEASE_CONTAINER: "container/release/Dockerfile"
+  KUBE_DEPLOYMENT: "deploy/release-deployments.yml"
+  KUBECONFIG: "" # it needs to set
 
 stages:
 - build
+- test
+- push
+- deploy
+
+# it needs to deploy phase
+services:
+  - docker:dind
+
+before_script:
+  - chmod +x ./gradlew
 
 build_job:
+  image: "${IMAGE_NAME}:devel"
   stage: build
   script:
-  - ./gradlew build
+    # build and test job can be separated, but we don't need it so far, and all in one job is much faster
+    - ./gradlew -g /cache/.gradle clean build
+  allow_failure: false
+  # reserve war file for deploy
+  artifacts:
+    paths:
+      - "build/libs/${WAR_NAME}"
+    expire_in: 3 days
+
+push_job:
+  image: docker:latest
+  stage: push
+  # prerequire the build/libs/kcuc.war
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+    - docker build -f "${RELEASE_CONTAINER}" -t "${IMAGE_NAME}:latest" --build-arg CLOUDANT_ACCOUNT="${CLOUDANT_ACCOUNT}" --build-arg CLOUDANT_USER="${CLOUDANT_USER}" --build-arg CLOUDANT_PW="${CLOUDANT_PW}" .
+    - docker push "${IMAGE_NAME}:latest"
+  only:
+    - master
+
+deploy_job:
+  image: lwolf/kubectl_deployer:latest
+  stage: deploy
+  script:
+    - kubectl replace --force -f "${KUBE_DEPLOYMENT}" --server="${KUBE_URL}" --username admin --password="${KUBE_TOKEN}" --insecure-skip-tls-verify
+  when: manual
+  environment:
+    name: production
+  only:
+    - master
