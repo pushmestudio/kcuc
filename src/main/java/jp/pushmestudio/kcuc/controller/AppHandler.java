@@ -193,10 +193,14 @@ public class AppHandler {
 					TopicMeta topicMeta = getSpecificPageMeta(pageKey);
 
 					// if (!topicMeta.isExist()) {
-					// 本家KCからページ削除されている場合の処理 (※20171022時点では，特別例外処理はせず，エラーも返さないことにした)
-					// ==> 削除済ページの追加や取得，レスポンスなどに関する実装は，いったんRemoveしたので必要に応じて右記のコミットを参照(Commit:
+					// 本家KCからページ削除されている場合の処理
+					// (※20171022時点では，特別例外処理はせず，エラーも返さないことにした)
+					// ==>
+					// 削除済ページの追加や取得，レスポンスなどに関する実装は，いったんRemoveしたので必要に応じて右記のコミットを参照(Commit:
 					// 272f65d07a9ef5e21f9c842c6543c8a1793d6294)
-					// return KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR, "Page Deleted
+					// return
+					// KCMessageFactory.createMessage(Result.CODE_SERVER_ERROR,
+					// "Page Deleted
 					// in KC.");
 					// }
 
@@ -253,56 +257,16 @@ public class AppHandler {
 	 *
 	 * @param userId
 	 *            対象のユーザーID
-	 * @param href
-	 *            購読解除するページ
-	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
-	 *
-	 */
-	public Result deleteSubscribedPage(String userId, String href) {
-		try {
-			String pageHref = this.normalizeHref(href);
-
-			// DBのユーザーからのデータ取得処理
-			UserInfoDao userInfoDao = UserInfoDao.getInstance();
-
-			// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
-			if (!userInfoDao.isUserExist(userId)) {
-				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "User Not Found.");
-				// 指定されたページがKnowledgeCenterに存在しない場合もエラーメッセージを返す
-			} else if (!isTopicExist(pageHref)) {
-				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "Page Not Found.");
-				// 指定されたページを購読していない場合もエラーメッセージを返す
-			} else if (!userInfoDao.isPageExist(userId, pageHref)) {
-				return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "Not Yet Subscribed This Page.");
-			}
-
-			com.cloudant.client.api.model.Response res = userInfoDao.delSubscribedPage(userId, pageHref);
-			// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
-			return MessageFactory.createMessage(Result.CODE_OK, res.getReason());
-		} catch (JSONException e) {
-			e.printStackTrace();
-			// エラーメッセージを作成
-			return MessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
-		}
-	}
-
-	/**
-	 * 複数の購読解除したいページを削除
-	 *
-	 * @param userId
-	 *            対象のユーザーID
 	 * @param hrefs
-	 *            複数の購読解除するページ
+	 *            購読解除するページのリスト
 	 * @return 実施結果の成否の入ったオブジェクトをラップしたMessageオブジェクト(何を返すべきか検討の余地あり)
 	 *
 	 */
-	@SuppressWarnings("null")
-	public Result deleteSubscribedPages(String userId, List<String> hrefs) {
+	public Result cancelSubscribedPages(String userId, List<String> hrefs) {
 		try {
-			// DBのユーザーからのデータ取得処理
 			UserInfoDao userInfoDao = UserInfoDao.getInstance();
-			List<String> pageHrefs = null;
-			for (String href : hrefs){
+			List<String> pageHrefs = new ArrayList<String>();
+			for (String href : hrefs) {
 				String pageHref = this.normalizeHref(href);
 				pageHrefs.add(pageHref);
 				// 指定されたユーザがDBに存在しない場合、エラーメッセージを返す
@@ -314,19 +278,20 @@ public class AppHandler {
 					// 指定されたページを購読していない場合もエラーメッセージを返す
 				} else if (!userInfoDao.isPageExist(userId, pageHref)) {
 					return MessageFactory.createMessage(Result.CODE_NOT_FOUND, "Not Yet Subscribed This Page.");
-				}				
+				}
 			}
 
-			com.cloudant.client.api.model.Response res = userInfoDao.delSubscribedPages(userId, pageHrefs);
+			com.cloudant.client.api.model.Response res = userInfoDao.cancelSubscribedPages(userId, pageHrefs);	
+			
 			// Cloudantの応答コードをそのまま使わず、KCとしての応答コードを返す
 			return MessageFactory.createMessage(Result.CODE_OK, res.getReason());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			// エラーメッセージを作成
 			return MessageFactory.createMessage(Result.CODE_INTERNAL_SERVER_ERROR, "Internal Server Error.");
-		}	
+		}
 	}
-	
+
 	/**
 	 * 指定したIDのユーザーを削除する
 	 *
@@ -506,8 +471,8 @@ public class AppHandler {
 
 		/*
 		 * パラメーターが存在するなら追加する、という処理、
-		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、 という処理を実装する,
-		 * queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
+		 * さらにパラメーターが増えるならわかりにくいので、1.パラメーターがあるならMapに追加、2.Mapを回してパラメーターとして追加、
+		 * という処理を実装する, queryParamは新しいWebTargetを返すので、Mapの処理を素直にラムダ式では処理できない
 		 */
 		Map<String, String> queryMap = new HashMap<>();
 

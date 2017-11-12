@@ -355,54 +355,35 @@ public class UserInfoDao {
 	 * 
 	 * @param userId
 	 *            対象ユーザのID
-	 * @param pageHref
+	 * @param hrefs
 	 *            購読解除ページ
 	 * @return 解除結果
 	 */
-	public Response delSubscribedPage(String userId, String pageHref) {
-		// userIdとpageHrefで指定されたユーザのデータを取得
-		List<UserDocument> userDocs;
-		try {
-			// リトライ向けに2回書いているので修正時はどちらも直すこと
-			userDocs = kcucDB.findByIndex(
-					"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
-							+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
-					UserDocument.class);
-		} catch (TooManyRequestsException e) {
-			// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
-			e.printStackTrace();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException ee) {
-				ee.printStackTrace();
-			}
-			userDocs = kcucDB.findByIndex(
-					"{\"selector\":{\"$and\":[{\"userId\":\"" + userId
-							+ "\"},{\"subscribedPages\":{\"$elemMatch\":{\"pageHref\":\"" + pageHref + "\"}}}]}}",
-					UserDocument.class);
-			// ここをres = delSubscribedPage(userId,
-			// pageHref)にすれば再帰呼び出しで成功するまでリトライし続ける
-		}
-
+	public Response cancelSubscribedPages(String userId, List<String> hrefs) {
+		List<UserDocument> userDocs = this.getUserList(userId);
 		Response res = new Response();
 		UserDocument updateTarget;
-
 		Iterator<UserDocument> it = userDocs.iterator();
+
+		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
 		// kcucDB.findにてマッチするターゲットを見つけていたものをIteratorに置き換え
 		while (it.hasNext()) {
 			UserDocument userDoc = it.next();
 			if (userDoc.getUserId().equals(userId)) {
 				updateTarget = userDoc;
-				int target = 0;
-				for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
-					if (targetHref.getPageHref().equals(pageHref)) {
-						break;
-					}
-					target++;
-				}
-				// 対象ページの購読解除
-				updateTarget.delSubscribedPage(target);
 
+				// 解除対象ページの配列番号を，指定したユーザが購読中のページ内から探して，SubscribedPagesからremoveする
+				for (String page : hrefs) {
+					int target = 0; // getSubscribedPages()した時点での購読中のページ数(解除するための配列番号を特定するために使用)
+					for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
+						if (targetHref.getPageHref().equals(page)) {
+							updateTarget.removeSubscribedPage(target);
+							break;
+						}
+						target++;
+					}
+				}
+				// Cloudant上のユーザ購読情報(Document)を更新
 				try {
 					// DBへのアップデート処理
 					// リトライ向けに2回書いているので修正時はどちらも直すこと
@@ -416,16 +397,14 @@ public class UserInfoDao {
 						ee.printStackTrace();
 					}
 					res = kcucDB.update(updateTarget);
-					// ここをres = delSubscribedPage(userId,
-					// pageHref)にすれば再帰呼び出しで成功するまでリトライし続ける
+					// ここをres = delSubscribedPages(String userId, List<String> hrefs) にすれば再帰呼び出しで成功するまでリトライし続ける
 				}
-
 				break;
 			}
 		}
 		return res;
 	}
-
+	
 	/**
 	 * ユーザーの購読しているページのうち、特定の製品IDを持つものをまとめて購読解除する
 	 * 
@@ -468,7 +447,7 @@ public class UserInfoDao {
 
 				// 対象ページの購読解除
 				for (int eachTarget : targetIndexList) {
-					updateTarget.delSubscribedPage(eachTarget);
+					updateTarget.removeSubscribedPage(eachTarget);
 				}
 
 				try {
@@ -552,52 +531,5 @@ public class UserInfoDao {
 			e.printStackTrace();
 		}
 		return props;
-	}
-
-	public Response delSubscribedPages(String userId, List<String> hrefs) {
-		List<UserDocument> userDocs = this.getUserList(userId);
-		Response res = new Response();
-		UserDocument updateTarget;
-		Iterator<UserDocument> it = userDocs.iterator();
-
-		// 指定したユーザが購読中のページ内で，解除対象ページの配列番号を調べる
-		// kcucDB.findにてマッチするターゲットを見つけていたものをIteratorに置き換え
-		while (it.hasNext()) {
-			UserDocument userDoc = it.next();
-			if (userDoc.getUserId().equals(userId)) {
-				updateTarget = userDoc;
-
-				// 解除対象ページの配列番号を，指定したユーザが購読中のページ内から探して，SubscribedPagesからremoveする
-				for (String page : hrefs) {
-					int target = 0; // getSubscribedPages()した時点での購読中のページ数(解除するための配列番号を特定するために使用)
-					for (SubscribedPage targetHref : updateTarget.getSubscribedPages()) {
-						if (targetHref.getPageHref().equals(page)) {
-							updateTarget.delSubscribedPage(target);
-							break;
-						}
-						target++;
-					}
-				}
-				// Cloudant上のユーザ購読情報(Document)を更新
-				try {
-					// DBへのアップデート処理
-					// リトライ向けに2回書いているので修正時はどちらも直すこと
-					res = kcucDB.update(updateTarget);
-				} catch (TooManyRequestsException e) {
-					// 回数制限に引っかかったら記録を残した上で1秒後に1度だけリトライする
-					e.printStackTrace();
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException ee) {
-						ee.printStackTrace();
-					}
-					res = kcucDB.update(updateTarget);
-					// ここをres = cancelSubscribedProduct(userId,
-					// prodId)にすれば再帰呼び出しで成功するまでリトライし続ける
-				}
-				break;
-			}
-		}
-		return res;
 	}
 }
