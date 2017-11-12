@@ -220,33 +220,33 @@ public class KcucResource {
 	 *
 	 * @param userId
 	 *            購読ページを解除するユーザID（いずれはCookieなど）
-	 * @param encodedHref
+	 * @param encodedHrefs
 	 *            エンコード済みの購読解除対象のページキー
 	 * @return 購読解除後の購読ページ一覧
 	 */
-	@Path("{userId}/pages/{encodedHref}")
+	@Path("{userId}/pages/{encodedHrefs}")
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読ページ解除", notes = "特定のユーザの購読するページを解除")
 	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = Message.class, message = "購読解除が完了しました"),
 			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response unsetSubscribe(@ApiParam(value = "対象のユーザー名", required = true) @PathParam("userId") String userId,
-			@ApiParam(value = "エンコード済みの購読解除対象のページキー", required = true) @PathParam("encodedHref") String encodedHref) {
+			@ApiParam(value = "エンコード済みの購読解除対象のページキー", required = true) @QueryParam("encodedHrefs") List<String> encodedHrefs) {
 
-		Result result = appHandler.deleteSubscribedPage(userId, encodedHref);
+		Result result = appHandler.cancelSubscribedPages(userId, encodedHrefs);
 		return Response.status(result.getCode()).entity(result).build();
 	}
-
+	
 	/**
 	 * 特定のユーザの購読するページを解除、ヘッダーからユーザーIDを読み込む
 	 *
 	 * @param userId
 	 *            購読ページを解除するユーザID（いずれはCookieなど）
-	 * @param encodedHref
+	 * @param encodedHrefs
 	 *            エンコード済みの購読解除対象のページキー
 	 * @return 購読解除後の購読ページ一覧
 	 */
-	@Path("me/pages/{encodedHref}")
+	@Path("me/pages/{encodedHrefs}")
 	@DELETE
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "購読ページ解除", notes = "特定のユーザの購読するページを解除")
@@ -254,9 +254,9 @@ public class KcucResource {
 			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
 	public Response unsetSubscribeMe(
 			@ApiParam(value = "対象のユーザー名", required = true) @HeaderParam("user-id") String userId,
-			@ApiParam(value = "エンコード済みの購読解除対象のページキー", required = true) @PathParam("encodedHref") String encodedHref) {
+			@ApiParam(value = "エンコード済みの購読解除対象のページキー", required = true) @QueryParam("encodedHrefs") List<String> encodedHrefs) {
 
-		Result result = appHandler.deleteSubscribedPage(userId, encodedHref);
+		Result result = appHandler.cancelSubscribedPages(userId, encodedHrefs);
 		return Response.status(result.getCode()).entity(result).build();
 	}
 
@@ -345,27 +345,4 @@ public class KcucResource {
 		Result result = appHandler.cancelSubscribedProduct(userId, prodId);
 		return Response.status(result.getCode()).entity(result).build();
 	}
-	
-	/**
-	 * 特定のユーザの購読するページを複数解除
-	 *
-	 * @param userId
-	 *            購読ページを解除するユーザID（いずれはCookieなど）
-	 * @param encodedHrefs
-	 *            エンコード済みの購読解除対象のページキー
-	 * @return 購読解除後の購読ページ一覧
-	 */
-	@Path("{userId}/pages/{encodedHrefs}")
-	@DELETE
-	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "購読ページ解除", notes = "特定のユーザの購読するページを解除")
-	@ApiResponses(value = { @ApiResponse(code = Result.CODE_OK, response = Message.class, message = "購読解除が完了しました"),
-			@ApiResponse(code = Result.CODE_NOT_FOUND, response = Message.class, message = "指定したコンテンツが見つかりません") })
-	public Response unsetSubscribe(@ApiParam(value = "対象のユーザー名", required = true) @PathParam("userId") String userId,
-			@ApiParam(value = "エンコード済みの購読解除対象のページキー", required = true) @PathParam("encodedHref") List<String> encodedHrefs) {
-
-		Result result = appHandler.deleteSubscribedPages(userId, encodedHrefs);
-		return Response.status(result.getCode()).entity(result).build();
-	}
-
 }
