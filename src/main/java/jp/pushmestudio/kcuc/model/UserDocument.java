@@ -36,8 +36,8 @@ public class UserDocument {
 	public void addSubscribedPages(SubscribedPage targetPage) {
 		subscribedPages.add(targetPage);
 	}
-
-	public void delSubscribedPage(int target) {
+	
+	public void removeSubscribedPage(int target) {
 		subscribedPages.remove(target);
 	}
 
