@@ -3,6 +3,7 @@ package jp.pushmestudio.kcuc.model;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.AfterClass;
@@ -189,7 +190,7 @@ public class AppHandlerTest {
 
 	public static class 購読済ページの削除を確認するケース {
 		static String userId = "testuser";
-		static String hrefKey = "SSYRPW_9.0.1/UsingVerseMobile.html";
+		static List<String> hrefkeys = Arrays.asList("SSYRPW_9.0.1/UsingVerseMobile.html", "SS42VS_7.2.8/com.ibm.appfw.doc/c_appframework_Extintro.html");
 		static Result preResult;
 		static List<SubscribedPage> prePageList;
 
@@ -200,7 +201,8 @@ public class AppHandlerTest {
 				// テストデータとして登録する、APIへの負荷を懸念しスリープ処理を入れている
 				appHandler.createUser(userId);
 				Thread.sleep(500);
-				appHandler.registerSubscribedPage(userId, hrefKey);
+				appHandler.registerSubscribedPage(userId, hrefkeys.get(0));
+				appHandler.registerSubscribedPage(userId, hrefkeys.get(1));
 				Thread.sleep(500);
 
 				// テスト前の事前状態を保存しておく
@@ -209,7 +211,7 @@ public class AppHandlerTest {
 				Thread.sleep(500);
 
 				// execute
-				appHandler.deleteSubscribedPage(userId, hrefKey);
+				appHandler.cancelSubscribedPages(userId, hrefkeys);
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -231,14 +233,14 @@ public class AppHandlerTest {
 		}
 
 		@Test
-		public void 購読解除した1件のページが購読済リストから取り除かれる() {
+		public void 購読解除した2件のページが購読済リストから取り除かれる() {
 			// verify
 			Result gotResult = appHandler.checkUpdateByUser(userId);
 			List<SubscribedPage> pageList = ((ResultPageList) gotResult).getSubscribedPages();
 			int actual = pageList.size();
 
-			// 1件削除されているか
-			assertThat(actual, is(prePageList.size() - 1));
+			// 2件削除されているか
+			assertThat(actual, is(prePageList.size() - 2));
 		}
 	}
 
